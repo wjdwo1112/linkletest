@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ggamakun.linkle.domain.like.repository.ILikeRepository">
+
+<update id="deletePostLike">
+UPDATE LIKE_LOG
+SET IS_CANCELED = 'Y'
+WHERE MEMBER_ID = #{memberId}
+AND POST_TYPE = 'P'
+AND TARGET_ID = #{postId}
+</update>
+
+<insert id="insertPostLike">
+INSERT INTO LIKE_LOG(
+  LIKE_ID, MEMBER_ID, CREATED_BY, CREATED_AT,
+  LIKED_AT, TARGET_TYPE, TARGET_ID, IS_CANCELED, IS_DELETED)
+VALUES(
+  SEQ_LIKE_LOG.NEXTVAL, #{memberId}, #{memberId}, SYSDATE, SYSDATE, 'P', #{postId}, 'N', 'N')
+
+</insert>
+
+
+<select id="existsPostLike" resultType="int">
+SELECT COUNT(1)
+FROM LIKE_LOG
+WHERE MEMBER_ID = #{memberId}
+AND TARGET_TYPE = 'P'
+AND TARGET_ID = #{postId}
+AND IS_DELETED = 'N'
+AND IS_CANCELED = 'N'
+</select>
+
+</mapper>

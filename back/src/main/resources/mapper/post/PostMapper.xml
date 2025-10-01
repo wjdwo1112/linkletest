@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ggamakun.linkle.domain.post.repository.IPostRepository">
+
+<select id="listAll" resultType="com.ggamakun.linkle.domain.post.entity.Post">
+
+SELECT
+	p.post_id AS postId,
+	p.club_id AS clubId,
+	p.title AS title,
+	p.content AS content,
+	p.images AS images,
+	p.post_type AS postType,
+	p.scope AS scope,
+	p.created_by AS createdBy,
+	p.created_at AS createdAt,
+	p.updated_by AS updatedBy,
+	p.updated_at AS updatedAt,
+	p.view_count AS viewCount,
+	p.like_count AS likeCount,
+	p.is_pinned AS isPinned,
+	p.is_deleted AS isDeleted
+	
+	FROM POST p
+	WHERE p.POST_TYPE='P'
+	AND p.IS_DELETED = 'N'
+
+</select>
+
+<select id="listSummary" resultType="com.ggamakun.linkle.domain.post.dto.PostSummary">
+
+SELECT
+	p.post_id AS postId,
+	c.name AS clubName,
+	p.images AS images,
+	p.title AS title,
+	p.like_count AS likeCount,
+	p.comment_count AS commentCount,
+	p.created_at AS createdAt
+FROM
+
+	POST p JOIN CLUB c on c.club_id=p.club_id
+	WHERE p.is_deleted = 'N'
+	AND p.post_type = 'P'
+	ORDER BY p.created_at DESC
+
+</select>
+
+<!-- 조회수 증가 -->
+<update id="increaseViewCount">
+UPDATE POST
+SET VIEW_COUNT = VIEW_COUNT + 1
+	WHERE POST_ID = #{postId}
+	AND IS_DELETED = 'N'
+
+</update>
+
+<!-- 게시글 상세조회 -->
+<select id="findPostDetail" resultType="com.ggamakun.linkle.domain.post.dto.PostDetail">
+SELECT
+	p.post_id AS postId,
+	p.club_id AS clubId,
+	p.title AS title,
+	p.content AS content,
+	p.images AS images,
+	p.post_type AS postType,
+	p.scope AS scope,
+	p.created_by AS createdBy,
+	p.created_at AS createdAt,
+	p.view_count AS viewCount,
+	p.like_count AS likeCount,
+	p.is_pinned AS isPinned,
+	p.is_deleted AS isDeleted,
+	c.name AS clubName
+FROM 
+	POST p JOIN CLUB c on c.club_id = p.club_id
+	WHERE p.POST_ID = #{postId}
+	AND p.IS_DELETED ='N'
+	AND p.POST_TYPE = 'P'
+</select>
+
+<!-- 게시글 등록 -->
+<insert id="insertPost" parameterType="com.ggamakun.linkle.domain.post.dto.CreatePostRequest">
+INSERT INTO POST
+	(POST_ID, CLUB_ID, TITLE, CONTENT, IMAGES, POST_TYPE, SCOPE, CREATED_AT
+	)
+VALUES
+	(SEQ_POST.NEXTVAL, #{clubId}, #{title}, #{content}, #{images}, #{postType}, #{scope}, SYSDATE
+	)
+
+</insert>
+
+<!-- 게시글 수정 -->
+<update id="updatePost">
+  UPDATE POST
+  <set>
+    <if test="request.title != null">       TITLE     = #{request.title},</if>
+    <if test="request.content != null">     CONTENT   = #{request.content},</if>
+    <if test="request.images != null">      IMAGES    = #{request.images},</if>
+    <if test="request.scope != null">       SCOPE     = #{request.scope},</if>
+    <if test="request.postType != null">    POST_TYPE = #{request.postType},</if>
+    UPDATED_AT = SYSDATE
+  </set>
+  WHERE POST_ID = #{postId}
+    AND IS_DELETED = 'N'
+</update>
+
+<!-- 게시글 삭제 -->
+<update id="deletePost">
+  UPDATE POST
+  SET IS_DELETED = 'Y',
+  UPDATED_AT = SYSDATE
+  
+  WHERE POST_ID = #{postId}
+  AND IS_DELETED = 'N'
+</update>
+
+<!-- 좋아요 증가 -->
+<update id="increaseLikeCount">
+UPDATE POST
+SET LIKE_COUNT = LIKE_COUNT + 1
+WHERE POST_ID = #{postId}
+AND IS_DELETED = 'N'
+
+</update>
+
+<!-- 좋아요 감소 -->
+<update id="decreaseLikeCount">
+UPDATE POST
+SET LIKE_COUNT = LIKE_COUNT - 1
+WHERE POST_ID = #{postId}
+AND IS_DELETED = 'N'
+AND LIKE_COUNT > 0
+</update>
+
+<!-- 현재 좋아요 조회 -->
+<select id="getLikeCount">
+SELECT 
+LIKE_COUNT 
+FROM POST
+WHERE POST_ID = #{postId}
+AND IS_DELETED = 'N'
+</select>
+
+
+
+</mapper>

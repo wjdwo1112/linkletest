@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ggamakun.linkle.domain.notice.repository.INoticeRepository">
+
+<!-- 고정인 공지사항 리스트 조회 -->
+<select id="getPinned" resultType="com.ggamakun.linkle.domain.notice.dto.NoticeSummary">
+SELECT 
+  p.post_id AS postId,
+  p.club_id AS clubId,
+  p.title AS title,
+  p.content AS content,
+  p.post_type AS postType,
+  p.scope AS scope,
+  p.created_by AS createdBy,
+  p.created_At AS createdAt,
+  p.view_count AS viewCount,
+  p.is_pinned AS isPinned,
+  p.is_deleted AS isDeleted
+FROM 
+  POST p join CLUB c on c.club_id = p.club_id
+  WHERE p.post_type = 'N'
+  AND p.is_deleted = 'N'
+  AND p.is_pinned = 'Y'
+  ORDER BY p.created_at DESC
+
+</select>
+
+<!-- 고정 아닌 공지사항 리스트 조회 -->
+<select id="noticeList" resultType="com.ggamakun.linkle.domain.notice.dto.NoticeSummary">
+SELECT 
+  p.post_id AS postId,
+  p.club_id AS clubId,
+  p.title AS title,
+  p.content AS content,
+  p.post_type AS postType,
+  p.scope AS scope,
+  p.created_by AS createdBy,
+  p.created_At AS createdAt,
+  p.view_count AS viewCount,
+  p.is_pinned AS isPinned,
+  p.is_deleted AS isDeleted
+FROM 
+  POST p join CLUB c on c.club_id = p.club_id
+  WHERE p.post_type = 'N'
+  AND p.is_deleted = 'N'
+  AND p.is_pinned = 'N'
+  ORDER BY p.created_at DESC
+
+
+
+</select>
+
+<!-- 조회수 증가 -->
+<update id="increaseViewCount">
+UPDATE 
+SET view_count = view_count + 1
+WHERE post_id = #{postId}
+AND is_deleted = 'N'
+
+</update>
+
+<select id="findNoticeDetail" resultType="com.ggamakun.linkle.domain.notice.dto.NoticeDetail">
+SELECT
+	p.post_id AS postId,
+	p.club_id AS clubId,
+	c.name
+	p.title AS title,
+	p.
+
+
+
+
+
+</select>
+private Integer postId;
+	private Integer clubId;
+	private String Name;
+	private String title;
+	private String content;
+	private String images;
+	private String postType;
+	private Integer createdBy;
+	private Date createdAt;
+	private String scope;
+	private String isPinned;
+	private String isDeleted;
+
+
+
+
+
+</mapper>
