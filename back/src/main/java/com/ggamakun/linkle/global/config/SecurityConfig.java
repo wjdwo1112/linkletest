@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .requestMatchers("/login/oauth2/code/**").permitAll()
                 .requestMatchers("/login/oauth2/code/kakao").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html").permitAll()
-                .requestMatchers("/posts/list-summary", "/api/posts/list").permitAll()
+                .requestMatchers("/posts/list-summary", "/posts/list").permitAll()
                 .requestMatchers("/posts/{postId}").permitAll()
                 .requestMatchers("/posts/{postId}/likes/**").authenticated()
                 .anyRequest().authenticated()

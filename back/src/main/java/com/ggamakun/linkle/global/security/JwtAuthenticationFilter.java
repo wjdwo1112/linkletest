@@ -31,13 +31,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     // JWT 필터를 적용하지 않을 경로들
     private static final List<String> EXCLUDED_PATHS = Arrays.asList(
-        "/api/v1/auth/login",
-        "/api/v1/auth/refresh",
+        "/auth/login",
+        "/auth/refresh",
         "/oauth2",
         "/login/oauth2",
         "/swagger-ui",
         "/v3/api-docs",
-        "/h2-console"
+        "/h2-console",
+        "/posts"
     );
     
     @Override

@@ -1,10 +1,10 @@
-// frontend/src/services/api/postApi.js
+// front/src/services/api/postApi.js
 import { get, post, put, del } from '../apiClient';
 
 export const postApi = {
   // 게시글 목록 조회 (요약 정보)
   getPostList: async () => {
-    return await get('/posts/list-summary');
+    return await get('/posts/summary');
   },
 
   // 게시글 상세 조회
