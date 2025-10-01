@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.ggamakun.linkle.domain.post.dto.CreatePostRequest;
@@ -34,6 +35,7 @@ public class PostService implements IPostService {
 	}
 
 	@Override
+	@Transactional(readOnly=false)
 	public PostDetail getPost(Integer postId, boolean increase) {
 		
 		PostDetail dto = postRepository.findPostDetail(postId);
@@ -45,12 +47,14 @@ public class PostService implements IPostService {
 	}
 
 	@Override
+	@Transactional
 	public Integer insertPost(CreatePostRequest request) {
 		
 		return postRepository.insertPost(request);
 	}
 
 	@Override
+	@Transactional
 	public PostDetail updatePost(Integer postId, UpdatePostRequest request) {
 		int updated = postRepository.updatePost(postId, request);
 		if(updated == 0) {
@@ -60,6 +64,7 @@ public class PostService implements IPostService {
 	}
 
 	@Override
+	@Transactional
 	public int deletePost(Integer postId) {
 		
 		return postRepository.deletePost(postId);

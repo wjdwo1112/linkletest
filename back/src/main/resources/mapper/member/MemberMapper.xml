@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ggamakun.linkle.domain.member.repository.IMemberRepository">
+
+	<!-- 이메일로 회원 조회 -->
+    <select id="findByEmail" parameterType="String" resultType="com.ggamakun.linkle.domain.member.entity.Member">
+        SELECT 
+            member_id as memberId,
+            file_id as fileId,
+            email,
+            password,
+            name,
+            nickname,
+            birth_date as birthDate,
+            gender,
+            sido,
+            sigungu,
+            description,
+            interests,
+            join_date as joinDate,
+            is_withdrawn as isWithdrawn,
+            leave_date as leaveDate,
+            created_by as createdBy,
+            created_at as createdAt,
+            updated_by as updatedBy,
+            updated_at as updatedAt,
+            provider,
+            provider_id as providerId,
+            is_deleted as isDeleted
+        FROM Member 
+        WHERE email = #{email}
+        AND is_deleted = 'N'
+    </select>
+
+    <!-- 회원 ID로 조회 -->
+    <select id="findById" parameterType="int" resultType="com.ggamakun.linkle.domain.member.entity.Member">
+        SELECT 
+            member_id as memberId,
+            file_id as fileId,
+            email,
+            password,
+            name,
+            nickname,
+            birth_date as birthDate,
+            gender,
+            sido,
+            sigungu,
+            description,
+            interests,
+            join_date as joinDate,
+            is_withdrawn as isWithdrawn,
+            leave_date as leaveDate,
+            created_by as createdBy,
+            created_at as createdAt,
+            updated_by as updatedBy,
+            updated_at as updatedAt,
+            provider,
+            provider_id as providerId,
+            is_deleted as isDeleted
+        FROM Member 
+        WHERE member_id = #{memberId}
+        AND is_deleted = 'N'
+    </select>
+    
+    <!-- Provider와 ProviderId로 회원 조회 (소셜 로그인용) -->
+    <select id="findByProviderAndProviderId" resultType="com.ggamakun.linkle.domain.member.entity.Member">
+        SELECT 
+            member_id as memberId,
+            file_id as fileId,
+            email,
+            password,
+            name,
+            nickname,
+            birth_date as birthDate,
+            gender,
+            sido,
+            sigungu,
+            description,
+            interests,
+            join_date as joinDate,
+            is_withdrawn as isWithdrawn,
+            leave_date as leaveDate,
+            created_by as createdBy,
+            created_at as createdAt,
+            updated_by as updatedBy,
+            updated_at as updatedAt,
+            is_deleted as isDeleted,
+            provider,
+            provider_id as providerId
+        FROM Member 
+        WHERE provider = #{provider}
+        AND provider_id = #{providerId}
+        AND is_deleted = 'N'
+    </select>
+
+    <!-- 이메일 중복 확인 -->
+    <select id="countByEmail" parameterType="String" resultType="int">
+        SELECT COUNT(*)
+        FROM Member 
+        WHERE email = #{email}
+        AND is_deleted = 'N'
+    </select>
+
+    <!-- 회원 등록 -->
+    <insert id="insertMember" parameterType="com.ggamakun.linkle.domain.member.entity.Member">
+        <selectKey keyProperty="memberId" resultType="int" order="BEFORE">
+            SELECT seq_member.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO member (
+            member_id,
+            email,
+            password,
+            name,
+            nickname,
+            birth_date,
+            gender,
+            sido,
+            sigungu,
+            description,
+            interests,
+            join_date,
+            created_at,
+            is_withdrawn,
+            provider,
+            provider_id,
+            is_deleted
+        ) VALUES (
+            #{memberId},
+            #{email},
+            #{password},
+            #{name},
+            #{nickname},
+            #{birthDate},
+            #{gender},
+            #{sido},
+            #{sigungu},
+            #{description},
+            #{interests},
+            SYSDATE,
+            SYSDATE,
+            'N',
+            #{provider},
+            #{providerId},
+            'N'
+        )
+    </insert>
+
+</mapper>

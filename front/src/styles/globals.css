@@ -1,3 +1,6 @@
 @import 'tailwindcss';
 
-
+/* 스크롤바로 인한 레이아웃 이동 방지 */
+html {
+  overflow-y: scroll;
+}

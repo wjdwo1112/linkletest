@@ -11,8 +11,8 @@ const MyPageSidebar = () => {
     },
     {
       label: '나의 동호회',
-      path: '/mypage/communities',
-      isActive: location.pathname === '/mypage/communities',
+      path: '/mypage/clubs',
+      isActive: location.pathname === '/mypage/clubs',
     },
     {
       label: '나의 활동',

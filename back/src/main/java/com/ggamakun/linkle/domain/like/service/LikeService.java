@@ -39,7 +39,8 @@ public class LikeService implements ILikeService {
 	@Override
 	public LikeResponseDto getStatus(Integer postId, Integer memberId) {
         boolean liked = likeRepository.existsPostLike(postId, memberId) > 0;
-        int count = postRepository.getLikeCount(postId);
+        Integer cnt = postRepository.getLikeCount(postId);
+        int count = (cnt == null ? 0: cnt);
         return new LikeResponseDto(liked, count);
     }
 

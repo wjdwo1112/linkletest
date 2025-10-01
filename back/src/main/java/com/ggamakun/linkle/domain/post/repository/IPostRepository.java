@@ -32,5 +32,5 @@ public interface IPostRepository {
 	
 	int decreaseLikeCount(Integer postId);
 
-	int getLikeCount(Integer postId);
+	Integer getLikeCount(Integer postId);
 }

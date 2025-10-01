@@ -1,102 +1,200 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import useUserStore from '../../store/useUserStore';
+import { authApi } from '../../services/api';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [searchParams] = useSearchParams();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
-  const onSubmit = (e) => {
+  const navigate = useNavigate();
+  const { setUser, setLoading, setError } = useUserStore();
+
+  useEffect(() => {
+    const errorMessage = searchParams.get('message');
+    if (errorMessage) {
+      setErrors({ general: decodeURIComponent(errorMessage) });
+    }
+  }, [searchParams]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: '',
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.email) {
+      newErrors.email = '이메일을 입력해주세요.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = '올바른 이메일 형식을 입력해주세요.';
+    }
+
+    if (!formData.password) {
+      newErrors.password = '비밀번호를 입력해주세요.';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('로그인 시도:', { email, password });
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+    setLoading(true);
+
+    try {
+      const data = await authApi.login(formData.email, formData.password);
+
+      setUser({
+        id: data.memberId,
+        email: data.email,
+        name: data.name,
+        nickname: data.nickname,
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+      });
+
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+
+      navigate('/');
+    } catch (error) {
+      console.error('로그인 에러:', error);
+      setError(error.message);
+      setErrors({ general: error.message });
+    } finally {
+      setIsLoading(false);
+      setLoading(false);
+    }
   };
 
   const handleKakaoLogin = () => {
-    console.log('카카오 로그인');
+    window.location.href = 'http://localhost:8080/oauth2/authorization/kakao';
   };
 
   return (
-    <>
-      {/* 왼쪽 : 로고 (크게) */}
-      <div className="flex items-center md:justify-start justify-center">
-        <h1 className="text-7xl md:text-8xl font-extrabold text-slate-700 leading-none">
-          Linkle
-        </h1>
+    <div className="w-full max-w-6xl grid grid-cols-2 gap-16">
+      <div className="flex items-center justify-start">
+        <h1 className="text-8xl font-extrabold text-slate-700 leading-none">Linkle</h1>
       </div>
 
-      {/* 오른쪽 : 로그인 폼 (넓게) */}
-      <div className="flex md:justify-end justify-center">
+      <div className="flex justify-end">
         <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8">
-          <h2 className="text-2xl font-semibold text-gray-900 text-center mb-10">
-            로그인
-          </h2>
+          <h2 className="text-2xl font-semibold text-gray-900 text-center mb-8">로그인</h2>
 
-          <form onSubmit={onSubmit} noValidate className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+            {errors.general && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm">
+                {errors.general}
+              </div>
+            )}
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                이메일
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">이메일</label>
               <input
                 type="email"
+                name="email"
                 autoComplete="email"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={handleInputChange}
                 placeholder="이메일"
-                className="w-full h-12 px-4 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full h-12 px-4 bg-white border rounded-md focus:outline-none focus:ring-2 focus:ring-[#4CA8FF] focus:border-transparent ${
+                  errors.email ? 'border-red-300' : 'border-gray-300'
+                }`}
               />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-500 flex items-center">
+                  <span className="mr-1">✕</span>
+                  {errors.email}
+                </p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                비밀번호
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">비밀번호</label>
               <input
                 type="password"
+                name="password"
                 autoComplete="current-password"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={handleInputChange}
                 placeholder="비밀번호"
-                className="w-full h-12 px-4 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full h-12 px-4 bg-white border rounded-md focus:outline-none focus:ring-2 focus:ring-[#4CA8FF] focus:border-transparent ${
+                  errors.password ? 'border-red-300' : 'border-gray-300'
+                }`}
               />
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-500 flex items-center">
+                  <span className="mr-1">✕</span>
+                  {errors.password}
+                </p>
+              )}
             </div>
 
             <button
               type="submit"
-              className="w-full h-12 bg-blue-500 text-white rounded-md font-semibold hover:bg-blue-600 transition-colors"
+              disabled={isLoading}
+              className="w-full h-12 bg-[#4CA8FF] text-white rounded-md font-semibold hover:bg-[#3b8de6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              로그인
+              {isLoading ? '로그인 중...' : '로그인'}
             </button>
 
-            {/* 링크 묶음 */}
             <div className="text-center text-xs text-gray-500 py-2 space-x-2">
-              <Link to="/signup" className="hover:underline">회원가입</Link>
+              <Link to="/signup" className="hover:underline">
+                회원가입
+              </Link>
               <span>|</span>
-              <Link to="/find-id" className="hover:underline">아이디 찾기</Link>
+              <Link to="/find-id" className="hover:underline">
+                아이디 찾기
+              </Link>
               <span>|</span>
-              <Link to="/find-password" className="hover:underline">비밀번호 찾기</Link>
+              <Link to="/find-password" className="hover:underline">
+                비밀번호 찾기
+              </Link>
             </div>
 
-            {/* 구분선 + 캡션 */}
             <div className="flex items-center my-6">
               <div className="flex-grow border-t border-gray-300" />
               <span className="px-3 text-sm text-gray-400">간편 로그인</span>
               <div className="flex-grow border-t border-gray-300" />
             </div>
 
-            {/* 카카오 로그인 (크게) */}
             <button
               type="button"
               onClick={handleKakaoLogin}
               className="w-full h-14 bg-yellow-400 text-black rounded-md font-semibold hover:bg-yellow-500 transition-colors flex items-center justify-center"
               aria-label="카카오 로그인"
             >
-              <span className="w-4 h-4 bg-black rounded-full mr-3" aria-hidden="true" />
+              <div className="w-4 h-4 bg-gray-400 rounded-full mr-3" aria-hidden="true" />
               카카오 로그인
             </button>
           </form>
         </div>
       </div>
-    </>
+    </div>
   );
 }

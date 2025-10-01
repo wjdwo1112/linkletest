@@ -24,8 +24,8 @@ public class LikeController {
 	
 	
 	
-	@GetMapping("/api/posts/{postId}/likes/status")
-	public LikeResponseDto status(@PathVariable Integer postId, @RequestHeader("X-MEMBER-ID") Integer memberId) {
+	@GetMapping("/api/posts/{postid}/likes/status")
+	public LikeResponseDto status(@PathVariable("postid") Integer postId, @RequestHeader("X-MEMBER-ID") Integer memberId) {
 	return likeService.getStatus(postId, memberId);
 	    }
 

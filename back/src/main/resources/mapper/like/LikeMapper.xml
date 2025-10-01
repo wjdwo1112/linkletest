@@ -6,7 +6,7 @@
 UPDATE LIKE_LOG
 SET IS_CANCELED = 'Y'
 WHERE MEMBER_ID = #{memberId}
-AND POST_TYPE = 'P'
+AND TARGET_TYPE = 'P'
 AND TARGET_ID = #{postId}
 </update>
 

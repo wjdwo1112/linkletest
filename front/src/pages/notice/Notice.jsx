@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
-
-
-
 // 공지사항 메인 컴포넌트 (MyPageLayout children으로 들어갈 부분)
 const NoticeContent = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,7 +14,7 @@ const NoticeContent = () => {
       author: '관리자',
       date: '2025.09.11',
       views: 10,
-      isImportant: true
+      isImportant: true,
     },
     {
       id: 2,
@@ -26,7 +23,7 @@ const NoticeContent = () => {
       author: '관리',
       date: '2025.09.11',
       views: 10,
-      isImportant: true
+      isImportant: true,
     },
     {
       id: 3,
@@ -35,7 +32,7 @@ const NoticeContent = () => {
       author: '관리',
       date: '2025.09.11',
       views: 10,
-      isImportant: true
+      isImportant: true,
     },
     {
       id: 4,
@@ -44,7 +41,7 @@ const NoticeContent = () => {
       author: '관리',
       date: '2025.09.11',
       views: 5,
-      isImportant: false
+      isImportant: false,
     },
     {
       id: 5,
@@ -53,7 +50,7 @@ const NoticeContent = () => {
       author: '관리',
       date: '2025.09.11',
       views: 10,
-      isImportant: false
+      isImportant: false,
     },
     {
       id: 6,
@@ -62,8 +59,8 @@ const NoticeContent = () => {
       author: '관리',
       date: '2025.09.11',
       views: 10,
-      isImportant: false
-    }
+      isImportant: false,
+    },
   ];
 
   return (
@@ -90,7 +87,10 @@ const NoticeContent = () => {
       {/* 공지사항 목록 */}
       <div>
         {notices.map((notice) => (
-          <div key={notice.id} className="px-8 py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+          <div
+            key={notice.id}
+            className="px-8 py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors"
+          >
             <div className="flex items-center">
               {/* 제목 */}
               <div className="w-96 flex items-center">
@@ -105,27 +105,19 @@ const NoticeContent = () => {
                   {notice.title}
                 </span>
               </div>
-              
+
               {/* 작성자 */}
-              <div className="w-32 text-center text-sm text-gray-600">
-                {notice.author}
-              </div>
-              
+              <div className="w-32 text-center text-sm text-gray-600">{notice.author}</div>
+
               {/* 작성일 */}
-              <div className="w-32 text-center text-sm text-gray-500">
-                {notice.date}
-              </div>
-              
+              <div className="w-32 text-center text-sm text-gray-500">{notice.date}</div>
+
               {/* 조회수 */}
-              <div className="w-24 text-center text-sm text-gray-500">
-                {notice.views}
-              </div>
-              
+              <div className="w-24 text-center text-sm text-gray-500">{notice.views}</div>
+
               {/* 더보기 버튼 */}
               <div className="w-16 text-center">
-                <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                  ⋮
-                </button>
+                <button className="text-gray-400 hover:text-gray-600 transition-colors">⋮</button>
               </div>
             </div>
           </div>
@@ -135,19 +127,19 @@ const NoticeContent = () => {
       {/* 페이지네이션 */}
       <div className="px-8 py-8 flex items-center justify-center">
         <div className="flex items-center space-x-4">
-          <button 
+          <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
             className="flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronLeftIcon className="w-4 h-4" />
           </button>
-          
+
           <span className="text-sm text-gray-600">
             {currentPage}/{totalPages}
           </span>
-          
-          <button 
+
+          <button
             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
             className="flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -164,19 +156,14 @@ const NoticeContent = () => {
 const Notice = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      
-
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto px-6 py-8 w-full">
         <div className="flex gap-8">
-          
           <div className="flex-1">
             <NoticeContent />
           </div>
         </div>
       </main>
-
-      
     </div>
   );
 };

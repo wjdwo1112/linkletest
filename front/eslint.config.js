@@ -23,10 +23,6 @@ export default [
         document: 'readonly',
         console: 'readonly',
         fetch: 'readonly',
-        setTimeout: 'readonly',
-        clearTimeout: 'readonly',
-        setInterval: 'readonly',
-        clearInterval: 'readonly'
       },
       parserOptions: {
         ecmaVersion: 'latest',
@@ -43,6 +39,7 @@ export default [
       'react/react-in-jsx-scope': 'off',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       'react/prop-types': 'off',
+      'no-undef': 'off',
     },
   },
   {

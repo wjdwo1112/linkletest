@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useEffect, useRef } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   EllipsisHorizontalIcon,
   HeartIcon,
@@ -10,54 +10,54 @@ import {
   PhotoIcon,
   PencilSquareIcon,
   TrashIcon,
-} from "@heroicons/react/24/outline";
+} from '@heroicons/react/24/outline';
 
 /** 공용 목업 */
-const DEFAULT_THUMB = "https://picsum.photos/1200/800?grayscale&blur=1";
+const DEFAULT_THUMB = 'https://picsum.photos/1200/800?grayscale&blur=1';
 const MOCK_POSTS = [
   {
     id: 1,
     authorId: 100, // ⬅ 작성자 식별자(목업)
-    category: "외국어",
-    title: "영어 스피킹 스터디 신규 모집",
-    authorName: "링클 잉글리시",
-    authorRole: "운영진",
-    createdAt: "2025.09.10 11:45",
+    category: '외국어',
+    title: '영어 스피킹 스터디 신규 모집',
+    authorName: '링클 잉글리시',
+    authorRole: '운영진',
+    createdAt: '2025.09.10 11:45',
     views: 120,
     likes: 12,
     commentsCount: 4,
     imageUrl: DEFAULT_THUMB,
-    content: ["주 2회 저녁 8시에 온라인으로 진행합니다.", "관심 있으신 분들 연락주세요!"],
+    content: ['주 2회 저녁 8시에 온라인으로 진행합니다.', '관심 있으신 분들 연락주세요!'],
     comments: [],
   },
   {
     id: 2,
     authorId: 200,
-    category: "운동/스포츠",
-    title: "한강 러닝 모임 코스 공유",
-    authorName: "러닝크루",
-    authorRole: "매니저",
-    createdAt: "2025.09.10 11:40",
+    category: '운동/스포츠',
+    title: '한강 러닝 모임 코스 공유',
+    authorName: '러닝크루',
+    authorRole: '매니저',
+    createdAt: '2025.09.10 11:40',
     views: 77,
     likes: 9,
     commentsCount: 3,
     imageUrl: DEFAULT_THUMB,
-    content: ["용산→여의도 8km, 뷰가 좋아요.", "수/금 저녁에 같이 뛰어요!"],
+    content: ['용산→여의도 8km, 뷰가 좋아요.', '수/금 저녁에 같이 뛰어요!'],
     comments: [],
   },
   {
     id: 3,
     authorId: 300,
-    category: "문화/예술",
-    title: "전시회 같이 가실 분",
-    authorName: "아트워크",
-    authorRole: "회원",
-    createdAt: "2025.09.10 10:50",
+    category: '문화/예술',
+    title: '전시회 같이 가실 분',
+    authorName: '아트워크',
+    authorRole: '회원',
+    createdAt: '2025.09.10 10:50',
     views: 64,
     likes: 6,
     commentsCount: 1,
-    imageUrl: "",
-    content: ["주말 오후에 서촌 신작전시 보러 가요.", "3~4명 소규모로!"],
+    imageUrl: '',
+    content: ['주말 오후에 서촌 신작전시 보러 가요.', '3~4명 소규모로!'],
     comments: [],
   },
 ];
@@ -77,7 +77,7 @@ function BigImage({ src, alt }) {
     <div className="w-full h-[360px] rounded-sm overflow-hidden border border-gray-200 bg-gray-100">
       <img
         src={src}
-        alt={alt || ""}
+        alt={alt || ''}
         className="w-full h-full object-cover"
         onError={(e) => {
           e.currentTarget.src = DEFAULT_THUMB;
@@ -125,13 +125,13 @@ function KebabMenu({ onEdit, onDelete }) {
       if (!boxRef.current.contains(e.target)) setOpen(false);
     };
     const onEsc = (e) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === 'Escape') setOpen(false);
     };
-    document.addEventListener("click", onDocClick);
-    document.addEventListener("keydown", onEsc);
+    document.addEventListener('click', onDocClick);
+    document.addEventListener('keydown', onEsc);
     return () => {
-      document.removeEventListener("click", onDocClick);
-      document.removeEventListener("keydown", onEsc);
+      document.removeEventListener('click', onDocClick);
+      document.removeEventListener('keydown', onEsc);
     };
   }, []);
 
@@ -142,7 +142,7 @@ function KebabMenu({ onEdit, onDelete }) {
         className="p-2 rounded-full hover:bg-gray-50 text-gray-500"
         title="더보기"
         aria-haspopup="menu"
-        aria-expanded={open ? "true" : "false"}
+        aria-expanded={open ? 'true' : 'false'}
         onClick={() => setOpen(!open)}
       >
         <EllipsisHorizontalIcon className="w-5 h-5" />
@@ -188,16 +188,17 @@ export default function PostDetail() {
   const navigate = useNavigate();
 
   // 로그인 유저(목업)
-  const currentUser = { id: 100, role: "member", name: "링클 잉글리시" }; // authorId가 100인 글만 수정/삭제 가능
+  const currentUser = { id: 100, role: 'member', name: '링클 잉글리시' }; // authorId가 100인 글만 수정/삭제 가능
 
   const post = useMemo(
     () => MOCK_POSTS.find((p) => String(p.id) === String(postId)) ?? MOCK_POSTS[0],
-    [postId]
+    [postId],
   );
 
-  const canManage = currentUser && (currentUser.id === post.authorId || currentUser.role === "admin");
+  const canManage =
+    currentUser && (currentUser.id === post.authorId || currentUser.role === 'admin');
 
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState('');
   const [commentList, setCommentList] = useState(post.comments || []);
 
   useEffect(() => {
@@ -208,14 +209,14 @@ export default function PostDetail() {
     if (!comment.trim()) return;
     const newItem = {
       id: Date.now(),
-      authorName: "회원이름",
+      authorName: '회원이름',
       content: comment.trim(),
-      createdAt: new Date().toISOString().slice(0, 16).replace("T", " "),
+      createdAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
       likes: 0,
       replies: 0,
     };
     setCommentList([newItem, ...commentList]);
-    setComment("");
+    setComment('');
   };
 
   const goEdit = () => {
@@ -224,11 +225,11 @@ export default function PostDetail() {
   };
 
   const doDelete = () => {
-    const ok = window.confirm("이 게시글을 삭제할까요?");
+    const ok = window.confirm('이 게시글을 삭제할까요?');
     if (!ok) return;
     // TODO: 백엔드 연동 시 삭제 API 호출
     // await api.delete(`/community/posts/${post.id}`);
-    window.alert("현재는 데모입니다. 삭제 API 연동 시 실제로 삭제하세요.");
+    window.alert('현재는 데모입니다. 삭제 API 연동 시 실제로 삭제하세요.');
     navigate(`/community/${encodeURIComponent(post.category)}`);
   };
 
@@ -241,7 +242,7 @@ export default function PostDetail() {
           className="hover:underline text-gray-500"
         >
           {post.category}
-        </Link>{" "}
+        </Link>{' '}
         &gt;
       </div>
 
@@ -279,7 +280,7 @@ export default function PostDetail() {
             </p>
           ) : (
             <div key={idx} className="h-4" />
-          )
+          ),
         )}
       </div>
 

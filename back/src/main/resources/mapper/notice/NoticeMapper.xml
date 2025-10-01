@@ -60,30 +60,12 @@ AND is_deleted = 'N'
 </update>
 
 <select id="findNoticeDetail" resultType="com.ggamakun.linkle.domain.notice.dto.NoticeDetail">
-SELECT
-	p.post_id AS postId,
-	p.club_id AS clubId,
-	c.name
-	p.title AS title,
-	p.
-
 
 
 
 
 </select>
-private Integer postId;
-	private Integer clubId;
-	private String Name;
-	private String title;
-	private String content;
-	private String images;
-	private String postType;
-	private Integer createdBy;
-	private Date createdAt;
-	private String scope;
-	private String isPinned;
-	private String isDeleted;
+
 
 
 
