@@ -24,17 +24,17 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/posts")
+@RequestMapping("/posts")
 public class PostController {
 	
 	private final IPostService postService;
 	
-	@GetMapping("/list")
+	@GetMapping("")
 	public List<Post> list(){
 		return postService.listAll();
 	}
 	
-	@GetMapping("/list-summary")
+	@GetMapping("/summary")
 	public List<PostSummary> listSummary(){
 		return postService.listSummary();
 	}
@@ -63,8 +63,8 @@ public class PostController {
 	}
 	
 	//게시글 삭제(소프트)
-	@DeleteMapping("/{postId}")
-	public ResponseEntity<Void> deletePost(@PathVariable("postId") Integer postId){
+	@DeleteMapping("/{postid}")
+	public ResponseEntity<Void> deletePost(@PathVariable("postid") Integer postId){
 		int cnt = postService.deletePost(postId);
 		
 		return ResponseEntity.noContent().build();

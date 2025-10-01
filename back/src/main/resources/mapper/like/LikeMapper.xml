@@ -8,6 +8,8 @@ SET IS_CANCELED = 'Y'
 WHERE MEMBER_ID = #{memberId}
 AND TARGET_TYPE = 'P'
 AND TARGET_ID = #{postId}
+AND IS_CANCELED = 'N'
+AND IS_DELETED = 'N'
 </update>
 
 <insert id="insertPostLike">

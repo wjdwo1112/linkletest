@@ -1,87 +1,14 @@
-import React, { useMemo } from 'react';
-import { Heart, ChatIcon } from '@components/ui/icons';
-import { EyeIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+// front/src/pages/community/Community.jsx
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { PencilSquareIcon } from '@heroicons/react/24/outline';
+import {
+  HeartIcon as Heart,
+  ChatBubbleOvalLeftIcon as ChatIcon,
+} from '@heroicons/react/24/outline';
+import { postApi } from '../../services/api/postApi';
 
-/** 공용 목업 (세 파일 동일) */
-const DEFAULT_THUMB = 'https://picsum.photos/160/110?grayscale';
-const MOCK_POSTS = [
-  {
-    id: 1,
-    category: '외국어',
-    title: '영어 스피킹 스터디 신규 모집',
-    content: '주 2회 저녁 8시에 온라인으로 진행합니다. 관심 있으신 분들 연락주세요!',
-    image: DEFAULT_THUMB,
-    club: '링클 잉글리시',
-    author: '링클 잉글리시',
-    authorType: '운영진',
-    time: '5분 전',
-    views: 120,
-    likes: 12,
-    comments: 4,
-    createdAt: '2025-09-10T11:45:00Z',
-  },
-  {
-    id: 2,
-    category: '운동/스포츠',
-    title: '한강 러닝 모임 코스 공유',
-    content: '용산→여의도 8km, 뷰가 좋아요. 수/금 저녁에 같이 뛰어요!',
-    image: DEFAULT_THUMB,
-    club: '러닝크루',
-    author: '러닝크루',
-    authorType: '매니저',
-    time: '10분 전',
-    views: 77,
-    likes: 9,
-    comments: 3,
-    createdAt: '2025-09-10T11:40:00Z',
-  },
-  {
-    id: 3,
-    category: '문화/예술',
-    title: '전시회 같이 가실 분',
-    content: '주말 오후에 서촌 신작전시 보러 가요. 3~4명 소규모로!',
-    image: '',
-    club: '아트워크',
-    author: '아트워크',
-    authorType: '회원',
-    time: '1시간 전',
-    views: 64,
-    likes: 6,
-    comments: 1,
-    createdAt: '2025-09-10T10:50:00Z',
-  },
-  {
-    id: 4,
-    category: '자기계발',
-    title: '독서 모임 이번 달 북 리스트',
-    content: '이번 달은 생산성/심리 분야 도서 위주로 3권 정했습니다.',
-    image: '',
-    club: '잘읽는사람들',
-    author: '잘읽는사람들',
-    authorType: '운영진',
-    time: '2시간 전',
-    views: 51,
-    likes: 4,
-    comments: 0,
-    createdAt: '2025-09-10T10:30:00Z',
-  },
-  {
-    id: 5,
-    category: '푸드 드링크',
-    title: '성수 신상 카페 리뷰',
-    content: '디저트가 특히 괜찮네요. 다음 번엔 다같이 가보실?',
-    image: DEFAULT_THUMB,
-    club: '맛있는모임',
-    author: '맛있는모임',
-    authorType: '회원',
-    time: '어제',
-    views: 203,
-    likes: 25,
-    comments: 6,
-    createdAt: '2025-09-10T09:10:00Z',
-  },
-];
+const DEFAULT_THUMB = 'https://via.placeholder.com/800x600?text=Linkle';
 
 const CATEGORY_META = [
   { icon: '⚽', title: '운동/스포츠' },
@@ -110,19 +37,60 @@ function WriteFab() {
 }
 
 const Community = () => {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // 게시글 목록 불러오기
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setLoading(true);
+        const data = await postApi.getPostList();
+        setPosts(data);
+      } catch (err) {
+        console.error('게시글 목록 조회 실패:', err);
+        setError('게시글을 불러올 수 없습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
+  // 최신순 정렬
   const latestAll = useMemo(
-    () => [...MOCK_POSTS].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
-    [],
+    () => [...posts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+    [posts],
   );
 
-  // 카테고리별 최신 3개
+  // 카테고리별 분류 (clubName을 기준으로 임시 분류)
   const buckets = useMemo(() => {
     const map = {};
     CATEGORY_META.forEach((c) => {
-      map[c.title] = latestAll.filter((p) => p.category === c.title).slice(0, 3);
+      map[c.title] = latestAll
+        .filter((p) => p.clubName?.includes(c.title.split('/')[0]))
+        .slice(0, 3);
     });
     return map;
   }, [latestAll]);
+
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto px-6 py-8 text-center">
+        <div className="text-gray-500">게시글을 불러오는 중...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-5xl mx-auto px-6 py-8 text-center">
+        <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
@@ -140,9 +108,9 @@ const Community = () => {
 
         <ul>
           {latestAll.slice(0, 5).map((post, index) => (
-            <li key={post.id}>
+            <li key={post.postId}>
               <Link
-                to={`/community/posts/${post.id}`}
+                to={`/community/posts/${post.postId}`}
                 className={`flex items-center justify-between py-2 px-1 hover:bg-gray-50 transition ${
                   index !== 4 ? 'border-b border-gray-100' : ''
                 }`}
@@ -150,17 +118,17 @@ const Community = () => {
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-cyan-400 rounded-full" />
                   <span className="text-gray-800 text-sm">
-                    <span className="font-semibold">{post.club}</span> · {post.title}
+                    <span className="font-semibold">{post.clubName}</span> · {post.title}
                   </span>
                 </div>
                 <div className="flex items-center space-x-4 text-xs text-gray-500">
                   <div className="flex items-center space-x-1">
                     <Heart className="w-4 h-4" />
-                    <span>{post.likes}</span>
+                    <span>{post.likeCount || 0}</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <ChatIcon className="w-4 h-4" />
-                    <span>{post.comments}</span>
+                    <span>{post.commentCount || 0}</span>
                   </div>
                 </div>
               </Link>
@@ -171,7 +139,7 @@ const Community = () => {
 
       <div className="h-px bg-gray-200 my-8" />
 
-      {/* 카테고리 그리드 (항상 2열, 반응형 X) */}
+      {/* 카테고리 그리드 */}
       <div className="grid grid-cols-2 gap-8">
         {CATEGORY_META.map((cat) => {
           const items = buckets[cat.title] || [];
@@ -191,35 +159,26 @@ const Community = () => {
               </div>
 
               {items.length > 0 ? (
-                <ul className="space-y-1">
-                  {items.map((p) => (
-                    <li
-                      key={p.id}
-                      className="flex items-center justify-between text-sm py-1 px-1 hover:bg-gray-50 rounded"
-                    >
+                <ul className="space-y-2">
+                  {items.map((post) => (
+                    <li key={post.postId}>
                       <Link
-                        to={`/community/posts/${p.id}`}
-                        className="truncate flex-1 text-gray-600 hover:underline"
+                        to={`/community/posts/${post.postId}`}
+                        className="text-sm text-gray-700 hover:text-gray-900 hover:underline block"
                       >
-                        {p.title}
+                        {post.title}
                       </Link>
-                      <div className="flex items-center space-x-2 text-xs text-gray-400 ml-3">
-                        <span>{p.time}</span>
-                        <div className="flex items-center space-x-1">
-                          <EyeIcon className="w-3 h-3" />
-                          <span>{p.views}</span>
-                        </div>
-                      </div>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <div className="text-sm text-gray-400 py-4 text-center">게시글이 없습니다</div>
+                <p className="text-sm text-gray-400">게시글이 없습니다</p>
               )}
             </div>
           );
         })}
       </div>
+
       <WriteFab />
     </div>
   );
