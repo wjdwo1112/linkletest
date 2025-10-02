@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ggamakun.linkle.domain.comment.repository.ICommentRepository">
+
+<select id="findByPostId" resultType="com.ggamakun.linkle.domain.comment.dto.CommentDto">
+SELECT 
+ c.comment_id AS commentId,
+ c.post_id AS postId,
+ c.parent_comment_id AS parentCommentId,
+ c.content AS content,
+ c.created_by AS createdBy,
+ TO_CHAR(c.created_at, 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
+ c.like_count AS likeCount,
+ c.comment_count AS commentCount,
+ m.name AS authorName,
+ m.nickname AS authorNickname
+ FROM Comments c
+ LEFT JOIN MEMBER m ON c.created_by = m.member_id
+ WHERE c.post_id = #{postId}
+ AND c.is_deleted = 'N'
+ ORDER BY NVL(c.parent_comment_id, c.comment_id),c.created_at
+</select>
+
+<select id="findById" resultType="com.ggamakun.linkle.domain.comment.dto.CommentDto">
+SELECT
+ c.comment_id AS commentId,
+ c.post_id AS postId,
+ c.parent_comment_id AS parentCommentId,
+ c.content AS content,
+ c.created_by AS createdBy,
+ TO_CHAR(c.created_at, 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
+ c.like_count AS likeCount,
+ c.comment_count AS commentCount,
+ m.name AS authorName,
+ m.nickname AS authorNickname
+ FROM Comments c
+ LEFT JOIN MEMBER m on c.created_by = m.member_id
+ WHERE c.comment_id = #{commentId}
+ AND c.is_deleted='N'
+ 
+</select>
+
+<insert id="insertComment" parameterType="com.ggamakun.linkle.domain.comment.dto.CreateCommentRequest">
+INSERT INTO COMMENTS
+(
+comment_id, post_id, parent_comment_id, content, created_by, created_at
+)
+VALUES
+(
+ SEQ_COMMENTS.NEXTVAL, #{postId}, #{parentCommentId}, #{content}, #{createdBy}, SYSDATE
+)
+
+
+</insert>
+ 
+
+
+
+
+</mapper>

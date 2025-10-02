@@ -142,6 +142,21 @@ WHERE POST_ID = #{postId}
 AND IS_DELETED = 'N'
 </select>
 
+<!-- 댓글 수 증가 -->
+<update id="increaseCommentCount">
+UPDATE POST
+SET COMMENT_COUNT = COMMENT_COUNT + 1
+WHERE POST_ID = #{postId}
+AND IS_DELETED = 'N'
+</update>
 
+<!-- 댓글 수 감소 -->
+<update id="decreaseCommentCount">
+UPDATE POST
+SET COMMENT_COUNT = COMMENT_COUNT - 1
+WHERE POST_ID = #{postId}
+AND IS_DELETED = 'N'
+AND COMMENT_COUNT > 0
+</update>
 
 </mapper>

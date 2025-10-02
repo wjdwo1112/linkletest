@@ -41,7 +41,7 @@ public class SecurityConfig {
             
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/css/**", "/images/**", "/js/**", "/h2-console/**").permitAll()
-                .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/oauth2/**").permitAll()
                 .requestMatchers("/login/oauth2/**").permitAll()
                 .requestMatchers("/login/oauth2/code/**").permitAll()
@@ -49,7 +49,8 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/posts/list-summary", "/posts/list").permitAll()
                 .requestMatchers("/posts/{postId}").permitAll()
-                .requestMatchers("/posts/{postId}/likes/**").authenticated()
+                .requestMatchers("/posts/{postId}/comments").permitAll()
+                .requestMatchers("/comments/{commentid}").permitAll()
                 .anyRequest().authenticated()
                 
             )
