@@ -16,4 +16,9 @@ public interface ICommentService {
 	//댓글 등록
 	void insertComment(CreateCommentRequest request);
 
+	//댓글 수정
+	void updateComment(Integer commentId, String content, Integer memberId);
+
+	void deleteComment(Integer commentId, Integer memberId);
+
 }

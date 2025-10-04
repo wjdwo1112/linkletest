@@ -134,7 +134,7 @@ AND LIKE_COUNT > 0
 </update>
 
 <!-- 현재 좋아요 조회 -->
-<select id="getLikeCount">
+<select id="getLikeCount" resultType="int">
 SELECT 
 LIKE_COUNT 
 FROM POST

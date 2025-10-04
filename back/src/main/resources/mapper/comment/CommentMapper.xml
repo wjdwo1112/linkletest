@@ -2,6 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ggamakun.linkle.domain.comment.repository.ICommentRepository">
 
+<!-- 특정 게시글의 모든 댓글(댓글+대댓글) 조회 -->
 <select id="findByPostId" resultType="com.ggamakun.linkle.domain.comment.dto.CommentDto">
 SELECT 
  c.comment_id AS commentId,
@@ -21,6 +22,7 @@ SELECT
  ORDER BY NVL(c.parent_comment_id, c.comment_id),c.created_at
 </select>
 
+<!-- 댓글 상세 조회 -->
 <select id="findById" resultType="com.ggamakun.linkle.domain.comment.dto.CommentDto">
 SELECT
  c.comment_id AS commentId,
@@ -40,21 +42,53 @@ SELECT
  
 </select>
 
+<!--  댓글 등록 -->
 <insert id="insertComment" parameterType="com.ggamakun.linkle.domain.comment.dto.CreateCommentRequest">
 INSERT INTO COMMENTS
 (
-comment_id, post_id, parent_comment_id, content, created_by, created_at
+comment_id, post_id, parent_comment_id, content, created_by, created_at, like_count, comment_count, is_deleted
 )
 VALUES
 (
- SEQ_COMMENTS.NEXTVAL, #{postId}, #{parentCommentId}, #{content}, #{createdBy}, SYSDATE
+ SEQ_COMMENTS.NEXTVAL, #{postId}, #{parentCommentId}, #{content}, #{createdBy}, SYSDATE, 0 , 0 , 'N'
 )
 
-
 </insert>
+
+<!-- 댓글 수정 -->
+<update id="updateComment">
+UPDATE COMMENTS
+SET CONTENT = #{content},
+	UPDATED_AT = SYSDATE
+WHERE COMMENT_ID = #{commentId}
+AND IS_DELETED = 'N' 
+</update> 
  
+<!-- 댓글 삭제 --> 
+<update id="deleteComment">
+UPDATE COMMENTS
+SET IS_DELETED = 'Y'
+	UPDATED_AT = SYSDATE
+WHERE COMMENT_ID = #{commentId}
+AND IS_DELETED = 'N'
+</update>
+ 
+ <!-- 부모 댓글의 대댓글 갯수 증가 -->
+<update id="increaseCommentCount">
+UPDATE COMMENTS
+SET comment_count = comment_count + 1
+WHERE comment_id = #{parentCommentId}
+AND is_deleted = 'N'
 
+</update>
 
-
+<!-- 부모 댓글의 대댓글 갯수 감소 -->
+<update id="decreaseCommentCount">
+UPDATE COMMENTS
+SET COMMENT_COUNT = COMMENT_COUNT - 1
+WHERE COMMENT_ID = #{commentId}
+AND IS_DELETED = 'N'
+AND COMMENT_COUNT > 0
+</update>
 
 </mapper>

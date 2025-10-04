@@ -3,8 +3,10 @@ package com.ggamakun.linkle.domain.comment.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.ggamakun.linkle.domain.comment.dto.CommentDto;
 import com.ggamakun.linkle.domain.comment.dto.CreateCommentRequest;
@@ -70,6 +72,61 @@ public class CommentService implements ICommentService {
 		//게시글의 댓글 수 증가
 		postRepository.increaseCommentCount(request.getPostId());
 	}
+
+	
+	//댓글 수정 
+	@Transactional
+	@Override
+	public void updateComment(Integer commentId, String content, Integer memberId) {
+		//댓글 존재 여부 확인
+		CommentDto comment = commentRepository.findById(commentId);
+		if(comment == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND,"댓글을 찾을 수 없습니다");
+		}
+		
+		//작성자 본인 확인
+		if(!comment.getCreatedBy().equals(memberId)) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN,"댓글 작성자만 수정할 수 있습니다.");
+		}
+		
+		//댓글 수정
+		int updated = commentRepository.updateComment(commentId, content);
+		if(updated == 0) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 수정 실패");
+		}
+	}
+
+	@Transactional
+	@Override
+	public void deleteComment(Integer commentId, Integer memberId) {
+		// 댓글 존재 여부 확인
+		CommentDto comment = commentRepository.findById(commentId);
+		if(comment == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, " 댓글을 찾을 수 없습니다.");
+		}
+		
+		// 댓글 작성자 확인
+		if(!comment.getCreatedBy().equals(memberId)) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 작성자만 삭세할 수 있습니다");
+		}
+		// 댓글 삭제
+		int deleted = commentRepository.deleteComment(commentId);
+		if(deleted == 0) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"댓글 삭제에 실패했습니다");
+		}
+		
+		//대댓글인 경우 부모댓글의 댓글 개수 감소
+		if(comment.getParentCommentId() != null) {
+			commentRepository.decreaseCommentCount(comment.getParentCommentId());
+		}
+		
+		//게시글의 댓글 수 감소
+		postRepository.decreaseCommentCount(comment.getPostId());
+		
+		
+	}
+	
+	
 	
 	
 	

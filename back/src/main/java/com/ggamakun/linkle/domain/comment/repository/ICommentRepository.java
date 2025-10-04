@@ -3,6 +3,7 @@ package com.ggamakun.linkle.domain.comment.repository;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.ggamakun.linkle.domain.comment.dto.CommentDto;
 import com.ggamakun.linkle.domain.comment.dto.CreateCommentRequest;
@@ -18,7 +19,16 @@ public interface ICommentRepository {
 	//댓글 등록
 	void insertComment(CreateCommentRequest request);
 	
+	//댓글 수정
+	int updateComment(@Param("commentId") Integer commentId, @Param("content") String content);
+	
+	//댓글 삭제
+	int deleteComment(Integer commentId);
+	
 	//부모댓글의 대댓글 갯수 증가
 	int increaseCommentCount(Integer parentCommentId);
+	
+	//부모 댓글의 대댓글 갯수 감소
+	int decreaseCommentCount(Integer parentCommentId);
 	
 }
