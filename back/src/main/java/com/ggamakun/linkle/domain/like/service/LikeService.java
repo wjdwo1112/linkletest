@@ -1,5 +1,6 @@
 package com.ggamakun.linkle.domain.like.service;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,22 +20,27 @@ public class LikeService implements ILikeService {
 	@Override
 	public LikeResponseDto togglePostLike(Integer postId, Integer memberId) {
 		
-		int deleted = likeRepository.deletePostLike(postId, memberId);
-		boolean liked;
-		
-		if(deleted > 0) {
+		int canceled = likeRepository.cancelPostLike(postId, memberId);
+		if(canceled > 0) {
 			postRepository.decreaseLikeCount(postId);
-			liked = false;
-		}else {
-			likeRepository.insertPostLike(postId, memberId);
-			postRepository.increaseLikeCount(postId);
-			liked = true;
+			return new LikeResponseDto(false, safeCount(postId));
 		}
 		
-		int count = postRepository.getLikeCount(postId);
+		int reactivated = likeRepository.reactivatePostLike(postId, memberId);
+		if(reactivated > 0) {
+			postRepository.increaseLikeCount(postId);
+			return new LikeResponseDto(true, safeCount(postId));
+		}
 		
-		return new LikeResponseDto(liked, count);
+		try {
+			likeRepository.insertPostLike(postId, memberId);
+			postRepository.increaseLikeCount(postId);
+		}catch(DuplicateKeyException e) {
+			
+		}
+		return new LikeResponseDto(true, safeCount(postId));
 	}
+		
 	
 	@Override
 	public LikeResponseDto getStatus(Integer postId, Integer memberId) {
@@ -43,5 +49,10 @@ public class LikeService implements ILikeService {
         int count = (cnt == null ? 0: cnt);
         return new LikeResponseDto(liked, count);
     }
+	
+	private int safeCount(Integer postId) {
+		Integer cnt = postRepository.getLikeCount(postId);
+		return cnt == null ? 0 : cnt;
+	}
 
 }

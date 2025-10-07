@@ -2,14 +2,34 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ggamakun.linkle.domain.like.repository.ILikeRepository">
 
-<update id="deletePostLike">
+<update id="cancelPostLike">
 UPDATE LIKE_LOG
-SET IS_CANCELED = 'Y'
+SET IS_CANCELED = 'Y',
+	UPDATED_BY = #{memberId},
+	UPDATED_AT = SYSDATE
 WHERE MEMBER_ID = #{memberId}
 AND TARGET_TYPE = 'P'
 AND TARGET_ID = #{postId}
 AND IS_CANCELED = 'N'
 AND IS_DELETED = 'N'
+</update>
+
+<!-- 비활성 이력이 있으면 재활성화 -->
+<update id="reactivatePostLike">
+UPDATE LIKE_LOG
+	SET IS_CANCELED = 'N',
+	LIKED_AT = SYSDATE,
+	UPDATED_BY = #{memberId},
+	UPDATED_AT = SYSDATE
+WHERE LIKE_ID=(
+SELECT MAX(LIKE_ID)
+	FROM LIKE_LOG
+	WHERE MEMBER_ID = #{memberId}
+		AND TARGET_TYPE = 'P'
+		AND TARGET_ID = #{postId}
+		AND IS_CANCELED = 'Y'
+		AND IS_DELETED = 'N'
+)
 </update>
 
 <insert id="insertPostLike">

@@ -107,7 +107,7 @@ public class CommentService implements ICommentService {
 		
 		// 댓글 작성자 확인
 		if(!comment.getCreatedBy().equals(memberId)) {
-			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 작성자만 삭세할 수 있습니다");
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 작성자만 삭제할 수 있습니다");
 		}
 		// 댓글 삭제
 		int deleted = commentRepository.deleteComment(commentId);

@@ -67,7 +67,7 @@ AND IS_DELETED = 'N'
 <!-- 댓글 삭제 --> 
 <update id="deleteComment">
 UPDATE COMMENTS
-SET IS_DELETED = 'Y'
+SET IS_DELETED = 'Y',
 	UPDATED_AT = SYSDATE
 WHERE COMMENT_ID = #{commentId}
 AND IS_DELETED = 'N'
@@ -86,7 +86,7 @@ AND is_deleted = 'N'
 <update id="decreaseCommentCount">
 UPDATE COMMENTS
 SET COMMENT_COUNT = COMMENT_COUNT - 1
-WHERE COMMENT_ID = #{commentId}
+WHERE COMMENT_ID = #{parentCommentId}
 AND IS_DELETED = 'N'
 AND COMMENT_COUNT > 0
 </update>

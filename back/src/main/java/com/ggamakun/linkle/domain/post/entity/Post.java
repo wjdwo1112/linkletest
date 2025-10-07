@@ -16,7 +16,7 @@ public class Post {
 	private Integer createdBy;
 	private Date createdAt;
 	private Integer updatedBy;
-	private Date upadatedAt;
+	private Date updatedAt;
 	private Integer viewCount;
 	private Integer likeCount;
 	private Integer commentCount;
