@@ -91,4 +91,29 @@ AND IS_DELETED = 'N'
 AND COMMENT_COUNT > 0
 </update>
 
+<!-- 좋아요 증가 -->
+<update id="increaseLikeCount">
+UPDATE COMMENTS
+SET LIKE_COUNT = LIKE_COUNT + 1
+WHERE COMMENT_ID = #{commentId}
+AND IS_DELETED = 'N'
+</update>
+
+<!-- 좋아요 감소 -->
+<update id="decreaseLikeCount">
+UPDATE COMMENTS
+SET LIKE_COUNT = LIKE_COUNT - 1
+WHERE COMMENT_ID = #{commentId}
+AND IS_DELETED = 'N'
+AND LIKE_COUNT > 0
+</update>
+
+<!-- 현재 좋아요 조회 -->
+<select id="getLikeCount" resultType="int">
+SELECT 
+LIKE_COUNT 
+FROM COMMENTS
+WHERE COMMENT_ID = #{commentId}
+AND IS_DELETED = 'N'
+</select>
 </mapper>

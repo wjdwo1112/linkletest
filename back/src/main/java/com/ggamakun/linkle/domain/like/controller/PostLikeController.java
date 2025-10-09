@@ -61,7 +61,7 @@ public class PostLikeController {
 		})
 	public LikeResponseDto status(@PathVariable("postid") Integer postId, @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails) {
 		Integer memberId = userDetails.getMember().getMemberId();
-	return likeService.getStatus(postId, memberId);
+	return likeService.getPostStatus(postId, memberId);
 	    }
 
 	    

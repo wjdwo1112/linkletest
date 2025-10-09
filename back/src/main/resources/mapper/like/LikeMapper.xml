@@ -52,4 +52,54 @@ AND IS_DELETED = 'N'
 AND IS_CANCELED = 'N'
 </select>
 
+
+<update id="cancelCommentLike">
+UPDATE LIKE_LOG
+SET IS_CANCELED = 'Y',
+	UPDATED_BY = #{memberId},
+	UPDATED_AT = SYSDATE
+WHERE MEMBER_ID = #{memberId}
+AND TARGET_TYPE = 'C'
+AND TARGET_ID = #{commentId}
+AND IS_CANCELED = 'N'
+AND IS_DELETED = 'N'
+</update>
+
+<!-- 비활성 이력이 있으면 재활성화 -->
+<update id="reactivateCommentLike">
+UPDATE LIKE_LOG
+	SET IS_CANCELED = 'N',
+	LIKED_AT = SYSDATE,
+	UPDATED_BY = #{memberId},
+	UPDATED_AT = SYSDATE
+WHERE LIKE_ID=(
+SELECT MAX(LIKE_ID)
+	FROM LIKE_LOG
+	WHERE MEMBER_ID = #{memberId}
+		AND TARGET_TYPE = 'C'
+		AND TARGET_ID = #{commentId}
+		AND IS_CANCELED = 'Y'
+		AND IS_DELETED = 'N'
+)
+</update>
+
+<insert id="insertCommentLike">
+INSERT INTO LIKE_LOG(
+  LIKE_ID, MEMBER_ID, CREATED_BY, CREATED_AT,
+  LIKED_AT, TARGET_TYPE, TARGET_ID, IS_CANCELED, IS_DELETED)
+VALUES(
+  SEQ_LIKE_LOG.NEXTVAL, #{memberId}, #{memberId}, SYSDATE, SYSDATE, 'C', #{commentId}, 'N', 'N')
+
+</insert>
+
+
+<select id="existsCommentLike" resultType="int">
+SELECT COUNT(1)
+FROM LIKE_LOG
+WHERE MEMBER_ID = #{memberId}
+AND TARGET_TYPE = 'C'
+AND TARGET_ID = #{commentId}
+AND IS_DELETED = 'N'
+AND IS_CANCELED = 'N'
+</select>
 </mapper>

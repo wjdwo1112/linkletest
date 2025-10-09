@@ -31,4 +31,14 @@ public interface ICommentRepository {
 	//부모 댓글의 대댓글 갯수 감소
 	int decreaseCommentCount(Integer parentCommentId);
 	
+	//댓글 좋아요 증가
+	int increaseLikeCount(Integer commentId);
+	
+	//댓글 좋아요 감소
+	int decreaseLikeCount(Integer commentId);
+	
+	//댓글 좋아요 갯수 조회
+	Integer getLikeCount(Integer postId);
+	
+	
 }

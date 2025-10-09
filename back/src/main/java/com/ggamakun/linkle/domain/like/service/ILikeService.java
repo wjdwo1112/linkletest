@@ -6,9 +6,10 @@ public interface ILikeService {
 
 	LikeResponseDto togglePostLike(Integer postId, Integer memberId);
 
-	LikeResponseDto getStatus(Integer postId, Integer memberId);
+	LikeResponseDto getPostStatus(Integer postId, Integer memberId);
 	
 	
-
+	LikeResponseDto toggleCommentLike(Integer commentId, Integer memberId);
+	LikeResponseDto getCommentStatus(Integer commentId, Integer memberId);
 	
 }
