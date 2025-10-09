@@ -36,10 +36,18 @@ SELECT
 	p.title AS title,
 	p.like_count AS likeCount,
 	p.comment_count AS commentCount,
-	p.created_at AS createdAt
+	p.created_at AS createdAt,
+	p.created_by AS createdBy,
+	m.name AS authorName,
+	m.nickname AS authorNickName,
+	cat.name AS categoryName,
+	parent_cat.name AS parentCategoryName
 FROM
 
 	POST p JOIN CLUB c on c.club_id=p.club_id
+	LEFT JOIN CATEGORY cat ON cat.category_id = c.category_id
+	LEFT JOIN CATEGORY parent_cat ON parent_cat.category_id = cat.parent_category_id
+	LEFT JOIN MEMBER m ON m.member_id = p.created_by
 	WHERE p.is_deleted = 'N'
 	AND p.post_type = 'P'
 	ORDER BY p.created_at DESC
@@ -71,9 +79,12 @@ SELECT
 	p.like_count AS likeCount,
 	p.is_pinned AS isPinned,
 	p.is_deleted AS isDeleted,
-	c.name AS clubName
+	c.name AS clubName,
+	m.name AS authorName,
+	m.nickname AS authorNickName
 FROM 
 	POST p JOIN CLUB c on c.club_id = p.club_id
+	LEFT JOIN MEMBER m ON m.member_id = p.created_by
 	WHERE p.POST_ID = #{postId}
 	AND p.IS_DELETED ='N'
 	AND p.POST_TYPE = 'P'

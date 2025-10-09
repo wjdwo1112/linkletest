@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid';
 import { postApi } from '../../services/api/postApi';
+import { commentApi } from '../../services/api/commentApi';
 import useUserStore from '../../store/useUserStore';
 
 function BigImage({ src, alt }) {
@@ -111,12 +112,12 @@ export default function PostDetail() {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [comment, setComment] = useState('');
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
 
-  // StrictMode에서 중복 호출 방지
   const hasFetchedRef = useRef(false);
 
   useEffect(() => {
-    // 이미 호출했으면 건너뛰기 (StrictMode 대응)
     if (hasFetchedRef.current) return;
 
     const fetchPostDetail = async () => {
@@ -128,9 +129,15 @@ export default function PostDetail() {
         setPost(data);
         setLikeCount(data.likeCount || 0);
 
+        // 로그인한 경우에만 좋아요 상태 조회
         if (isAuthenticated) {
-          const likeStatus = await postApi.getLikeStatus(postId);
-          setLiked(likeStatus.isLiked || false);
+          try {
+            const likeStatus = await postApi.getLikeStatus(postId);
+            setLiked(likeStatus.isLiked || false);
+          } catch (err) {
+            console.error('좋아요 상태 조회 실패:', err);
+            // 좋아요 상태 조회 실패는 무시 (로그인 필요)
+          }
         }
       } catch (err) {
         console.error('게시글 상세 조회 실패:', err);
@@ -140,12 +147,24 @@ export default function PostDetail() {
       }
     };
 
+    const fetchComments = async () => {
+      try {
+        setCommentsLoading(true);
+        const data = await commentApi.getComments(postId);
+        setComments(data);
+      } catch (err) {
+        console.error('댓글 목록 조회 실패:', err);
+      } finally {
+        setCommentsLoading(false);
+      }
+    };
+
     if (postId) {
       fetchPostDetail();
-      hasFetchedRef.current = true; // 호출 완료 표시
+      fetchComments();
+      hasFetchedRef.current = true;
     }
 
-    // cleanup: 컴포넌트 언마운트 시 리셋
     return () => {
       hasFetchedRef.current = false;
     };
@@ -179,6 +198,24 @@ export default function PostDetail() {
     if (!comment.trim()) return;
     alert('댓글 기능은 추후 구현 예정입니다.');
     setComment('');
+  };
+
+  const formatCommentDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = Math.floor((now - date) / 1000);
+
+    if (diff < 60) return '방금 전';
+    if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+    if (diff < 604800) return `${Math.floor(diff / 86400)}일 전`;
+
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
   };
 
   const goEdit = () => {
@@ -258,7 +295,7 @@ export default function PostDetail() {
         <div className="flex items-center gap-2">
           <UserCircleIcon className="w-6 h-6 text-gray-300" />
           <div className="text-sm">
-            <div className="text-gray-800">작성자</div>
+            <div className="text-gray-800">{post.authorNickname || post.authorName || '익명'}</div>
             <div className="text-gray-400">
               {formatDate(post.createdAt)} <span className="mx-1">·</span> 조회{' '}
               {post.viewCount || 0}
@@ -291,14 +328,14 @@ export default function PostDetail() {
         </button>
         <div className="flex items-center gap-1">
           <ChatBubbleOvalLeftIcon className="w-5 h-5" />
-          <span>0</span>
+          <span>{post.commentCount || 0}</span>
         </div>
       </div>
 
       <div className="h-px bg-gray-200 my-8" />
 
       <div className="mb-6">
-        <h2 className="text-lg font-bold text-gray-800 mb-3">댓글 0</h2>
+        <h2 className="text-lg font-bold text-gray-800 mb-3">댓글 {post.commentCount || 0}</h2>
         <div className="flex items-start gap-2">
           <UserCircleIcon className="w-8 h-8 text-gray-300 flex-shrink-0 mt-1" />
           <div className="flex-1">
@@ -319,10 +356,62 @@ export default function PostDetail() {
             </div>
           </div>
         </div>
+
+        {commentsLoading ? (
+          <div className="text-center py-4 text-gray-500">댓글을 불러오는 중...</div>
+        ) : comments.length > 0 ? (
+          <div className="mt-6 space-y-4">
+            {comments.map((commentItem) => (
+              <div key={commentItem.commentId} className="border-t pt-4">
+                <div className="flex items-start gap-2">
+                  <UserCircleIcon className="w-8 h-8 text-gray-300 flex-shrink-0" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold text-sm text-gray-800">
+                        {commentItem.authorNickname || commentItem.authorName || '익명'}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {formatCommentDate(commentItem.createdAt)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                      {commentItem.content}
+                    </p>
+
+                    {commentItem.replies && commentItem.replies.length > 0 && (
+                      <div className="mt-3 ml-6 space-y-3 border-l-2 border-gray-200 pl-4">
+                        {commentItem.replies.map((reply) => (
+                          <div key={reply.commentId} className="flex items-start gap-2">
+                            <UserCircleIcon className="w-6 h-6 text-gray-300 flex-shrink-0" />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-semibold text-sm text-gray-800">
+                                  {reply.authorNickname || reply.authorName || '익명'}
+                                </span>
+                                <span className="text-xs text-gray-400">
+                                  {formatCommentDate(reply.createdAt)}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                {reply.content}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-sm text-gray-400 text-center mt-6">아직 댓글이 없습니다.</div>
+        )}
       </div>
 
       <div className="text-sm text-gray-400 text-center mt-12">
-        댓글 기능은 추후 구현 예정입니다.
+        댓글 작성 기능은 추후 구현 예정입니다.
       </div>
     </div>
   );

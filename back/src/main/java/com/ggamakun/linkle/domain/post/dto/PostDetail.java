@@ -22,4 +22,7 @@ public class PostDetail {
 	private Integer commentCount;
 	private String isPinned;
 	private String isDeleted;
+	
+	private String authorName;
+	private String authorNickName;
 }

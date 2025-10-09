@@ -59,7 +59,7 @@ public class PostLikeController {
 			@ApiResponse(responseCode = "401", description = "인증 실패"),
 			@ApiResponse(responseCode = "404", description = "게시물을 찾을 수 없음")
 		})
-	public LikeResponseDto status(@PathVariable("postid") Integer postId, @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails) {
+	public LikeResponseDto postStatus(@PathVariable("postid") Integer postId, @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails) {
 		Integer memberId = userDetails.getMember().getMemberId();
 	return likeService.getPostStatus(postId, memberId);
 	    }

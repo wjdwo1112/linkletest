@@ -11,15 +11,21 @@ import { postApi } from '../../services/api/postApi';
 const DEFAULT_THUMB = 'https://via.placeholder.com/800x600/CCCCCC/FFFFFF?text=No+Image';
 
 const CATEGORY_META = [
-  { icon: '⚽', title: '운동/스포츠' },
-  { icon: '🎨', title: '문화/예술' },
-  { icon: '🎮', title: '취미' },
-  { icon: '📚', title: '자기계발' },
-  { icon: '🍴', title: '푸드 드링크' },
-  { icon: '✈️', title: '여행/아웃도어' },
-  { icon: '🕹️', title: '게임/오락' },
-  { icon: '🌍', title: '외국어' },
+  { icon: '⚽', title: '운동/스포츠', dbName: '운동·스포츠' },
+  { icon: '🎨', title: '문화/예술', dbName: '문화·예술' },
+  { icon: '🎮', title: '취미', dbName: '취미' },
+  { icon: '📚', title: '자기계발', dbName: '자기계발' },
+  { icon: '🍴', title: '푸드 드링크', dbName: '푸드·드링크' },
+  { icon: '✈️', title: '여행/아웃도어', dbName: '여행·아웃도어' },
+  { icon: '🕹️', title: '게임/오락', dbName: '게임·오락' },
+  { icon: '🌍', title: '외국어', dbName: '외국어' },
 ];
+
+const matchCategory = (post, dbName) => {
+  // parentCategoryName이 있으면 상위 카테고리로 비교, 없으면 categoryName으로 비교
+  const targetCategory = post.parentCategoryName || post.categoryName;
+  return targetCategory === dbName;
+};
 
 function WriteFab() {
   return (
@@ -47,6 +53,7 @@ const Community = () => {
         setLoading(true);
         setError(null);
         const data = await postApi.getPostList();
+        console.log('전체 게시글:', data);
         setPosts(data);
       } catch (err) {
         console.error('게시글 목록 조회 실패:', err);
@@ -67,9 +74,9 @@ const Community = () => {
   const buckets = useMemo(() => {
     const map = {};
     CATEGORY_META.forEach((c) => {
-      map[c.title] = latestAll
-        .filter((p) => p.clubName?.includes(c.title.split('/')[0]))
-        .slice(0, 3);
+      const filtered = latestAll.filter((p) => matchCategory(p, c.dbName));
+      console.log(`${c.title} (DB: ${c.dbName}) 카테고리 게시글:`, filtered);
+      map[c.title] = filtered.slice(0, 3);
     });
     return map;
   }, [latestAll]);

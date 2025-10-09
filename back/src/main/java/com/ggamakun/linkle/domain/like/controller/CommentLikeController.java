@@ -41,7 +41,7 @@ public class CommentLikeController {
 			@ApiResponse(responseCode = "401", description = "인증 실패"),
 			@ApiResponse(responseCode = "404", description = "댓글을 찾을 수 없음")
 		})
-	public ResponseEntity<LikeResponseDto> postLike(@PathVariable("commentid") Integer commentId, @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails){
+	public ResponseEntity<LikeResponseDto> commentLike(@PathVariable("commentid") Integer commentId, @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails){
 		Integer memberId = userDetails.getMember().getMemberId();
 		log.info("좋아요 토글 요청 - 게시물 ID:{}, 회원 ID: {}", commentId, memberId);
 		return ResponseEntity.ok(commentLikeService.toggleCommentLike(commentId,memberId));
@@ -60,7 +60,7 @@ public class CommentLikeController {
 			@ApiResponse(responseCode = "401", description = "인증 실패"),
 			@ApiResponse(responseCode = "404", description = "게시물을 찾을 수 없음")
 		})
-	public LikeResponseDto status(@PathVariable("commentid") Integer commentId, @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails) {
+	public LikeResponseDto commentStatus(@PathVariable("commentid") Integer commentId, @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails) {
 		Integer memberId = userDetails.getMember().getMemberId();
 	return commentLikeService.getCommentStatus(commentId, memberId);
 	    }
