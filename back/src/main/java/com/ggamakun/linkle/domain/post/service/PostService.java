@@ -38,11 +38,12 @@ public class PostService implements IPostService {
 	@Transactional(readOnly=false)
 	public PostDetail getPost(Integer postId, boolean increase) {
 		
-		PostDetail dto = postRepository.findPostDetail(postId);
-		if(dto == null)throw new ResponseStatusException(HttpStatus.NOT_FOUND,"post not found");
 		if(increase) {
 			postRepository.increaseViewCount(postId);
 		}
+		PostDetail dto = postRepository.findPostDetail(postId);
+		if(dto == null)throw new ResponseStatusException(HttpStatus.NOT_FOUND,"post not found");
+	
 		return dto;
 	}
 

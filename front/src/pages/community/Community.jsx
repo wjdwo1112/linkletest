@@ -8,7 +8,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { postApi } from '../../services/api/postApi';
 
-const DEFAULT_THUMB = 'https://via.placeholder.com/800x600?text=Linkle';
+const DEFAULT_THUMB = 'https://via.placeholder.com/800x600/CCCCCC/FFFFFF?text=No+Image';
 
 const CATEGORY_META = [
   { icon: '⚽', title: '운동/스포츠' },
@@ -41,11 +41,11 @@ const Community = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 게시글 목록 불러오기
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         setLoading(true);
+        setError(null);
         const data = await postApi.getPostList();
         setPosts(data);
       } catch (err) {
@@ -59,13 +59,11 @@ const Community = () => {
     fetchPosts();
   }, []);
 
-  // 최신순 정렬
   const latestAll = useMemo(
     () => [...posts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
     [posts],
   );
 
-  // 카테고리별 분류 (clubName을 기준으로 임시 분류)
   const buckets = useMemo(() => {
     const map = {};
     CATEGORY_META.forEach((c) => {
@@ -88,13 +86,18 @@ const Community = () => {
     return (
       <div className="max-w-5xl mx-auto px-6 py-8 text-center">
         <div className="text-red-500">{error}</div>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-[#4FA3FF] text-white rounded hover:bg-[#3d8edb]"
+        >
+          다시 시도
+        </button>
       </div>
     );
   }
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
-      {/* 전체 동호회 글 */}
       <div className="mb-12">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-gray-800">전체 동호회 글</h2>
@@ -139,7 +142,6 @@ const Community = () => {
 
       <div className="h-px bg-gray-200 my-8" />
 
-      {/* 카테고리 그리드 */}
       <div className="grid grid-cols-2 gap-8">
         {CATEGORY_META.map((cat) => {
           const items = buckets[cat.title] || [];

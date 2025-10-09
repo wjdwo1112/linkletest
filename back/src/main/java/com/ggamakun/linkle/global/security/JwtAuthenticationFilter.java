@@ -37,18 +37,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         "/login/oauth2",
         "/swagger-ui",
         "/v3/api-docs",
-        "/h2-console",
-        "/posts",
-        "/posts/{postid}/comments",
-        "/comments/{commentid}"
+        "/h2-console"
+        
     );
     
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
+        String method = request.getMethod();
         // OAuth2 관련 경로는 JWT 필터를 거치지 않도록 설정
-        return EXCLUDED_PATHS.stream().anyMatch(path::startsWith);
+        if(EXCLUDED_PATHS.stream().anyMatch(path::startsWith)) {
+        	return true;
+        }
+        
+     // GET 요청은 게시글/댓글 조회만 허용 (JWT 필터 제외)
+        if ("GET".equals(method)) {
+            if (path.matches("/posts(/\\d+)?") || 
+                path.equals("/posts/summary") ||
+                path.matches("/posts/\\d+/comments") ||
+                path.matches("/comments/\\d+")) {
+                return true;
+            }
+        }
+        
+        return false;
+        
     }
+    
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, 
