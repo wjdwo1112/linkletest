@@ -1,21 +1,44 @@
 // src/pages/community/PostWrite.jsx
-// 설치: npm i react-quill-new quill
 import React, { useEffect, useRef, useState } from 'react';
 import ReactQuill from 'react-quill-new';
 import 'quill/dist/quill.snow.css';
+import { clubApi } from '../../services/api/clubApi';
 
 export default function PostWrite() {
   const editorRef = useRef(null);
-  const objectUrlsRef = useRef([]); // 미리보기 URL 정리용
+  const objectUrlsRef = useRef([]);
 
-  // 폼 상태
-  const [club, setClub] = useState('동호회1');
+  const [clubs, setClubs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [club, setClub] = useState('');
   const [board] = useState('자유게시판');
-  const [visibility, setVisibility] = useState('PUBLIC'); // PUBLIC / MEMBERS
+  const [visibility, setVisibility] = useState('PUBLIC');
   const [title, setTitle] = useState('');
   const [html, setHtml] = useState('');
 
-  // 툴바 설정
+  // 가입한 동호회 목록 가져오기
+  useEffect(() => {
+    const fetchJoinedClubs = async () => {
+      try {
+        setLoading(true);
+        const data = await clubApi.getJoinedClubs();
+        console.log('가입한 동호회 목록:', data);
+        setClubs(data);
+
+        if (data.length > 0) {
+          setClub(data[0].clubId.toString());
+        }
+      } catch (err) {
+        console.error('동호회 목록 조회 실패:', err);
+        alert('동호회 목록을 불러올 수 없습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJoinedClubs();
+  }, []);
+
   const modules = {
     toolbar: {
       container: [
@@ -51,7 +74,6 @@ export default function PostWrite() {
     'image',
   ];
 
-  // 붙여넣기/드래그 이미지 → 로컬 미리보기로 삽입
   useEffect(() => {
     const quill = editorRef.current?.getEditor();
     if (!quill) return;
@@ -83,7 +105,6 @@ export default function PostWrite() {
     };
   }, []);
 
-  // 미리보기 URL 정리
   useEffect(() => {
     return () => {
       objectUrlsRef.current.forEach((u) => window.URL.revokeObjectURL(u));
@@ -91,7 +112,6 @@ export default function PostWrite() {
     };
   }, []);
 
-  // 파일 선택
   const openFilePicker = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -103,7 +123,6 @@ export default function PostWrite() {
     input.click();
   };
 
-  // 로컬 미리보기 이미지 삽입 (업로드 없음)
   const insertLocalPreview = (file) => {
     const quill = editorRef.current?.getEditor();
     if (!quill) return;
@@ -114,44 +133,43 @@ export default function PostWrite() {
     quill.setSelection(range.index + 1, 0);
   };
 
-  // 등록(지금은 UI 데모만)
   const handleSubmit = async () => {
     if (!title.trim()) return window.alert('제목을 입력해 주세요.');
     if (!html.trim()) return window.alert('내용을 입력해 주세요.');
+    if (!club) return window.alert('동호회를 선택해 주세요.');
 
     console.log({
-      club,
-      board,
+      clubId: club,
       visibility,
       title,
       htmlLength: html.length,
-      // delta: editorRef.current?.getEditor().getContents(), // 필요 시 확인
     });
     window.alert('현재는 UI만 구성되어 있습니다. (백엔드 연동 전)');
-
-    /* ▼▼▼ 추후 백엔드 연동 예시 (주석 유지) ▼▼▼
-    import { api } from '@/lib/axios';
-
-    // 1) presigned URL 받아 S3 업로드 → 공개 URL만 본문에 삽입
-    // const { data } = await api.post('/uploads/presign', { fileName, fileType });
-    // await fetch(data.uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
-    // quill.insertEmbed(range.index, 'image', data.publicUrl);
-
-    // 2) 본문 저장
-    await api.post('/community/posts', {
-      club,
-      board,
-      visibility,
-      title,
-      contentHtml: html,
-      contentDelta: editorRef.current?.getEditor().getContents(),
-    });
-    */
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto px-6 py-8">
+        <div className="text-center text-gray-500">동호회 목록을 불러오는 중...</div>
+      </div>
+    );
+  }
+
+  if (clubs.length === 0) {
+    return (
+      <div className="max-w-5xl mx-auto px-6 py-8">
+        <div className="text-center">
+          <div className="text-gray-500 mb-4">가입한 동호회가 없습니다.</div>
+          <div className="text-sm text-gray-400">
+            게시글을 작성하려면 먼저 동호회에 가입해주세요.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
-      {/* 상단 타이틀 / 등록 버튼 */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">글 쓰기</h1>
         <button
@@ -162,20 +180,19 @@ export default function PostWrite() {
         </button>
       </div>
 
-      {/* 상단 폼 라인 */}
       <div className="flex items-center gap-4 mb-4">
-        {/* 동호회 선택 */}
         <select
           value={club}
           onChange={(e) => setClub(e.target.value)}
           className="w-72 border border-gray-300 rounded px-3 py-2 outline-none"
         >
-          <option>동호회1</option>
-          <option>동호회2</option>
-          <option>동호회3</option>
+          {clubs.map((c) => (
+            <option key={c.clubId} value={c.clubId}>
+              {c.name}
+            </option>
+          ))}
         </select>
 
-        {/* 공개 설정 (우측 작은 패널 느낌) */}
         <div className="ml-auto border border-gray-200 rounded px-3 py-2">
           <div className="text-sm font-semibold text-gray-600 mb-1">공개 설정</div>
           <div className="flex items-center gap-3 text-sm text-gray-600">
@@ -203,7 +220,6 @@ export default function PostWrite() {
         </div>
       </div>
 
-      {/* 제목 */}
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
@@ -211,7 +227,6 @@ export default function PostWrite() {
         className="w-full border border-gray-300 rounded px-3 py-2 mb-4 outline-none"
       />
 
-      {/* 에디터 */}
       <div className="border border-gray-200 rounded">
         <ReactQuill
           ref={editorRef}
@@ -221,7 +236,7 @@ export default function PostWrite() {
           modules={modules}
           formats={formats}
           placeholder="내용을 입력하세요."
-          style={{ height: 460 }}
+          style={{ minHeight: '400px' }}
         />
       </div>
     </div>

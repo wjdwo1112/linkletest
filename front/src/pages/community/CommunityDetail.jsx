@@ -6,6 +6,8 @@ import {
   EyeIcon,
   PhotoIcon,
   PencilSquareIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 import { postApi } from '../../services/api/postApi';
 
@@ -34,6 +36,8 @@ const CATEGORY_DB_MAP = {
   외국어: '외국어',
 };
 
+const POSTS_PER_PAGE = 10;
+
 function Thumb({ src, alt }) {
   const [imgSrc, setImgSrc] = useState(src);
   return (
@@ -60,6 +64,96 @@ function toRows(list) {
   return rows;
 }
 
+function Pagination({ currentPage, totalPages, onPageChange }) {
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+    if (endPage - startPage + 1 < maxVisible) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
+
+  const pages = getPageNumbers();
+
+  return (
+    <div className="flex items-center justify-center gap-2 mt-12 pb-8">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className={`p-2 rounded border ${
+          currentPage === 1
+            ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+        }`}
+        aria-label="이전 페이지"
+      >
+        <ChevronLeftIcon className="w-5 h-5" />
+      </button>
+
+      {pages[0] > 1 && (
+        <>
+          <button
+            onClick={() => onPageChange(1)}
+            className="px-3 py-2 rounded border border-gray-300 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            1
+          </button>
+          {pages[0] > 2 && <span className="text-gray-400">...</span>}
+        </>
+      )}
+
+      {pages.map((page) => (
+        <button
+          key={page}
+          onClick={() => onPageChange(page)}
+          className={`px-3 py-2 rounded border text-sm ${
+            currentPage === page
+              ? 'bg-black text-white border-black'
+              : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          {page}
+        </button>
+      ))}
+
+      {pages[pages.length - 1] < totalPages && (
+        <>
+          {pages[pages.length - 1] < totalPages - 1 && <span className="text-gray-400">...</span>}
+          <button
+            onClick={() => onPageChange(totalPages)}
+            className="px-3 py-2 rounded border border-gray-300 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            {totalPages}
+          </button>
+        </>
+      )}
+
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className={`p-2 rounded border ${
+          currentPage === totalPages
+            ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+        }`}
+        aria-label="다음 페이지"
+      >
+        <ChevronRightIcon className="w-5 h-5" />
+      </button>
+    </div>
+  );
+}
+
 function WriteFab() {
   return (
     <Link
@@ -84,6 +178,7 @@ export default function CommunityDetail() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -109,6 +204,9 @@ export default function CommunityDetail() {
           setSelectedCategory('전체');
           setPosts(data);
         }
+
+        // 카테고리 변경 시 페이지를 1로 리셋
+        setCurrentPage(1);
       } catch (err) {
         console.error('게시글 목록 조회 실패:', err);
         setError('게시글을 불러올 수 없습니다.');
@@ -122,6 +220,11 @@ export default function CommunityDetail() {
 
   const handleSelectCategory = (category) => {
     navigate(`/community/${encodeURIComponent(category)}`);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const formatDate = (dateString) => {
@@ -148,6 +251,13 @@ export default function CommunityDetail() {
     return images.length > 0 ? images[0] : null;
   };
 
+  // 페이지네이션 계산
+  const totalPages = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
+  const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
+  const endIndex = startIndex + POSTS_PER_PAGE;
+  const currentPosts = posts.slice(startIndex, endIndex);
+  const rows = toRows(currentPosts);
+
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto px-6 py-8 text-center">
@@ -169,8 +279,6 @@ export default function CommunityDetail() {
       </div>
     );
   }
-
-  const rows = toRows(posts);
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-6">
@@ -276,13 +384,13 @@ export default function CommunityDetail() {
             <div className="text-center py-12 text-gray-500">게시글이 없습니다.</div>
           )}
         </div>
-
-        <div className="flex justify-center mt-8">
-          <button className="px-6 py-2 border border-gray-300 rounded-full text-sm text-gray-700 hover:bg-gray-50">
-            더보기
-          </button>
-        </div>
       </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
 
       <WriteFab />
     </div>
