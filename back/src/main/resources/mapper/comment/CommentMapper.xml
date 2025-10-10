@@ -10,6 +10,7 @@ SELECT
  c.parent_comment_id AS parentCommentId,
  c.content AS content,
  c.created_by AS createdBy,
+ c.is_deleted AS isDeleted,
  TO_CHAR(c.created_at, 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
  c.like_count AS likeCount,
  c.comment_count AS commentCount,
@@ -18,7 +19,7 @@ SELECT
  FROM Comments c
  LEFT JOIN MEMBER m ON c.created_by = m.member_id
  WHERE c.post_id = #{postId}
- AND c.is_deleted = 'N'
+ AND (c.is_deleted = 'N' or(c.is_deleted = 'Y' AND c.comment_count > 0))
  ORDER BY NVL(c.parent_comment_id, c.comment_id),c.created_at
 </select>
 
@@ -30,6 +31,7 @@ SELECT
  c.parent_comment_id AS parentCommentId,
  c.content AS content,
  c.created_by AS createdBy,
+ c.is_deleted AS isDeleted,
  TO_CHAR(c.created_at, 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
  c.like_count AS likeCount,
  c.comment_count AS commentCount,
@@ -38,7 +40,7 @@ SELECT
  FROM Comments c
  LEFT JOIN MEMBER m on c.created_by = m.member_id
  WHERE c.comment_id = #{commentId}
- AND c.is_deleted='N'
+ 
  
 </select>
 
@@ -72,6 +74,24 @@ SET IS_DELETED = 'Y',
 WHERE COMMENT_ID = #{commentId}
 AND IS_DELETED = 'N'
 </update>
+
+<!-- 댓글 삭제(대댓글 있을 때) -->
+<update id="deleteComments">
+UPDATE COMMENTS
+SET CONTENT = NULL,
+	IS_DELETED = 'Y',
+	UPDATED_AT = SYSDATE
+WHERE COMMENT_ID = #{commentId}
+AND IS_DELETED = 'N'
+</update>
+
+<!-- 자식 수 즉시 카운트 -->
+<select id="countChildren" parameterType="int" resultType="int">
+  SELECT COUNT(1)
+    FROM COMMENTS
+   WHERE PARENT_COMMENT_ID = #{commentId}
+     AND IS_DELETED = 'N'
+</select>
  
  <!-- 부모 댓글의 대댓글 갯수 증가 -->
 <update id="increaseCommentCount">
@@ -87,7 +107,6 @@ AND is_deleted = 'N'
 UPDATE COMMENTS
 SET COMMENT_COUNT = COMMENT_COUNT - 1
 WHERE COMMENT_ID = #{parentCommentId}
-AND IS_DELETED = 'N'
 AND COMMENT_COUNT > 0
 </update>
 

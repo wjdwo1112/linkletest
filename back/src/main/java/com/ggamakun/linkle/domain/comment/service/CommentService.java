@@ -84,6 +84,11 @@ public class CommentService implements ICommentService {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND,"댓글을 찾을 수 없습니다");
 		}
 		
+		//이미 삭제된 댓글인지 확인
+		if("Y".equals(comment.getIsDeleted())) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"삭제된 댓글은 수정 불가");
+		}
+		
 		//작성자 본인 확인
 		if(!comment.getCreatedBy().equals(memberId)) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN,"댓글 작성자만 수정할 수 있습니다.");
@@ -99,34 +104,53 @@ public class CommentService implements ICommentService {
 	@Transactional
 	@Override
 	public void deleteComment(Integer commentId, Integer memberId) {
-		// 댓글 존재 여부 확인
-		CommentDto comment = commentRepository.findById(commentId);
-		if(comment == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, " 댓글을 찾을 수 없습니다.");
-		}
-		
-		// 댓글 작성자 확인
-		if(!comment.getCreatedBy().equals(memberId)) {
-			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 작성자만 삭제할 수 있습니다");
-		}
-		// 댓글 삭제
-		int deleted = commentRepository.deleteComment(commentId);
-		if(deleted == 0) {
-			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"댓글 삭제에 실패했습니다");
-		}
-		
-		//대댓글인 경우 부모댓글의 댓글 개수 감소
-		if(comment.getParentCommentId() != null) {
-			commentRepository.decreaseCommentCount(comment.getParentCommentId());
-		}
-		
-		//게시글의 댓글 수 감소
-		postRepository.decreaseCommentCount(comment.getPostId());
-		
-		
+	    // 삭제 포함 단건 조회
+	    CommentDto comment = commentRepository.findById(commentId);
+	    if (comment == null) {
+	        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다.");
+	    }
+	    if (!comment.getCreatedBy().equals(memberId)) {
+	        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 작성자만 삭제할 수 있습니다");
+	    }
+	    // 삭제된 댓글인지 확인
+	    if ("Y".equals(comment.getIsDeleted())) {
+	        return;
+	    }
+
+	    // 자식 여부 즉시 확인
+	    int children = commentRepository.countChildren(commentId);
+
+	    if (children > 0) {
+	        // 부모 soft delete: 총 댓글 수는 유지
+	        int n = commentRepository.deleteComments(commentId);
+	        if (n == 0) throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다");
+	        return;
+	    }
+
+	    // 여기서부터 children == 0 (자식 없음)
+	    int n = commentRepository.deleteComment(commentId);
+	    if (n == 0) throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다");
+
+	    if (comment.getParentCommentId() != null) {
+	        // 대댓글 삭제
+	        Integer parentId = comment.getParentCommentId();
+	        commentRepository.decreaseCommentCount(parentId);                // 부모의 대댓글 수 -1
+	        postRepository.decreaseCommentCount(comment.getPostId());       // 게시글 총 댓글 수 -1 (이번 대댓글)
+
+	        // 부모가 삭제(Y) 상태이고, 이제 자식이 0이면 → 부모 placeholder도 빠짐 → 추가 -1
+	        int remain = commentRepository.countChildren(parentId);
+	        if (remain == 0) {
+	            CommentDto parent = commentRepository.findById(parentId);
+	            if (parent != null && "Y".equals(parent.getIsDeleted())) {
+	                postRepository.decreaseCommentCount(parent.getPostId()); // 추가 -1
+	            }
+	        }
+	    } else {
+	        // 최상위 댓글(자식 없음) 삭제
+	        postRepository.decreaseCommentCount(comment.getPostId());       // -1
+	    }
 	}
-	
-	
+
 	
 	
 	

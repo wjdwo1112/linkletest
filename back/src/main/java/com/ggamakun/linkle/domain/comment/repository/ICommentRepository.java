@@ -10,7 +10,7 @@ import com.ggamakun.linkle.domain.comment.dto.CreateCommentRequest;
 
 @Mapper
 public interface ICommentRepository {
-	//특정 게시글의 모든 댓글 조회(댓글+대댓글)
+	//특정 게시글의 모든 댓글 조회(댓글+대댓글) -> 삭제된것 숨긴다, 대댓글 있으면 노출
 	List<CommentDto> findByPostId(Integer postId);
 	
 	//댓글 상세 조회
@@ -25,6 +25,9 @@ public interface ICommentRepository {
 	//댓글 삭제
 	int deleteComment(Integer commentId);
 	
+	//댓글 삭제(대댓글 있을때)
+	int deleteComments(Integer commentId);
+	
 	//부모댓글의 대댓글 갯수 증가
 	int increaseCommentCount(Integer parentCommentId);
 	
@@ -38,7 +41,9 @@ public interface ICommentRepository {
 	int decreaseLikeCount(Integer commentId);
 	
 	//댓글 좋아요 갯수 조회
-	Integer getLikeCount(Integer postId);
+	Integer getLikeCount(Integer commentId);
+
+	int countChildren(Integer parentId);
 	
 	
 }

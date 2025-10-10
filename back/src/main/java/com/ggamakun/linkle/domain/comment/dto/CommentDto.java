@@ -18,6 +18,7 @@ public class CommentDto {
 	private Integer commentCount;
 	private String authorName;
 	private String authorNickname;
+	private String isDeleted;
 	private List<CommentDto> replies = new ArrayList<>();
 }
 
