@@ -11,6 +11,7 @@ public class PostSummary {
 	private String clubName;
 	private String images;
 	private String title;
+	private Integer viewCount;
 	private Integer likeCount;
 	private Integer commentCount;
 	private Date createdAt;

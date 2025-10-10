@@ -14,7 +14,6 @@ import { postApi } from '../../services/api/postApi';
 import { commentApi } from '../../services/api/commentApi';
 import useUserStore from '../../store/useUserStore';
 
-// KebabMenu 컴포넌트 (게시글 & 댓글 공통 사용)
 function KebabMenu({ onEdit, onDelete }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
@@ -94,16 +93,13 @@ export default function PostDetail() {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
 
-  // 댓글 관련
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [newComment, setNewComment] = useState('');
 
-  // 대댓글 관련
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyContent, setReplyContent] = useState('');
 
-  // 수정 관련
   const [editingComment, setEditingComment] = useState(null);
   const [editContent, setEditContent] = useState('');
 
@@ -171,7 +167,6 @@ export default function PostDetail() {
     }
   };
 
-  // === 댓글 작성 ===
   const handleCommentSubmit = async () => {
     if (!isAuthenticated) {
       alert('로그인이 필요합니다.');
@@ -198,7 +193,6 @@ export default function PostDetail() {
     }
   };
 
-  // === 대댓글 작성 ===
   const handleReplySubmit = async (parentId) => {
     if (!isAuthenticated) {
       alert('로그인이 필요합니다.');
@@ -226,7 +220,6 @@ export default function PostDetail() {
     }
   };
 
-  // === 댓글 수정 ===
   const startEdit = (comment) => {
     setEditingComment(comment.commentId);
     setEditContent(comment.content);
@@ -251,7 +244,6 @@ export default function PostDetail() {
     }
   };
 
-  // === 댓글 삭제 ===
   const handleDeleteComment = async (commentId) => {
     const ok = window.confirm('이 댓글을 삭제하시겠습니까?');
     if (!ok) return;
@@ -316,68 +308,57 @@ export default function PostDetail() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
-      {/* 게시글 헤더 */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-3">{post.title}</h1>
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <div className="flex items-center gap-4">
-            <span className="font-semibold text-gray-800">{post.createdByName}</span>
-            <span>{post.createdAt}</span>
-            <span>조회 {post.viewCount}</span>
+      <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+        <button onClick={() => navigate('/community')} className="hover:text-[#4FA3FF]">
+          커뮤니티
+        </button>
+      </div>
+
+      <div className="bg-white">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <UserCircleIcon className="w-10 h-10 text-gray-300" />
+            <div>
+              <div className="font-semibold text-gray-800">{post.authorNickName || '익명'}</div>
+              <div className="text-xs text-gray-400">
+                {post.createdAt} 조회 {post.viewCount}
+              </div>
+            </div>
           </div>
           {canManage && <KebabMenu onEdit={goEdit} onDelete={doDelete} />}
         </div>
-      </div>
 
-      <div className="h-px bg-gray-200 mb-6" />
+        <h1 className="text-2xl font-bold text-gray-800 mb-4">{post.title}</h1>
 
-      {/* 게시글 이미지 */}
-      {post.images && (
-        <div className="mb-6">
-          {post.images
-            .split(',')
-            .filter((img) => img.trim())
-            .map((imgUrl, idx) => (
-              <img
-                key={idx}
-                src={imgUrl.trim()}
-                alt={`게시글 이미지 ${idx + 1}`}
-                className="w-full max-w-2xl rounded-lg mb-4"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
-            ))}
-        </div>
-      )}
+        {post.imageUrl && (
+          <div className="mb-6">
+            <img src={post.imageUrl} alt="게시글 이미지" className="w-full max-w-2xl" />
+          </div>
+        )}
 
-      {/* 게시글 본문 */}
-      <div className="prose prose-sm max-w-none mb-8 text-gray-700 whitespace-pre-wrap">
-        {post.content}
-      </div>
+        <div className="text-gray-700 whitespace-pre-wrap mb-6">{post.content}</div>
 
-      {/* 좋아요/댓글 수 */}
-      <div className="flex items-center gap-4 text-sm text-gray-600 mb-8">
-        <button
-          onClick={handleLikeToggle}
-          className="flex items-center gap-1 hover:text-red-500 transition"
-        >
-          {liked ? (
-            <HeartSolid className="w-5 h-5 text-red-500" />
-          ) : (
-            <HeartIcon className="w-5 h-5" />
-          )}
-          <span>{likeCount}</span>
-        </button>
-        <div className="flex items-center gap-1">
-          <ChatBubbleOvalLeftIcon className="w-5 h-5" />
-          <span>{comments.length}</span>
+        <div className="flex items-center gap-4 text-sm text-gray-600">
+          <button
+            onClick={handleLikeToggle}
+            className="flex items-center gap-1 hover:text-red-500 transition"
+          >
+            {liked ? (
+              <HeartSolid className="w-5 h-5 text-red-500" />
+            ) : (
+              <HeartIcon className="w-5 h-5" />
+            )}
+            <span>{likeCount}</span>
+          </button>
+          <div className="flex items-center gap-1">
+            <ChatBubbleOvalLeftIcon className="w-5 h-5" />
+            <span>{comments.length}</span>
+          </div>
         </div>
       </div>
 
       <div className="h-px bg-gray-200 my-8" />
 
-      {/* 댓글 작성 폼 */}
       <div className="mb-6">
         <h2 className="text-lg font-bold text-gray-800 mb-3">댓글 {comments.length}</h2>
         <div className="flex items-start gap-2">
@@ -402,27 +383,24 @@ export default function PostDetail() {
         </div>
       </div>
 
-      {/* 댓글 목록 */}
       {commentsLoading ? (
         <div className="text-center py-4 text-gray-500">댓글을 불러오는 중...</div>
       ) : comments.length > 0 ? (
-        <div className="mt-6 space-y-4">
+        <div className="space-y-6">
           {comments.map((comment) => (
-            <div key={comment.commentId} className="border-t pt-4">
+            <div key={comment.commentId} className="border-b border-gray-100 pb-6 last:border-b-0">
               <div className="flex items-start gap-2">
                 <UserCircleIcon className="w-8 h-8 text-gray-300 flex-shrink-0" />
                 <div className="flex-1">
-                  {/* 댓글 작성자 정보 */}
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm text-gray-800">
-                        {comment.authorNickname || comment.authorName || '익명'}
+                        {comment.authorNickname || '익명'}
                       </span>
                       <span className="text-xs text-gray-400">
                         {formatCommentDate(comment.createdAt)}
                       </span>
                     </div>
-                    {/* 삭제된 댓글이 아니고 본인이 작성한 댓글일 때만 오버플로우 메뉴 표시 */}
                     {comment.isDeleted !== 'Y' &&
                       isAuthenticated &&
                       user &&
@@ -434,7 +412,6 @@ export default function PostDetail() {
                       )}
                   </div>
 
-                  {/* 댓글 내용 (수정 중이면 textarea 표시) */}
                   {editingComment === comment.commentId ? (
                     <div>
                       <textarea
@@ -448,7 +425,7 @@ export default function PostDetail() {
                           onClick={() => handleEditSubmit(comment.commentId)}
                           className="px-3 py-1 bg-[#4FA3FF] text-white text-sm rounded hover:bg-[#3d8edb]"
                         >
-                          수정 완료
+                          수정
                         </button>
                         <button
                           onClick={() => {
@@ -463,23 +440,12 @@ export default function PostDetail() {
                     </div>
                   ) : (
                     <>
-                      {/* 디버깅용 로그 */}
-                      {console.log(
-                        '댓글:',
-                        comment.commentId,
-                        'isDeleted:',
-                        comment.isDeleted,
-                        'content:',
-                        comment.content,
-                      )}
-
                       <p
-                        className={`text-sm whitespace-pre-wrap ${comment.isDeleted === 'Y' ? 'text-gray-400 italic' : 'text-gray-700'}`}
+                        className={`text-sm ${comment.isDeleted === 'Y' ? 'text-gray-400 italic' : 'text-gray-700'}`}
                       >
                         {comment.isDeleted === 'Y' ? '삭제된 댓글입니다' : comment.content}
                       </p>
 
-                      {/* 삭제된 댓글이 아닐 때만 좋아요 & 대댓글 수 표시 */}
                       {comment.isDeleted !== 'Y' && (
                         <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
                           <button className="flex items-center gap-1 hover:text-red-500">
@@ -495,7 +461,6 @@ export default function PostDetail() {
                     </>
                   )}
 
-                  {/* 댓글 액션 버튼 - 삭제된 댓글이 아닐 때만 표시 */}
                   {editingComment !== comment.commentId && comment.isDeleted !== 'Y' && (
                     <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
                       <button
@@ -507,7 +472,6 @@ export default function PostDetail() {
                     </div>
                   )}
 
-                  {/* 대댓글 작성 폼 - 삭제된 댓글이 아닐 때만 표시 */}
                   {comment.isDeleted !== 'Y' && replyingTo === comment.commentId && (
                     <div className="mt-3 ml-6 flex items-start gap-2">
                       <UserCircleIcon className="w-6 h-6 text-gray-300 flex-shrink-0" />
@@ -540,23 +504,24 @@ export default function PostDetail() {
                     </div>
                   )}
 
-                  {/* 대댓글 목록 */}
                   {comment.replies && comment.replies.length > 0 && (
-                    <div className="mt-3 ml-6 space-y-3 border-l-2 border-gray-200 pl-4">
+                    <div className="mt-3 ml-6 space-y-4 pl-4 pt-3 border-t border-gray-100">
                       {comment.replies.map((reply) => (
-                        <div key={reply.commentId} className="flex items-start gap-2">
+                        <div
+                          key={reply.commentId}
+                          className="border-b border-gray-100 pb-4 last:border-b-0 flex items-start gap-2"
+                        >
                           <UserCircleIcon className="w-6 h-6 text-gray-300 flex-shrink-0" />
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1">
                               <div className="flex items-center gap-2">
                                 <span className="font-semibold text-sm text-gray-800">
-                                  {reply.authorNickname || reply.authorName || '익명'}
+                                  {reply.authorNickname || '익명'}
                                 </span>
                                 <span className="text-xs text-gray-400">
                                   {formatCommentDate(reply.createdAt)}
                                 </span>
                               </div>
-                              {/* 삭제된 댓글이 아니고 본인이 작성한 댓글일 때만 오버플로우 메뉴 표시 */}
                               {reply.isDeleted !== 'Y' &&
                                 isAuthenticated &&
                                 user &&
@@ -581,7 +546,7 @@ export default function PostDetail() {
                                     onClick={() => handleEditSubmit(reply.commentId)}
                                     className="px-3 py-1 bg-[#4FA3FF] text-white text-sm rounded hover:bg-[#3d8edb]"
                                   >
-                                    수정 완료
+                                    수정
                                   </button>
                                   <button
                                     onClick={() => {
@@ -597,12 +562,11 @@ export default function PostDetail() {
                             ) : (
                               <>
                                 <p
-                                  className={`text-sm whitespace-pre-wrap ${reply.isDeleted === 'Y' ? 'text-gray-400 italic' : 'text-gray-700'}`}
+                                  className={`text-sm ${reply.isDeleted === 'Y' ? 'text-gray-400 italic' : 'text-gray-700'}`}
                                 >
                                   {reply.isDeleted === 'Y' ? '삭제된 댓글입니다' : reply.content}
                                 </p>
 
-                                {/* 삭제된 대댓글이 아닐 때만 좋아요 수 표시 */}
                                 {reply.isDeleted !== 'Y' && (
                                   <div className="mt-1 flex items-center gap-4 text-xs text-gray-500">
                                     <button className="flex items-center gap-1 hover:text-red-500">
@@ -624,7 +588,7 @@ export default function PostDetail() {
           ))}
         </div>
       ) : (
-        <div className="text-sm text-gray-400 text-center mt-6">아직 댓글이 없습니다.</div>
+        <div className="text-center py-8 text-gray-500">첫 댓글을 작성해보세요!</div>
       )}
     </div>
   );

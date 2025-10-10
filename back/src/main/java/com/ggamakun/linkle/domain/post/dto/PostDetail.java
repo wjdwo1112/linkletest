@@ -1,7 +1,5 @@
 package com.ggamakun.linkle.domain.post.dto;
 
-import java.sql.Date;
-
 import lombok.Data;
 
 @Data
@@ -16,7 +14,7 @@ public class PostDetail {
 	private String postType;
 	private String scope;
 	private Integer createdBy;
-	private Date createdAt;	
+	private String createdAt;	
 	private Integer viewCount;
 	private Integer likeCount;
 	private Integer commentCount;
