@@ -18,9 +18,9 @@ public interface IPostService {
 
 	Integer insertPost(CreatePostRequest request);
 
-	PostDetail updatePost(Integer postId, UpdatePostRequest request);
+	PostDetail updatePost(Integer postId, UpdatePostRequest request, Integer memberId);
 
-	int deletePost(Integer postId);
+	void deletePost(Integer postId, Integer memberId);
 	
 	
 

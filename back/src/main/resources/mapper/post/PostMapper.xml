@@ -94,10 +94,10 @@ FROM
 <!-- 게시글 등록 -->
 <insert id="insertPost" parameterType="com.ggamakun.linkle.domain.post.dto.CreatePostRequest">
 INSERT INTO POST
-	(POST_ID, CLUB_ID, TITLE, CONTENT, IMAGES, POST_TYPE, SCOPE, CREATED_AT
+	(POST_ID, CLUB_ID, TITLE, CONTENT, IMAGES, POST_TYPE, SCOPE, CREATED_BY, CREATED_AT
 	)
 VALUES
-	(SEQ_POST.NEXTVAL, #{clubId}, #{title}, #{content}, #{images}, #{postType}, #{scope}, SYSDATE
+	(SEQ_POST.NEXTVAL, #{clubId}, #{title}, #{content}, #{images, jdbcType=VARCHAR}, #{postType}, #{scope}, #{createdBy}, SYSDATE
 	)
 
 </insert>
@@ -110,7 +110,6 @@ VALUES
     <if test="request.content != null">     CONTENT   = #{request.content},</if>
     <if test="request.images != null">      IMAGES    = #{request.images},</if>
     <if test="request.scope != null">       SCOPE     = #{request.scope},</if>
-    <if test="request.postType != null">    POST_TYPE = #{request.postType},</if>
     UPDATED_AT = SYSDATE
   </set>
   WHERE POST_ID = #{postId}

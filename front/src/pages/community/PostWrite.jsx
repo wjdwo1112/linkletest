@@ -1,18 +1,21 @@
 // src/pages/community/PostWrite.jsx
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'quill/dist/quill.snow.css';
 import { clubApi } from '../../services/api/clubApi';
+import { postApi } from '../../services/api/postApi';
 
 export default function PostWrite() {
+  const navigate = useNavigate();
   const editorRef = useRef(null);
-  const objectUrlsRef = useRef([]); // 미리보기 Blob URL 정리용
+  const objectUrlsRef = useRef([]);
 
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [club, setClub] = useState(''); // 선택된 동호회 id (문자열로 보관)
+  const [club, setClub] = useState('');
   const [board] = useState('자유게시판');
-  const [visibility, setVisibility] = useState('PUBLIC'); // PUBLIC | MEMBERS
+  const [visibility, setVisibility] = useState('PUBLIC');
   const [title, setTitle] = useState('');
   const [html, setHtml] = useState('');
 
@@ -21,20 +24,24 @@ export default function PostWrite() {
     const fetchJoinedClubs = async () => {
       try {
         setLoading(true);
-        const data = await clubApi.getJoinedClubs(); // [{ clubId, name, ... }]
+        const data = await clubApi.getJoinedClubs();
         console.log('가입한 동호회 목록:', data);
-        setClubs(Array.isArray(data) ? data : []);
 
-        if (Array.isArray(data) && data.length > 0) {
-          setClub(String(data[0].clubId));
+        if (data && Array.isArray(data)) {
+          setClubs(data);
+
+          if (data.length > 0) {
+            setClub(data[0].clubId.toString());
+          }
         } else {
-          setClub('');
+          console.error('동호회 목록 데이터 형식 오류:', data);
+          setClubs([]);
         }
       } catch (err) {
         console.error('동호회 목록 조회 실패:', err);
-        alert('동호회 목록을 불러올 수 없습니다.');
+        console.error('에러 상세:', err.response || err.message);
+        alert('동호회 목록을 불러오는데 실패했습니다.\n콘솔을 확인해주세요.');
         setClubs([]);
-        setClub('');
       } finally {
         setLoading(false);
       }
@@ -43,7 +50,6 @@ export default function PostWrite() {
     fetchJoinedClubs();
   }, []);
 
-  /** Quill 설정 */
   const modules = {
     toolbar: {
       container: [
@@ -62,7 +68,6 @@ export default function PostWrite() {
     clipboard: { matchVisual: false },
   };
 
-  // ✅ 'bullet'은 포맷 키가 아님. 'list'만 넣어야 함.
   const formats = [
     'header',
     'bold',
@@ -71,7 +76,8 @@ export default function PostWrite() {
     'strike',
     'color',
     'background',
-    'list', // <-- 이것 하나로 ordered/bullet 둘 다 커버
+    'list',
+    'bullet',
     'align',
     'blockquote',
     'code-block',
@@ -79,9 +85,8 @@ export default function PostWrite() {
     'image',
   ];
 
-  /** 붙여넣기/드래그 앤 드롭으로 이미지 오면 로컬 미리보기 삽입 */
   useEffect(() => {
-    const quill = editorRef.current?.getEditor?.();
+    const quill = editorRef.current?.getEditor();
     if (!quill) return;
 
     const onPaste = async (e) => {
@@ -97,7 +102,7 @@ export default function PostWrite() {
 
     const onDrop = async (e) => {
       const files = e.dataTransfer?.files || [];
-      if (files?.length) {
+      if (files.length) {
         e.preventDefault();
         for (const f of files) if (f.type.startsWith('image/')) insertLocalPreview(f);
       }
@@ -111,10 +116,9 @@ export default function PostWrite() {
     };
   }, []);
 
-  /** 언마운트 시 Blob URL 정리 */
   useEffect(() => {
     return () => {
-      objectUrlsRef.current.forEach((u) => URL.revokeObjectURL(u));
+      objectUrlsRef.current.forEach((u) => window.URL.revokeObjectURL(u));
       objectUrlsRef.current = [];
     };
   }, []);
@@ -131,15 +135,13 @@ export default function PostWrite() {
   };
 
   const insertLocalPreview = (file) => {
-    const quill = editorRef.current?.getEditor?.();
+    const quill = editorRef.current?.getEditor();
     if (!quill) return;
-
-    const url = URL.createObjectURL(file);
+    const url = window.URL.createObjectURL(file);
     objectUrlsRef.current.push(url);
-
     const range = quill.getSelection(true);
-    quill.insertEmbed(range?.index ?? 0, 'image', url, 'user');
-    quill.setSelection((range?.index ?? 0) + 1, 0);
+    quill.insertEmbed(range.index, 'image', url, 'user');
+    quill.setSelection(range.index + 1, 0);
   };
 
   const handleSubmit = async () => {
@@ -147,14 +149,29 @@ export default function PostWrite() {
     if (!html.trim()) return window.alert('내용을 입력해 주세요.');
     if (!club) return window.alert('동호회를 선택해 주세요.');
 
-    // TODO: 백엔드 연동 시 여기서 이미지 업로드(Blob URL -> 파일 변환), 본문 내 URL 치환 등 구현
-    console.log({
-      clubId: club,
-      visibility,
-      title,
-      htmlLength: html.length,
-    });
-    window.alert('현재는 UI만 구성되어 있습니다. (백엔드 연동 전)');
+    try {
+      // visibility 값을 백엔드 scope 값으로 변환
+      const scope = visibility === 'PUBLIC' ? '전체' : '회원';
+
+      const postData = {
+        clubId: parseInt(club),
+        title: title.trim(),
+        content: html,
+        images: null, // 이미지는 추후 구현
+        postType: 'P', // P = 일반 게시글, N = 공지사항
+        scope: scope,
+      };
+
+      console.log('게시글 등록 요청:', postData);
+
+      await postApi.createPost(postData);
+
+      alert('게시글이 등록되었습니다.');
+      window.location.href = '/community';
+    } catch (error) {
+      console.error('게시글 등록 실패:', error);
+      alert('게시글 등록에 실패했습니다.\n' + (error.message || '다시 시도해주세요.'));
+    }
   };
 
   if (loading) {
@@ -165,7 +182,7 @@ export default function PostWrite() {
     );
   }
 
-  if (!clubs.length) {
+  if (clubs.length === 0) {
     return (
       <div className="max-w-5xl mx-auto px-6 py-8">
         <div className="text-center">
@@ -197,7 +214,7 @@ export default function PostWrite() {
           className="w-72 border border-gray-300 rounded px-3 py-2 outline-none"
         >
           {clubs.map((c) => (
-            <option key={c.clubId} value={String(c.clubId)}>
+            <option key={c.clubId} value={c.clubId}>
               {c.name}
             </option>
           ))}

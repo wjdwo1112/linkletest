@@ -17,9 +17,12 @@ export const postApi = {
     const response = await post('/posts', postData);
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('게시글 등록 실패 응답:', errorText);
       throw new Error('게시글 등록에 실패했습니다.');
     }
 
+    // 201 Created 상태면 성공
     return response;
   },
 

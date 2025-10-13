@@ -23,7 +23,16 @@ ORDER BY cm.joined_at DESC
 
 </select>
 
+<select id="isClubMember" resultType="int">
+SELECT COUNT(*)
+FROM CLUB_MEMBER
+WHERE club_id = #{clubId}
+AND member_id = #{memberId}
+AND status = '승인'
+AND is_deleted = 'N'
 
+
+</select>
 
 
 
