@@ -1,7 +1,7 @@
 // front/src/pages/community/PostDetail.jsx
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import DOMPurify from 'dompurify'; // ✅ DOMPurify 추가
+import DOMPurify from 'dompurify';
 import {
   HeartIcon,
   ChatBubbleOvalLeftIcon,
@@ -128,7 +128,7 @@ export default function PostDetail() {
       'span',
     ],
     ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style', 'target'],
-    ALLOW_DATA_ATTR: false, // data-* 속성 차단
+    ALLOW_DATA_ATTR: false,
   };
 
   useEffect(() => {
@@ -151,7 +151,6 @@ export default function PostDetail() {
       } catch (err) {
         console.error('게시글 조회 실패:', err);
 
-        // 에러 타입별 처리
         if (err.status === 401) {
           setErrorType('UNAUTHORIZED');
           setError('로그인이 필요합니다.');
@@ -192,6 +191,7 @@ export default function PostDetail() {
     };
   }, [postId, isAuthenticated]);
 
+  // 🔧 fix: 불필요한 ) 제거
   const canManage = isAuthenticated && user && post && Number(user.id) === Number(post.createdBy);
 
   const handleLikeToggle = async () => {
@@ -244,7 +244,7 @@ export default function PostDetail() {
       return;
     }
     if (!replyContent.trim()) {
-      alert('대댓글 내용을 입력해주세요.');
+      alert('댓글 내용을 입력해주세요.');
       return;
     }
 
@@ -257,10 +257,10 @@ export default function PostDetail() {
       setReplyingTo(null);
       const data = await commentApi.getComments(postId);
       setComments(data);
-      alert('대댓글이 등록되었습니다.');
+      alert('댓글이 등록되었습니다.');
     } catch (err) {
       console.error('대댓글 작성 실패:', err);
-      alert('대댓글 작성에 실패했습니다.');
+      alert('댓글 작성에 실패했습니다.');
     }
   };
 
@@ -334,6 +334,15 @@ export default function PostDetail() {
     }
   };
 
+  // ✅ 부모/대댓글 모두 포함(삭제된 것은 제외)하여 총 댓글 수 계산
+  const totalComments = useMemo(() => {
+    return comments.reduce((sum, c) => {
+      const parent = c.isDeleted !== 'Y' ? 1 : 0;
+      const replies = (c.replies || []).filter((r) => r.isDeleted !== 'Y').length;
+      return sum + parent + replies;
+    }, 0);
+  }, [comments]);
+
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-6 py-8 text-center">
@@ -342,7 +351,6 @@ export default function PostDetail() {
     );
   }
 
-  // 에러 타입별 다른 UI 표시
   if (error || !post) {
     return (
       <div className="max-w-4xl mx-auto px-6 py-8 text-center">
@@ -437,7 +445,7 @@ export default function PostDetail() {
           </button>
           <div className="flex items-center gap-1">
             <ChatBubbleOvalLeftIcon className="w-5 h-5" />
-            <span>{comments.length}</span>
+            <span>{totalComments}</span>
           </div>
         </div>
       </div>
@@ -445,7 +453,7 @@ export default function PostDetail() {
       <div className="h-px bg-gray-200 my-8" />
 
       <div className="mb-6 text-sm">
-        <h2 className="text-base font-bold text-gray-800 mb-3">댓글 {comments.length}</h2>
+        <h2 className="text-base font-bold text-gray-800 mb-3">댓글 {totalComments}</h2>
         <div className="flex items-start gap-2">
           <UserCircleIcon className="w-6 h-6 text-gray-300 flex-shrink-0 mt-1" />
           <div className="flex-1">
@@ -470,7 +478,7 @@ export default function PostDetail() {
 
       {commentsLoading ? (
         <div className="text-center py-4 text-gray-500">댓글을 불러오는 중...</div>
-      ) : comments.length > 0 ? (
+      ) : totalComments > 0 ? (
         <div className="space-y-4">
           {comments.map((comment) => (
             <div key={comment.commentId} className="border-b border-gray-100 pb-4">
@@ -491,20 +499,10 @@ export default function PostDetail() {
                       user &&
                       Number(user.id) === Number(comment.createdBy) &&
                       comment.isDeleted !== 'Y' && (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => startEdit(comment)}
-                            className="text-xs text-gray-500 hover:text-gray-700"
-                          >
-                            수정
-                          </button>
-                          <button
-                            onClick={() => handleDeleteComment(comment.commentId)}
-                            className="text-xs text-red-500 hover:text-red-700"
-                          >
-                            삭제
-                          </button>
-                        </div>
+                        <KebabMenu
+                          onEdit={() => startEdit(comment)}
+                          onDelete={() => handleDeleteComment(comment.commentId)}
+                        />
                       )}
                   </div>
 
@@ -568,7 +566,7 @@ export default function PostDetail() {
                         <textarea
                           value={replyContent}
                           onChange={(e) => setReplyContent(e.target.value)}
-                          placeholder="대댓글을 입력하세요"
+                          placeholder="댓글을 입력하세요"
                           className="w-full px-3 py-2 border border-gray-200 rounded-md outline-none resize-none"
                           rows="2"
                         />
@@ -613,20 +611,10 @@ export default function PostDetail() {
                                 user &&
                                 Number(user.id) === Number(reply.createdBy) &&
                                 reply.isDeleted !== 'Y' && (
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={() => startEdit(reply)}
-                                      className="text-xs text-gray-500 hover:text-gray-700"
-                                    >
-                                      수정
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteComment(reply.commentId)}
-                                      className="text-xs text-red-500 hover:text-red-700"
-                                    >
-                                      삭제
-                                    </button>
-                                  </div>
+                                  <KebabMenu
+                                    onEdit={() => startEdit(reply)}
+                                    onDelete={() => handleDeleteComment(reply.commentId)}
+                                  />
                                 )}
                             </div>
 
