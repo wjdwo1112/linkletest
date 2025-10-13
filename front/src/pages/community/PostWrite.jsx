@@ -1,4 +1,4 @@
-// src/pages/community/PostWrite.jsx
+// src/pages/community/PostWrite.jsx - 무한 루프 수정
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
@@ -14,7 +14,6 @@ export default function PostWrite() {
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [club, setClub] = useState('');
-  const [board] = useState('자유게시판');
   const [visibility, setVisibility] = useState('PUBLIC');
   const [title, setTitle] = useState('');
   const [html, setHtml] = useState('');
@@ -50,7 +49,8 @@ export default function PostWrite() {
     fetchJoinedClubs();
   }, []);
 
-  const modules = {
+  // ✅ useMemo로 modules 메모이제이션 - 무한 루프 방지
+  const modules = useRef({
     toolbar: {
       container: [
         [{ header: [1, 2, 3, false] }],
@@ -66,9 +66,10 @@ export default function PostWrite() {
       },
     },
     clipboard: { matchVisual: false },
-  };
+  }).current;
 
-  const formats = [
+  // ✅ formats도 useRef로 메모이제이션
+  const formats = useRef([
     'header',
     'bold',
     'italic',
@@ -77,13 +78,20 @@ export default function PostWrite() {
     'color',
     'background',
     'list',
-    'bullet',
     'align',
     'blockquote',
     'code-block',
     'link',
     'image',
-  ];
+  ]).current;
+
+  // ✅ onChange 핸들러 수정 - content, delta, source, editor 모두 받기
+  const handleEditorChange = (content, delta, source, editor) => {
+    // source가 'user'일 때만 업데이트 (무한 루프 방지)
+    if (source === 'user') {
+      setHtml(content);
+    }
+  };
 
   useEffect(() => {
     const quill = editorRef.current?.getEditor();
@@ -114,7 +122,7 @@ export default function PostWrite() {
       quill.root.removeEventListener('paste', onPaste);
       quill.root.removeEventListener('drop', onDrop);
     };
-  }, []);
+  }, []); // ✅ 빈 의존성 배열
 
   useEffect(() => {
     return () => {
@@ -150,15 +158,14 @@ export default function PostWrite() {
     if (!club) return window.alert('동호회를 선택해 주세요.');
 
     try {
-      // visibility 값을 백엔드 scope 값으로 변환
       const scope = visibility === 'PUBLIC' ? '전체' : '회원';
 
       const postData = {
         clubId: parseInt(club),
         title: title.trim(),
         content: html,
-        images: null, // 이미지는 추후 구현
-        postType: 'P', // P = 일반 게시글, N = 공지사항
+        images: null,
+        postType: 'P',
         scope: scope,
       };
 
@@ -167,7 +174,7 @@ export default function PostWrite() {
       await postApi.createPost(postData);
 
       alert('게시글이 등록되었습니다.');
-      window.location.href = '/community';
+      navigate('/community');
     } catch (error) {
       console.error('게시글 등록 실패:', error);
       alert('게시글 등록에 실패했습니다.\n' + (error.message || '다시 시도해주세요.'));
@@ -255,11 +262,12 @@ export default function PostWrite() {
       />
 
       <div className="border border-gray-200 rounded">
+        {/* ✅ onChange에 handleEditorChange 사용 */}
         <ReactQuill
           ref={editorRef}
           theme="snow"
           value={html}
-          onChange={setHtml}
+          onChange={handleEditorChange}
           modules={modules}
           formats={formats}
           placeholder="내용을 입력하세요."

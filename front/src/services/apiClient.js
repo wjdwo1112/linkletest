@@ -47,8 +47,6 @@ export const get = async (url) => {
   });
 
   if (!response.ok) {
-    const error = new Error('데이터를 가져올 수 없습니다.');
-    error.status = response.status;
     throw new Error('데이터를 가져올 수 없습니다.');
   }
 

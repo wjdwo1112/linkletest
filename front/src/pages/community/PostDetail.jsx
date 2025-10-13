@@ -1,6 +1,7 @@
 // front/src/pages/community/PostDetail.jsx
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import DOMPurify from 'dompurify'; // ✅ DOMPurify 추가
 import {
   HeartIcon,
   ChatBubbleOvalLeftIcon,
@@ -89,6 +90,7 @@ export default function PostDetail() {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [errorType, setErrorType] = useState(null); // 'UNAUTHORIZED' | 'FORBIDDEN' | 'NOT_FOUND'
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
@@ -103,12 +105,41 @@ export default function PostDetail() {
   const [editingComment, setEditingComment] = useState(null);
   const [editContent, setEditContent] = useState('');
 
+  // ✅ DOMPurify 설정 - ReactQuill에서 사용하는 태그만 허용
+  const sanitizeConfig = {
+    ALLOWED_TAGS: [
+      'p',
+      'br',
+      'strong',
+      'em',
+      'u',
+      's',
+      'h1',
+      'h2',
+      'h3',
+      'ul',
+      'ol',
+      'li',
+      'a',
+      'img',
+      'blockquote',
+      'code',
+      'pre',
+      'span',
+    ],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style', 'target'],
+    ALLOW_DATA_ATTR: false, // data-* 속성 차단
+  };
+
   useEffect(() => {
     if (hasFetchedRef.current) return;
 
     const fetchPostDetail = async () => {
       try {
         setLoading(true);
+        setError(null);
+        setErrorType(null);
+
         const data = await postApi.getPostDetail(postId);
         setPost(data);
         setLikeCount(data.likeCount || 0);
@@ -119,7 +150,20 @@ export default function PostDetail() {
         }
       } catch (err) {
         console.error('게시글 조회 실패:', err);
-        setError('게시글을 불러올 수 없습니다.');
+
+        // 에러 타입별 처리
+        if (err.status === 401) {
+          setErrorType('UNAUTHORIZED');
+          setError('로그인이 필요합니다.');
+        } else if (err.status === 403) {
+          setErrorType('FORBIDDEN');
+          setError('동호회 회원만 볼 수 있습니다.');
+        } else if (err.status === 404) {
+          setErrorType('NOT_FOUND');
+          setError('게시글을 찾을 수 없습니다.');
+        } else {
+          setError('게시글을 불러올 수 없습니다.');
+        }
       } finally {
         setLoading(false);
       }
@@ -298,10 +342,38 @@ export default function PostDetail() {
     );
   }
 
+  // 에러 타입별 다른 UI 표시
   if (error || !post) {
     return (
       <div className="max-w-4xl mx-auto px-6 py-8 text-center">
-        <div className="text-red-500">{error || '게시글을 찾을 수 없습니다.'}</div>
+        <div className="text-red-500 mb-4">{error || '게시글을 찾을 수 없습니다.'}</div>
+
+        {errorType === 'UNAUTHORIZED' && (
+          <button
+            onClick={() => navigate('/login')}
+            className="px-6 py-2 bg-[#4FA3FF] text-white rounded hover:bg-[#3d8edb]"
+          >
+            로그인하기
+          </button>
+        )}
+
+        {errorType === 'FORBIDDEN' && (
+          <button
+            onClick={() => navigate('/community')}
+            className="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+          >
+            목록으로 돌아가기
+          </button>
+        )}
+
+        {(errorType === 'NOT_FOUND' || !errorType) && (
+          <button
+            onClick={() => navigate('/community')}
+            className="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+          >
+            목록으로 돌아가기
+          </button>
+        )}
       </div>
     );
   }
@@ -330,13 +402,26 @@ export default function PostDetail() {
 
         <h1 className="text-2xl font-bold text-gray-800 mb-4">{post.title}</h1>
 
-        {post.imageUrl && (
+        {post.images && (
           <div className="mb-6">
-            <img src={post.imageUrl} alt="게시글 이미지" className="w-full max-w-2xl" />
+            <img
+              src={post.images.split(',')[0]}
+              alt="게시글 이미지"
+              className="w-full max-w-2xl"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
           </div>
         )}
 
-        <div className="text-gray-700 whitespace-pre-wrap mb-6">{post.content}</div>
+        {/* ✅ DOMPurify로 HTML 정화 - XSS 공격 완벽 차단! */}
+        <div
+          className="text-gray-700 mb-6 prose max-w-none"
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(post.content, sanitizeConfig),
+          }}
+        />
 
         <div className="flex items-center gap-4 text-sm text-gray-600">
           <button
@@ -360,19 +445,15 @@ export default function PostDetail() {
       <div className="h-px bg-gray-200 my-8" />
 
       <div className="mb-6 text-sm">
-        {' '}
-        {/* ← 하위 전체 기본 글자 크기 축소 */}
         <h2 className="text-base font-bold text-gray-800 mb-3">댓글 {comments.length}</h2>
         <div className="flex items-start gap-2">
-          <UserCircleIcon className="w-6 h-6 text-gray-300 flex-shrink-0 mt-1" />{' '}
-          {/* 아이콘도 축소 */}
+          <UserCircleIcon className="w-6 h-6 text-gray-300 flex-shrink-0 mt-1" />
           <div className="flex-1">
             <textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="댓글을 입력하세요"
-              className="w-full px-3 py-2 border border-gray-200 rounded-md outline-none resize-none
-                   text-sm leading-5 placeholder:text-xs" /* ← 글/줄간격/플레이스홀더 축소 */
+              className="w-full px-3 py-2 border border-gray-200 rounded-md outline-none resize-none text-sm leading-5 placeholder:text-xs"
               rows="3"
             />
             <div className="mt-2 flex justify-end">
@@ -390,29 +471,40 @@ export default function PostDetail() {
       {commentsLoading ? (
         <div className="text-center py-4 text-gray-500">댓글을 불러오는 중...</div>
       ) : comments.length > 0 ? (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {comments.map((comment) => (
-            <div key={comment.commentId} className="border-b border-gray-100 pb-6 last:border-b-0">
-              <div className="flex items-start gap-2">
-                <UserCircleIcon className="w-8 h-8 text-gray-300 flex-shrink-0" />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm text-gray-800">
-                        {comment.authorNickname || '익명'}
+            <div key={comment.commentId} className="border-b border-gray-100 pb-4">
+              <div className="flex items-start gap-3">
+                <UserCircleIcon className="w-8 h-8 text-gray-300 flex-shrink-0 mt-1" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <span className="font-semibold text-gray-800 text-sm">
+                        {comment.authorNickname || comment.authorName || '익명'}
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-400 ml-2">
                         {formatCommentDate(comment.createdAt)}
                       </span>
                     </div>
-                    {comment.isDeleted !== 'Y' &&
-                      isAuthenticated &&
+
+                    {isAuthenticated &&
                       user &&
-                      Number(user.id) === Number(comment.createdBy) && (
-                        <KebabMenu
-                          onEdit={() => startEdit(comment)}
-                          onDelete={() => handleDeleteComment(comment.commentId)}
-                        />
+                      Number(user.id) === Number(comment.createdBy) &&
+                      comment.isDeleted !== 'Y' && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => startEdit(comment)}
+                            className="text-xs text-gray-500 hover:text-gray-700"
+                          >
+                            수정
+                          </button>
+                          <button
+                            onClick={() => handleDeleteComment(comment.commentId)}
+                            className="text-xs text-red-500 hover:text-red-700"
+                          >
+                            삭제
+                          </button>
+                        </div>
                       )}
                   </div>
 
@@ -422,7 +514,7 @@ export default function PostDetail() {
                         value={editContent}
                         onChange={(e) => setEditContent(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-200 rounded-md outline-none resize-none"
-                        rows="3"
+                        rows="2"
                       />
                       <div className="mt-2 flex gap-2">
                         <button
@@ -445,40 +537,33 @@ export default function PostDetail() {
                   ) : (
                     <>
                       <p
-                        className={`text-sm ${comment.isDeleted === 'Y' ? 'text-gray-400 italic' : 'text-gray-700'}`}
+                        className={`text-sm ${
+                          comment.isDeleted === 'Y' ? 'text-gray-400 italic' : 'text-gray-700'
+                        }`}
                       >
                         {comment.isDeleted === 'Y' ? '삭제된 댓글입니다' : comment.content}
                       </p>
 
                       {comment.isDeleted !== 'Y' && (
-                        <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                        <div className="mt-1 flex items-center gap-4 text-xs text-gray-500">
                           <button className="flex items-center gap-1 hover:text-red-500">
                             <HeartIcon className="w-4 h-4" />
                             {comment.likeCount || 0}
                           </button>
-                          <div className="flex items-center gap-1">
-                            <ChatBubbleOvalLeftIcon className="w-4 h-4" />
-                            {comment.commentCount || 0}
-                          </div>
+                          <button
+                            onClick={() => setReplyingTo(comment.commentId)}
+                            className="hover:text-[#4FA3FF]"
+                          >
+                            답글
+                          </button>
                         </div>
                       )}
                     </>
                   )}
 
-                  {editingComment !== comment.commentId && comment.isDeleted !== 'Y' && (
-                    <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
-                      <button
-                        onClick={() => setReplyingTo(comment.commentId)}
-                        className="hover:text-[#4FA3FF]"
-                      >
-                        답글
-                      </button>
-                    </div>
-                  )}
-
-                  {comment.isDeleted !== 'Y' && replyingTo === comment.commentId && (
-                    <div className="mt-3 ml-6 flex items-start gap-2">
-                      <UserCircleIcon className="w-6 h-6 text-gray-300 flex-shrink-0" />
+                  {replyingTo === comment.commentId && (
+                    <div className="mt-3 flex items-start gap-2">
+                      <UserCircleIcon className="w-6 h-6 text-gray-300 flex-shrink-0 mt-1" />
                       <div className="flex-1">
                         <textarea
                           value={replyContent}
@@ -511,29 +596,37 @@ export default function PostDetail() {
                   {comment.replies && comment.replies.length > 0 && (
                     <div className="mt-3 ml-6 space-y-4 pl-4 pt-3 border-t border-gray-100">
                       {comment.replies.map((reply) => (
-                        <div
-                          key={reply.commentId}
-                          className="border-b border-gray-100 pb-4 last:border-b-0 flex items-start gap-2"
-                        >
-                          <UserCircleIcon className="w-6 h-6 text-gray-300 flex-shrink-0" />
-                          <div className="flex-1">
+                        <div key={reply.commentId} className="flex items-start gap-2">
+                          <UserCircleIcon className="w-6 h-6 text-gray-300 flex-shrink-0 mt-1" />
+                          <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-sm text-gray-800">
-                                  {reply.authorNickname || '익명'}
+                              <div>
+                                <span className="font-semibold text-gray-800 text-sm">
+                                  {reply.authorNickname || reply.authorName || '익명'}
                                 </span>
-                                <span className="text-xs text-gray-400">
+                                <span className="text-xs text-gray-400 ml-2">
                                   {formatCommentDate(reply.createdAt)}
                                 </span>
                               </div>
-                              {reply.isDeleted !== 'Y' &&
-                                isAuthenticated &&
+
+                              {isAuthenticated &&
                                 user &&
-                                Number(user.id) === Number(reply.createdBy) && (
-                                  <KebabMenu
-                                    onEdit={() => startEdit(reply)}
-                                    onDelete={() => handleDeleteComment(reply.commentId)}
-                                  />
+                                Number(user.id) === Number(reply.createdBy) &&
+                                reply.isDeleted !== 'Y' && (
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => startEdit(reply)}
+                                      className="text-xs text-gray-500 hover:text-gray-700"
+                                    >
+                                      수정
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteComment(reply.commentId)}
+                                      className="text-xs text-red-500 hover:text-red-700"
+                                    >
+                                      삭제
+                                    </button>
+                                  </div>
                                 )}
                             </div>
 
@@ -566,7 +659,11 @@ export default function PostDetail() {
                             ) : (
                               <>
                                 <p
-                                  className={`text-sm ${reply.isDeleted === 'Y' ? 'text-gray-400 italic' : 'text-gray-700'}`}
+                                  className={`text-sm ${
+                                    reply.isDeleted === 'Y'
+                                      ? 'text-gray-400 italic'
+                                      : 'text-gray-700'
+                                  }`}
                                 >
                                   {reply.isDeleted === 'Y' ? '삭제된 댓글입니다' : reply.content}
                                 </p>

@@ -50,15 +50,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         	return true;
         }
         
-     // GET 요청은 게시글/댓글 조회만 허용 (JWT 필터 제외)
-        if ("GET".equals(method)) {
-            if (path.matches("/posts(/\\d+)?") || 
-                path.equals("/posts/summary") ||
-                path.matches("/posts/\\d+/comments") ||
-                path.matches("/comments/\\d+")) {
-                return true;
-            }
-        }
+//     // GET 요청은 게시글/댓글 조회만 허용 (JWT 필터 제외)
+//        if ("GET".equals(method)) {
+//            if (path.matches("/posts(/\\d+)?") || 
+//                path.equals("/posts/summary") ||
+//                path.matches("/posts/\\d+/comments") ||
+//                path.matches("/comments/\\d+")) {
+//                return true;
+//            }
+//        }
         
         return false;
         
