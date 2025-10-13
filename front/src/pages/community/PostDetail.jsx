@@ -359,22 +359,26 @@ export default function PostDetail() {
 
       <div className="h-px bg-gray-200 my-8" />
 
-      <div className="mb-6">
-        <h2 className="text-lg font-bold text-gray-800 mb-3">댓글 {comments.length}</h2>
+      <div className="mb-6 text-sm">
+        {' '}
+        {/* ← 하위 전체 기본 글자 크기 축소 */}
+        <h2 className="text-base font-bold text-gray-800 mb-3">댓글 {comments.length}</h2>
         <div className="flex items-start gap-2">
-          <UserCircleIcon className="w-8 h-8 text-gray-300 flex-shrink-0 mt-1" />
+          <UserCircleIcon className="w-6 h-6 text-gray-300 flex-shrink-0 mt-1" />{' '}
+          {/* 아이콘도 축소 */}
           <div className="flex-1">
             <textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="댓글을 입력하세요"
-              className="w-full px-3 py-2 border border-gray-200 rounded-md outline-none resize-none"
+              className="w-full px-3 py-2 border border-gray-200 rounded-md outline-none resize-none
+                   text-sm leading-5 placeholder:text-xs" /* ← 글/줄간격/플레이스홀더 축소 */
               rows="3"
             />
             <div className="mt-2 flex justify-end">
               <button
                 onClick={handleCommentSubmit}
-                className="px-4 py-2 bg-[#4FA3FF] text-white text-sm rounded hover:bg-[#3d8edb] transition"
+                className="px-3 py-1.5 bg-[#4FA3FF] text-white text-xs rounded hover:bg-[#3d8edb] transition"
               >
                 등록
               </button>

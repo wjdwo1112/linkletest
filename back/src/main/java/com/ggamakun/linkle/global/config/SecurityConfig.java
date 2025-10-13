@@ -39,7 +39,11 @@ public class SecurityConfig {
             .formLogin(formLogin -> formLogin.disable())
             .httpBasic(httpBasic -> httpBasic.disable())
             
+            .cors(cors -> {})
+            
+            
             .authorizeHttpRequests(auth -> auth
+            	.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/", "/css/**", "/images/**", "/js/**", "/h2-console/**").permitAll()
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/oauth2/**").permitAll()

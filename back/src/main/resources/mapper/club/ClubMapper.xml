@@ -3,7 +3,7 @@
 <mapper namespace="com.ggamakun.linkle.domain.club.repository.IClubRepository">
 
 <!-- 회원이 가입한 동호회 목록 조회 -->
-<select id="findCLubsByMemberId"  resultType="com.ggamakun.linkle.domain.club.dto.ClubSummary">
+<select id="findClubsByMemberId"  resultType="com.ggamakun.linkle.domain.club.dto.ClubSummary">
 SELECT 
 	c.club_id AS clubId,
 	c.name AS name,

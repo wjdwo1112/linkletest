@@ -6,13 +6,13 @@ import { clubApi } from '../../services/api/clubApi';
 
 export default function PostWrite() {
   const editorRef = useRef(null);
-  const objectUrlsRef = useRef([]);
+  const objectUrlsRef = useRef([]); // 미리보기 Blob URL 정리용
 
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [club, setClub] = useState('');
+  const [club, setClub] = useState(''); // 선택된 동호회 id (문자열로 보관)
   const [board] = useState('자유게시판');
-  const [visibility, setVisibility] = useState('PUBLIC');
+  const [visibility, setVisibility] = useState('PUBLIC'); // PUBLIC | MEMBERS
   const [title, setTitle] = useState('');
   const [html, setHtml] = useState('');
 
@@ -21,16 +21,20 @@ export default function PostWrite() {
     const fetchJoinedClubs = async () => {
       try {
         setLoading(true);
-        const data = await clubApi.getJoinedClubs();
+        const data = await clubApi.getJoinedClubs(); // [{ clubId, name, ... }]
         console.log('가입한 동호회 목록:', data);
-        setClubs(data);
+        setClubs(Array.isArray(data) ? data : []);
 
-        if (data.length > 0) {
-          setClub(data[0].clubId.toString());
+        if (Array.isArray(data) && data.length > 0) {
+          setClub(String(data[0].clubId));
+        } else {
+          setClub('');
         }
       } catch (err) {
         console.error('동호회 목록 조회 실패:', err);
         alert('동호회 목록을 불러올 수 없습니다.');
+        setClubs([]);
+        setClub('');
       } finally {
         setLoading(false);
       }
@@ -39,6 +43,7 @@ export default function PostWrite() {
     fetchJoinedClubs();
   }, []);
 
+  /** Quill 설정 */
   const modules = {
     toolbar: {
       container: [
@@ -57,6 +62,7 @@ export default function PostWrite() {
     clipboard: { matchVisual: false },
   };
 
+  // ✅ 'bullet'은 포맷 키가 아님. 'list'만 넣어야 함.
   const formats = [
     'header',
     'bold',
@@ -65,8 +71,7 @@ export default function PostWrite() {
     'strike',
     'color',
     'background',
-    'list',
-    'bullet',
+    'list', // <-- 이것 하나로 ordered/bullet 둘 다 커버
     'align',
     'blockquote',
     'code-block',
@@ -74,8 +79,9 @@ export default function PostWrite() {
     'image',
   ];
 
+  /** 붙여넣기/드래그 앤 드롭으로 이미지 오면 로컬 미리보기 삽입 */
   useEffect(() => {
-    const quill = editorRef.current?.getEditor();
+    const quill = editorRef.current?.getEditor?.();
     if (!quill) return;
 
     const onPaste = async (e) => {
@@ -91,7 +97,7 @@ export default function PostWrite() {
 
     const onDrop = async (e) => {
       const files = e.dataTransfer?.files || [];
-      if (files.length) {
+      if (files?.length) {
         e.preventDefault();
         for (const f of files) if (f.type.startsWith('image/')) insertLocalPreview(f);
       }
@@ -105,9 +111,10 @@ export default function PostWrite() {
     };
   }, []);
 
+  /** 언마운트 시 Blob URL 정리 */
   useEffect(() => {
     return () => {
-      objectUrlsRef.current.forEach((u) => window.URL.revokeObjectURL(u));
+      objectUrlsRef.current.forEach((u) => URL.revokeObjectURL(u));
       objectUrlsRef.current = [];
     };
   }, []);
@@ -124,13 +131,15 @@ export default function PostWrite() {
   };
 
   const insertLocalPreview = (file) => {
-    const quill = editorRef.current?.getEditor();
+    const quill = editorRef.current?.getEditor?.();
     if (!quill) return;
-    const url = window.URL.createObjectURL(file);
+
+    const url = URL.createObjectURL(file);
     objectUrlsRef.current.push(url);
+
     const range = quill.getSelection(true);
-    quill.insertEmbed(range.index, 'image', url, 'user');
-    quill.setSelection(range.index + 1, 0);
+    quill.insertEmbed(range?.index ?? 0, 'image', url, 'user');
+    quill.setSelection((range?.index ?? 0) + 1, 0);
   };
 
   const handleSubmit = async () => {
@@ -138,6 +147,7 @@ export default function PostWrite() {
     if (!html.trim()) return window.alert('내용을 입력해 주세요.');
     if (!club) return window.alert('동호회를 선택해 주세요.');
 
+    // TODO: 백엔드 연동 시 여기서 이미지 업로드(Blob URL -> 파일 변환), 본문 내 URL 치환 등 구현
     console.log({
       clubId: club,
       visibility,
@@ -155,7 +165,7 @@ export default function PostWrite() {
     );
   }
 
-  if (clubs.length === 0) {
+  if (!clubs.length) {
     return (
       <div className="max-w-5xl mx-auto px-6 py-8">
         <div className="text-center">
@@ -187,7 +197,7 @@ export default function PostWrite() {
           className="w-72 border border-gray-300 rounded px-3 py-2 outline-none"
         >
           {clubs.map((c) => (
-            <option key={c.clubId} value={c.clubId}>
+            <option key={c.clubId} value={String(c.clubId)}>
               {c.name}
             </option>
           ))}
