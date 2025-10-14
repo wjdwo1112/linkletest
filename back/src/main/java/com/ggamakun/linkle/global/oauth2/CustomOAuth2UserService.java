@@ -143,8 +143,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .name(oAuth2UserInfo.getName())
                     .provider(oAuth2UserInfo.getProvider())
                     .providerId(oAuth2UserInfo.getProviderId())
-                    .isWithdrawn("N")
-                    .isDeleted("N")
                     .build();
                 
                 int result = memberRepository.insertMember(member);

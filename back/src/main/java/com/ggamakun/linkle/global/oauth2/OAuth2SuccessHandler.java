@@ -14,6 +14,7 @@ import com.ggamakun.linkle.domain.member.entity.Member;
 import com.ggamakun.linkle.global.security.JwtUtil;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,23 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             String accessToken = jwtUtil.createAccessToken(member.getMemberId(), member.getEmail());
             String refreshToken = jwtUtil.createRefreshToken(member.getMemberId(), member.getEmail());
             
-            log.info("JWT 토큰 생성 완료");
+            // Access Token을 HttpOnly Cookie로 설정
+            Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
+            accessTokenCookie.setHttpOnly(true);
+            accessTokenCookie.setSecure(true);
+            accessTokenCookie.setPath("/");
+            accessTokenCookie.setMaxAge(60 * 60); // 1시간
+            response.addCookie(accessTokenCookie);
+            
+            // Refresh Token을 HttpOnly Cookie로 설정
+            Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+            refreshTokenCookie.setHttpOnly(true);
+            refreshTokenCookie.setSecure(true);
+            refreshTokenCookie.setPath("/");
+            refreshTokenCookie.setMaxAge(60 * 60 * 24 * 14); // 14일
+            response.addCookie(refreshTokenCookie);
+            
+            log.info("JWT 토큰 쿠키 설정 완료");
             
             // URL 파라미터를 안전하게 인코딩
             String encodedEmail = URLEncoder.encode(member.getEmail() != null ? member.getEmail() : "", StandardCharsets.UTF_8.toString());
@@ -56,8 +73,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             
             // 프론트엔드로 리다이렉트 (React 라우터 경로로 수정)
             String targetUrl = UriComponentsBuilder.fromUriString(successUrl)
-                .queryParam("accessToken", accessToken)
-                .queryParam("refreshToken", refreshToken)
                 .queryParam("isNewUser", isNewUser)
                 .queryParam("memberId", member.getMemberId())
                 .queryParam("email", encodedEmail)

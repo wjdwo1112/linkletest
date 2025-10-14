@@ -1,6 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { authApi } from '../../services/api';
 
 export default function Register() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -10,6 +14,7 @@ export default function Register() {
 
   const [errors, setErrors] = useState({});
   const [passwordValid, setPasswordValid] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -18,13 +23,11 @@ export default function Register() {
       [name]: value,
     }));
 
-    // 비밀번호 유효성 검사
     if (name === 'password') {
       const isValid = value.length >= 8 && /[a-zA-Z]/.test(value) && /\d/.test(value);
       setPasswordValid(isValid);
     }
 
-    // 에러 제거
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
@@ -33,7 +36,6 @@ export default function Register() {
   const validateForm = () => {
     const newErrors = {};
 
-    // 이메일 유효성 검사
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email) {
       newErrors.email = '이메일을 입력해주세요.';
@@ -41,21 +43,18 @@ export default function Register() {
       newErrors.email = '올바른 이메일 형식이 아닙니다.';
     }
 
-    // 비밀번호 유효성 검사
     if (!formData.password) {
       newErrors.password = '비밀번호를 입력해주세요.';
     } else if (!passwordValid) {
       newErrors.password = '비밀번호는 8자 이상, 영문과 숫자를 포함해야 합니다.';
     }
 
-    // 비밀번호 확인
     if (!formData.passwordConfirm) {
       newErrors.passwordConfirm = '비밀번호를 다시 입력해주세요.';
     } else if (formData.password !== formData.passwordConfirm) {
       newErrors.passwordConfirm = '비밀번호가 일치하지 않습니다.';
     }
 
-    // 이름 유효성 검사
     if (!formData.name) {
       newErrors.name = '이름을 입력해주세요.';
     }
@@ -64,24 +63,40 @@ export default function Register() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      console.log('다음 단계로:', formData);
-      // 다음 단계로 이동 로직
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await authApi.registerStep1(
+        formData.email,
+        formData.password,
+        formData.name,
+      );
+      console.log('1단계 완료:', response);
+
+      navigate('/signup/step2', { state: { memberId: response.memberId, email: formData.email } });
+    } catch (error) {
+      console.error('회원가입 에러:', error);
+      setErrors({ general: error.message || '회원가입에 실패했습니다.' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleKakaoLogin = () => {
-    console.log('카카오 로그인');
+    window.location.href = 'http://localhost:8080/oauth2/authorization/kakao';
   };
 
   return (
     <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8">
-      {/* 단계 표시 */}
       <div className="flex items-center justify-center mb-8">
         <div className="flex items-center">
-          <div className="w-8 h-8 bg-[#4CA8FF] text-white rounded-full flex items-center justify-center text-sm font-medium">
+          <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-medium">
             1
           </div>
           <div className="w-12 h-0.5 bg-gray-300 mx-2"></div>
@@ -101,6 +116,12 @@ export default function Register() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {errors.general && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm">
+            {errors.general}
+          </div>
+        )}
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">이메일</label>
           <input
@@ -109,7 +130,7 @@ export default function Register() {
             value={formData.email}
             onChange={handleInputChange}
             placeholder="이메일"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CA8FF] focus:border-transparent"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           />
           {errors.email && (
             <p className="mt-1 text-sm text-red-500 flex items-center">
@@ -127,14 +148,14 @@ export default function Register() {
             value={formData.password}
             onChange={handleInputChange}
             placeholder="비밀번호"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CA8FF] focus:border-transparent"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           />
           {formData.password && (
             <p
               className={`mt-1 text-sm flex items-center ${passwordValid ? 'text-green-500' : 'text-gray-400'}`}
             >
-              <span className="mr-1">{passwordValid ? '✓' : '○'}</span>
-              영문, 이의 영문 대소문자, 숫자 조치해 2글자 이상
+              <span className="mr-1">{passwordValid ? '✓' : '•'}</span>
+              8자 이상, 영문과 숫자 포함
             </p>
           )}
           {errors.password && (
@@ -153,7 +174,7 @@ export default function Register() {
             value={formData.passwordConfirm}
             onChange={handleInputChange}
             placeholder="비밀번호 확인"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CA8FF] focus:border-transparent"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           />
           {errors.passwordConfirm && (
             <p className="mt-1 text-sm text-red-500 flex items-center">
@@ -170,8 +191,8 @@ export default function Register() {
             name="name"
             value={formData.name}
             onChange={handleInputChange}
-            placeholder="이름을 입력해주세요"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CA8FF] focus:border-transparent"
+            placeholder="이름"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           />
           {errors.name && (
             <p className="mt-1 text-sm text-red-500 flex items-center">
@@ -183,28 +204,30 @@ export default function Register() {
 
         <button
           type="submit"
-          className="w-full py-3 bg-[#4CA8FF] text-white rounded-lg font-semibold hover:bg-[#3b8de6] transition-colors mt-6"
+          disabled={isLoading}
+          className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:bg-gray-400"
         >
-          다음
+          {isLoading ? '처리 중...' : '다음'}
         </button>
       </form>
 
-      <div className="flex items-center my-6">
-        <div className="flex-1 border-t border-gray-300"></div>
-        <span className="px-3 text-sm text-gray-400">간편 회원가입</span>
-        <div className="flex-1 border-t border-gray-300"></div>
-      </div>
-
-      <button
-        type="button"
-        onClick={handleKakaoLogin}
-        className="w-full py-3 bg-yellow-400 text-black rounded-lg font-semibold hover:bg-yellow-500 transition-colors flex items-center justify-center"
-      >
-        <div className="w-5 h-5 bg-black rounded-sm mr-3 flex items-center justify-center">
-          <span className="text-white text-xs font-bold">💬</span>
+      <div className="mt-6">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">또는</span>
+          </div>
         </div>
-        카카오 로그인
-      </button>
+
+        <button
+          onClick={handleKakaoLogin}
+          className="w-full mt-4 bg-yellow-400 text-gray-900 py-3 rounded-lg font-medium hover:bg-yellow-500 transition-colors"
+        >
+          카카오로 시작하기
+        </button>
+      </div>
     </div>
   );
 }

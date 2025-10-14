@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import useUserStore from '../../store/useUserStore';
 import { authApi } from '../../services/api';
+import logo from '../../assets/images/logo.png';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -17,29 +18,30 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-8">
-            <Link
-              to="/"
-              className="text-2xl font-bold text-gray-900 hover:text-[#4CA8FF] transition-colors"
-            >
-              Linkle
+            <Link to="/">
+              <img
+                src={logo}
+                alt="Linkle 로고"
+                className="h-6 w-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
+              />
             </Link>
 
             <nav className="flex items-center space-x-8">
               <Link
                 to="/"
-                className="text-gray-700 hover:text-[#4CA8FF] font-medium transition-colors"
+                className="text-gray-700 hover:text-primary font-medium transition-colors"
               >
                 동호회
               </Link>
               <Link
                 to="/community"
-                className="text-gray-700 hover:text-[#4CA8FF] font-medium transition-colors"
+                className="text-gray-700 hover:text-primary font-medium transition-colors"
               >
                 커뮤니티
               </Link>
               <Link
                 to="/gallery"
-                className="text-gray-700 hover:text-[#4CA8FF] font-medium transition-colors"
+                className="text-gray-700 hover:text-primary font-medium transition-colors"
               >
                 갤러리
               </Link>
@@ -51,19 +53,19 @@ const Header = () => {
               <>
                 <Link
                   to="/club/create"
-                  className="text-gray-700 hover:text-[#4CA8FF] font-medium transition-colors"
+                  className="text-gray-700 hover:text-primary font-medium transition-colors"
                 >
                   동호회+
                 </Link>
                 <Link
                   to="/mypage/profile"
-                  className="text-gray-700 hover:text-[#4CA8FF] font-medium transition-colors"
+                  className="text-gray-700 hover:text-primary font-medium transition-colors"
                 >
                   {user?.name || user?.nickname || '사용자'}님
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="text-gray-700 hover:text-[#4CA8FF] font-medium transition-colors"
+                  className="text-gray-700 hover:text-primary font-medium transition-colors"
                 >
                   로그아웃
                 </button>
@@ -72,13 +74,13 @@ const Header = () => {
               <>
                 <Link
                   to="/login"
-                  className="text-gray-700 hover:text-[#4CA8FF] font-medium transition-colors"
+                  className="text-gray-700 hover:text-primary font-medium transition-colors"
                 >
                   동호회+
                 </Link>
                 <Link
                   to="/login"
-                  className="text-gray-700 hover:text-[#4CA8FF] font-medium transition-colors"
+                  className="text-gray-700 hover:text-primary font-medium transition-colors"
                 >
                   로그인
                 </Link>

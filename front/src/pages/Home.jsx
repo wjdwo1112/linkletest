@@ -18,9 +18,9 @@ const Home = () => {
             <input
               type="text"
               placeholder="관심사를 입력해 주세요"
-              className="w-full px-6 py-5 text-lg border-2 border-[#4CA8FF] rounded-full focus:outline-none bg-white shadow-sm"
+              className="w-full px-6 py-5 text-lg border-2 border-primary rounded-full focus:outline-none bg-white shadow-sm"
             />
-            <div className="absolute right-6 top-1/2 transform -translate-y-1/2 text-[#4CA8FF] text-xl">
+            <div className="absolute right-6 top-1/2 transform -translate-y-1/2 text-primary text-xl">
               🔍
             </div>
           </div>
@@ -44,7 +44,7 @@ const Home = () => {
         <div className="mb-20">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900">최근 생성된 동호회</h2>
-            <button className="text-gray-500 hover:text-[#4CA8FF] transition-colors">
+            <button className="text-gray-500 hover:text-primary transition-colors">
               더보기 &gt;
             </button>
           </div>
@@ -78,7 +78,7 @@ const Home = () => {
       </div>
 
       <div className="fixed bottom-8 right-8">
-        <button className="bg-[#4CA8FF] text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
+        <button className="bg-primary text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
           💬
         </button>
       </div>

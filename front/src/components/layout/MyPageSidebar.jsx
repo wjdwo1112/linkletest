@@ -38,7 +38,7 @@ const MyPageSidebar = () => {
               to={item.path}
               className={`
                 block px-4 py-3 rounded-lg text-sm font-medium transition-colors
-                ${item.isActive ? 'bg-[#4CA8FF] text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-[#4CA8FF]'}
+                ${item.isActive ? 'bg-primary text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-primary'}
               `}
             >
               {item.label}

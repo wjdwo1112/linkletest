@@ -1,34 +1,24 @@
-// front/src/services/apiClient.js
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // 공통 요청 헤더 생성
 const getHeaders = () => {
-  const headers = {
+  return {
     'Content-Type': 'application/json',
   };
-
-  const token = localStorage.getItem('accessToken');
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  return headers;
 };
 
 // 기본 fetch 함수
 export const apiRequest = async (url, options = {}) => {
   const config = {
     headers: getHeaders(),
+    credentials: 'include', // 쿠키 자동 전송
     ...options,
   };
 
   try {
     const response = await fetch(`${API_BASE_URL}${url}`, config);
 
-    // 401 Unauthorized 처리
     if (response.status === 401) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
       window.location.href = '/login';
       throw new Error('인증이 만료되었습니다.');
     }

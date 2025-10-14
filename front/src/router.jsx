@@ -3,7 +3,12 @@ import { MainLayout, AuthLayout, MyPageLayout } from './components/layout';
 import Home from './pages/Home';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import RegisterStep2 from './pages/auth/RegisterStep2';
+import RegisterStep3 from './pages/auth/RegisterStep3';
 import OAuth2Callback from './pages/auth/OAuth2Callback';
+import FindId from './pages/auth/FindId';
+import VerifyEmail from './pages/auth/VerifyEmail';
+import RegisterComplete from './pages/auth/RegisterComplete';
 import Community from '@pages/community/Community';
 import CommunityDetail from './pages/community/CommunityDetail';
 import PostDetail from './pages/community/PostDetail';
@@ -37,10 +42,46 @@ const router = createBrowserRouter([
       </AuthLayout>
     ),
   },
-  // OAuth2 콜백 처리 페이지 추가
+  {
+    path: '/signup/step2',
+    element: (
+      <AuthLayout>
+        <RegisterStep2 />
+      </AuthLayout>
+    ),
+  },
+  {
+    path: '/signup/step3',
+    element: (
+      <AuthLayout>
+        <RegisterStep3 />
+      </AuthLayout>
+    ),
+  },
+  {
+    path: '/signup/complete',
+    element: (
+      <AuthLayout>
+        <RegisterComplete />
+      </AuthLayout>
+    ),
+  },
+  {
+    path: '/find-id',
+    element: (
+      <AuthLayout>
+        <FindId />
+      </AuthLayout>
+    ),
+  },
+  // OAuth2 콜백 처리 페이지
   {
     path: '/auth/callback',
     element: <OAuth2Callback />,
+  },
+  {
+    path: '/auth/verify-email',
+    element: <VerifyEmail />,
   },
   {
     path: '/community',
@@ -59,7 +100,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: '/community/posts/:postId', // ✅ 상세 라우트 추가
+    path: '/community/posts/:postId',
     element: (
       <MainLayout>
         <PostDetail />

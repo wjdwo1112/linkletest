@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 
+@theme {
+  --color-primary: #4ca8ff;
+  --color-primary-hover: #3b8de6;
+}
+
 /* 스크롤바로 인한 레이아웃 이동 방지 */
 html {
   overflow-y: scroll;

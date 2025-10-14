@@ -9,7 +9,7 @@ import com.ggamakun.linkle.domain.member.entity.Member;
 public interface IMemberRepository {
     
     // 이메일로 회원 조회
-    Member findByEmail(String email);
+    Member findByEmailForAuth(String email);
     
     // 회원 등록
     int insertMember(Member member);
@@ -20,7 +20,15 @@ public interface IMemberRepository {
     // 이메일 중복 확인
     int countByEmail(String email);
     
+    // 닉네임 중복 확인
+    int countByNickname(String nickname);
+    
+    // 회원 정보 수정
+    int updateMember(Member member);
+    
     // Provider와 ProviderId로 회원 조회 (소셜 로그인용)
     Member findByProviderAndProviderId(@Param("provider") String provider, 
                                        @Param("providerId") String providerId);
+    // 이메일 인증
+    Member findByVerificationToken(String token);
 }
