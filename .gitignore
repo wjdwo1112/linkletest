@@ -80,7 +80,7 @@ out/
 .vscode/
 
 ### 환경 설정 파일 ###
-
+application.yml
 
 ### 로그 파일 ###
 *.log
