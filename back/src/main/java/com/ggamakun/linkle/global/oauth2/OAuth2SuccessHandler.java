@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.ggamakun.linkle.domain.member.entity.Member;
-import com.ggamakun.linkle.global.util.JwtUtil;
+import com.ggamakun.linkle.global.security.JwtUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

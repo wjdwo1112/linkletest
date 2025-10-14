@@ -52,7 +52,7 @@ FROM
 
 <!-- 조회수 증가 -->
 <update id="increaseViewCount">
-UPDATE 
+UPDATE POST
 SET view_count = view_count + 1
 WHERE post_id = #{postId}
 AND is_deleted = 'N'
@@ -60,15 +60,57 @@ AND is_deleted = 'N'
 </update>
 
 <select id="findNoticeDetail" resultType="com.ggamakun.linkle.domain.notice.dto.NoticeDetail">
-
-
-
-
+SELECT
+	p.post_id AS postId,
+	c.club_id AS clubId,
+	c.name AS clubName,
+	p.title AS title,
+	p.content AS content,
+	p.images AS images,
+	p.created_by AS createdBy,
+	m.name AS authorName,
+	m.nickname AS authorNickName,
+	TO_CHAR(p.created_at, 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
+	p.view_count AS viewCount
+FROM POST p
+JOIN CLUB c ON c.club_id = p.club_id
+LEFT JOIN MEMBER m ON m.member_id = p.created_by
+WHERE p.post_id = #{postId}
+AND p.is_deleted ='N'
+AND p.post_type = 'N'
 </select>
 
+<!-- 공지사항 등록 -->
+<insert id="insertNotice" parameterType="com.ggamakun.linkle.domain.notice.dto.CreateNoticeRequest">
+INSERT INTO POST
+	(POST_ID, CLUB_ID, TITLE, CONTENT, IMAGES, POST_TYPE, SCOPE, IS_PINNED, CREATED_BY, CREATED_AT)
+VALUES
+	(SEQ_POST.NEXTVAL, #{clubId}, #{title}, #{content}, #{images, jdbcType=VARCHAR}, 'N', '회원', #{isPinned}, #{createdBy}, SYSDATE)
+</insert>
 
+<!-- 공지사항 수정 -->
+<update id="updateNotice">
+UPDATE POST
+<set>
+  <if test="request.title != null">TITLE = #{request.title},</if>
+  <if test="request.content != null">CONTENT = #{request.content},</if>
+  <if test="request.images != null">IMAGES = #{request.images},</if>
+  <if test="request.isPinned != null">IS_PINNED = #{request.isPinned},</if>
+  UPDATED_AT = SYSDATE
+</set>
+WHERE POST_ID = #{postId}
+AND IS_DELETED = 'N'
+AND POST_TYPE = 'N'
 
+</update>
 
-
-
+<!-- 공지사항 삭제 -->
+<update id="deleteNotice">
+UPDATE POST
+SET IS_DELETED = 'Y',
+    UPDATED_AT = SYSDATE
+WHERE POST_ID = #{postId}
+AND IS_DELETED = 'N'
+AND POST_TYPE = 'N'
+</update>
 </mapper>

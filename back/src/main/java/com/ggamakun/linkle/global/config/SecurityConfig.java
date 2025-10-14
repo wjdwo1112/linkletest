@@ -56,6 +56,7 @@ public class SecurityConfig {
                 .requestMatchers("GET","/posts/**").permitAll()
                 .requestMatchers("GET","/posts/*/comments/**").permitAll()
                 .requestMatchers("/comments/**").permitAll()
+                .requestMatchers("/notices/**").permitAll()
                 .anyRequest().authenticated()
                 
             )

@@ -67,6 +67,7 @@ public class CommentService implements ICommentService {
 		//대댓글일때 부모 댓글의 댓글개수가 올라감
 		if(request.getParentCommentId() != null) {
 			commentRepository.increaseCommentCount(request.getParentCommentId());
+			
 		}
 		
 		//게시글의 댓글 수 증가
@@ -104,50 +105,52 @@ public class CommentService implements ICommentService {
 	@Transactional
 	@Override
 	public void deleteComment(Integer commentId, Integer memberId) {
-	    // 삭제 포함 단건 조회
+	    // 1) 단건 조회(삭제된 것도 포함해서 읽음)
 	    CommentDto comment = commentRepository.findById(commentId);
 	    if (comment == null) {
 	        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다.");
 	    }
+	    // 2) 작성자 본인 확인
 	    if (!comment.getCreatedBy().equals(memberId)) {
-	        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 작성자만 삭제할 수 있습니다");
+	        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 작성자만 삭제할 수 있습니다.");
 	    }
-	    // 삭제된 댓글인지 확인
+	    // 3) 이미 삭제된 경우 → 멱등 처리
 	    if ("Y".equals(comment.getIsDeleted())) {
 	        return;
 	    }
 
-	    // 자식 여부 즉시 확인
+	    // 4) 자식(대댓글) 존재 여부
 	    int children = commentRepository.countChildren(commentId);
 
 	    if (children > 0) {
-	        // 부모 soft delete: 총 댓글 수는 유지
-	        int n = commentRepository.deleteComments(commentId);
-	        if (n == 0) throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다");
+	        // [케이스 A] 부모 댓글에 자식이 남아있는 상태에서 부모 삭제
+	        // - 부모를 soft-delete(내용 NULL, is_deleted='Y')로 처리
+	        // - 집계에서 부모는 제외되므로 게시글 총 댓글 수 -1
+	        int n = commentRepository.deleteComments(commentId); // content=null, is_deleted='Y'
+	        if (n == 0) {
+	            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다");
+	        }
+	        postRepository.decreaseCommentCount(comment.getPostId()); // ★ -1
 	        return;
 	    }
 
-	    // 여기서부터 children == 0 (자식 없음)
-	    int n = commentRepository.deleteComment(commentId);
-	    if (n == 0) throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다");
+	    // [케이스 B] 자식이 없는 경우 → 본인만 soft-delete
+	    int n = commentRepository.deleteComment(commentId); // is_deleted='Y'
+	    if (n == 0) {
+	        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다");
+	    }
 
-	    if (comment.getParentCommentId() != null) {
-	        // 대댓글 삭제
-	        Integer parentId = comment.getParentCommentId();
-	        commentRepository.decreaseCommentCount(parentId);                // 부모의 대댓글 수 -1
-	        postRepository.decreaseCommentCount(comment.getPostId());       // 게시글 총 댓글 수 -1 (이번 대댓글)
-
-	        // 부모가 삭제(Y) 상태이고, 이제 자식이 0이면 → 부모 placeholder도 빠짐 → 추가 -1
-	        int remain = commentRepository.countChildren(parentId);
-	        if (remain == 0) {
-	            CommentDto parent = commentRepository.findById(parentId);
-	            if (parent != null && "Y".equals(parent.getIsDeleted())) {
-	                postRepository.decreaseCommentCount(parent.getPostId()); // 추가 -1
-	            }
-	        }
+	    if (comment.getParentCommentId() == null) {
+	        // 최상위(부모) 댓글 삭제: 줄 하나 사라짐 → -1
+	        postRepository.decreaseCommentCount(comment.getPostId()); // ★ -1
 	    } else {
-	        // 최상위 댓글(자식 없음) 삭제
-	        postRepository.decreaseCommentCount(comment.getPostId());       // -1
+	        // 대댓글 삭제: 줄 하나 사라짐 → -1
+	        // 부모의 자식 수는 별도 유지(선택) → UI/플레이스홀더 로직 등에 사용
+	        commentRepository.decreaseCommentCount(comment.getParentCommentId());
+	        postRepository.decreaseCommentCount(comment.getPostId()); // ★ -1
+
+	        //  "삭제된 부모의 마지막 자식" 삭제 시 추가 -1 하지 않음
+	        //   → 부모는 이미 집계에서 제외 상태이므로 별도 감소 불필요
 	    }
 	}
 

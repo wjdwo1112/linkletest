@@ -3,9 +3,12 @@ package com.ggamakun.linkle.domain.notice.repository;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
+import com.ggamakun.linkle.domain.notice.dto.CreateNoticeRequest;
 import com.ggamakun.linkle.domain.notice.dto.NoticeDetail;
 import com.ggamakun.linkle.domain.notice.dto.NoticeSummary;
+import com.ggamakun.linkle.domain.notice.dto.UpdateNoticeRequest;
 
 @Mapper
 public interface INoticeRepository {
@@ -17,5 +20,11 @@ public interface INoticeRepository {
 	void increaseViewCount(Integer postId);
 
 	NoticeDetail findNoticeDetail(Integer postId);
+
+	Integer insertNotice(CreateNoticeRequest request);
+	
+	int updateNotice(@Param("postId") Integer postId, @Param("request") UpdateNoticeRequest request);
+
+	int deleteNotice(Integer postId);
 
 }

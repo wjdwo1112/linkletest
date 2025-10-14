@@ -65,7 +65,7 @@ public class PostService implements IPostService {
 //				throw new ResponseStatusException(HttpStatus.FORBIDDEN, "이 게시글은 동호회 멤버만 볼 수 있다.");
 //			}
 			boolean isMember = clubRepository.isClubMember(dto.getClubId(), currentMemberId) > 0;
-	        // 👇 여기서 찍기
+	        //  
 	        log.info("access check clubId={}, memberId={}, isMember={}",
 	                dto.getClubId(), currentMemberId, isMember);
 

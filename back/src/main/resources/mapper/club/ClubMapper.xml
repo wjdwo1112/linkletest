@@ -17,12 +17,9 @@ WHERE cm.member_id = #{memberId}
 	AND cm.is_deleted = 'N'
 	AND cm.status = '승인'
 ORDER BY cm.joined_at DESC
-
-
-
-
 </select>
 
+<!-- 특정 동호회의 회원인지 확인 -->
 <select id="isClubMember" resultType="int">
 SELECT COUNT(*)
 FROM CLUB_MEMBER
@@ -34,6 +31,16 @@ AND is_deleted = 'N'
 
 </select>
 
+<!-- 특정 동호회에서 회원의 역할 조회 -->
+<select id="getMemberRole" resultType="string">
+SELECT role
+FROM CLUB_MEMBER
+WHERE club_id = #{clubId}
+AND member_id = #{memberId}
+AND status='승인'
+AND is_deleted='N'
+
+</select>
 
 
 </mapper>
