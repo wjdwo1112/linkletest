@@ -8,6 +8,8 @@
             member_id as memberId,
             email,
             password,
+            name,
+            nickname,
             provider,
             provider_id as providerId
         FROM Member 

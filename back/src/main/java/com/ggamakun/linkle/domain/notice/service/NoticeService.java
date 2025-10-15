@@ -3,6 +3,8 @@ package com.ggamakun.linkle.domain.notice.service;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -13,9 +15,12 @@ import com.ggamakun.linkle.domain.notice.dto.NoticeDetail;
 import com.ggamakun.linkle.domain.notice.dto.NoticeSummary;
 import com.ggamakun.linkle.domain.notice.dto.UpdateNoticeRequest;
 import com.ggamakun.linkle.domain.notice.repository.INoticeRepository;
+import com.ggamakun.linkle.global.security.CustomUserDetails;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NoticeService implements INoticeService {
@@ -39,8 +44,22 @@ public class NoticeService implements INoticeService {
 	public NoticeDetail getNotice(Integer postId, boolean increase) {
 		NoticeDetail dto = noticeRepository.findNoticeDetail(postId);
 		if(dto == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"post not found");
-		if(increase) {
+		
+		Integer currentMemberId = getCurrentMemberId();
+		
+		if(currentMemberId == null) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다");
+		}
+		
+		boolean isMember = clubRepository.isClubMember(dto.getClubId(), currentMemberId)>0;
+		if (!isMember) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "이 공지사항은 동호회 멤버만 볼 수 있습니다.");
+		}
+		
+		//조회수 증가
+		if (increase) {
 			noticeRepository.increaseViewCount(postId);
+			dto = noticeRepository.findNoticeDetail(postId); // 증가 반영된 최신값으로 교체
 		}
 		return dto;
 	}
@@ -105,5 +124,19 @@ public class NoticeService implements INoticeService {
 		}
 		
 		
+	}
+	
+	// 현재 로그인한 사용자 ID 가져오기
+	private Integer getCurrentMemberId() {
+		try {
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+				CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+				return userDetails.getMember().getMemberId();
+			}
+		} catch (Exception e) {
+			log.warn("현재 로그인 사용자 정보를 가져올 수 없습니다.", e);
+		}
+		return null;
 	}
 }
