@@ -1,5 +1,6 @@
 package com.ggamakun.linkle.domain.notice.controller;
 
+import java.security.Principal;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -71,6 +72,16 @@ public class NoticeController {
 		NoticeDetail updated = noticeService.updateNotice(postId,request,memberId);
 		
 		return ResponseEntity.ok(updated);
+	}
+	
+	//공지사항 고정/해제
+	@PutMapping("/{postid}/pin")
+	public ResponseEntity<Void> togglePin(@PathVariable("postid") Integer postId,
+										  @Parameter(hidden=true)@AuthenticationPrincipal CustomUserDetails userDetails){
+		Integer memberId = userDetails.getMember().getMemberId();
+		noticeService.togglePin(postId,memberId);
+		
+		return ResponseEntity.ok().build();
 	}
 	
 	//공지사항 삭제

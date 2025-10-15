@@ -87,6 +87,7 @@ public class NoticeService implements INoticeService {
 
 	@Override
 	@Transactional
+	//공지사항 수정
 	public NoticeDetail updateNotice(Integer postId, UpdateNoticeRequest request, Integer memberId) {
 		NoticeDetail notice = noticeRepository.findNoticeDetail(postId);
 		if(notice == null) {
@@ -109,8 +110,37 @@ public class NoticeService implements INoticeService {
 		
 		
 	}
+	
+	@Override
+	@Transactional
+	//공지사항 상단 고정/해제 토글
+	public void togglePin(Integer postId, Integer memberId) {
+		NoticeDetail notice = noticeRepository.findNoticeDetail(postId);
+		if(notice == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "공지사항을 찾을 수 없습니다.");
+		}
+		
+		//모임장 또는 운영진만 가능
+		String memberRole = clubRepository.getMemberRole(notice.getClubId(), memberId);
+		boolean isManager = "모임장".equals(memberRole) || "운영진".equals(memberRole);
+		
+		if(!isManager) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "운영진만 사용할 수 있습니다");
+		}
+		
+		//현재 고정 상태 확인
+		String currentPinned = notice.getIsPinned();
+		String newPinned = "Y".equals(currentPinned) ? "N" : "Y";
+		
+		int updated = noticeRepository.togglePin(postId, newPinned);
+		if(updated == 0) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "고정 상태 변경에 실패했습니다.");
+		}
+	}
 
 	@Override
+	@Transactional
+	//공지사항 삭제
 	public void deleteNotice(Integer postId, Integer memberId) {
 		NoticeDetail notice = noticeRepository.findNoticeDetail(postId);
 		if(notice == null) {
@@ -146,6 +176,8 @@ public class NoticeService implements INoticeService {
 		}
 		return null;
 	}
+
+	
 
 	
 }

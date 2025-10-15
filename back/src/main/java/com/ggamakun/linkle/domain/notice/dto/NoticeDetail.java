@@ -12,6 +12,7 @@ public class NoticeDetail {
 	private String title;
 	private String content;
 	private String images;
+	private String isPinned;
 	
 	private Integer createdBy;
 	private String authorName;

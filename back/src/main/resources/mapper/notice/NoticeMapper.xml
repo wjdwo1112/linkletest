@@ -128,6 +128,15 @@ AND POST_TYPE = 'N'
 
 </update>
 
+<!-- 공지사항 고정/해제 -->
+<update id="togglePin">
+UPDATE POST
+SET is_pinned = #{isPinned},
+	updated_at = SYSDATE
+WHERE post_id = #{postId}
+AND is_deleted = 'N'
+
+</update>
 <!-- 공지사항 삭제 -->
 <update id="deleteNotice">
 UPDATE POST

@@ -23,4 +23,6 @@ public interface INoticeService {
 
 	List<NoticeSummary> getNoticesByClubId(Integer clubId);
 
+	void togglePin(Integer postId, Integer memberId);
+
 }
