@@ -55,4 +55,15 @@ export const noticeApi = {
 
     return response;
   },
+
+  // 공지사항 고정/해제 토글
+  togglePin: async (postId) => {
+    const response = await put(`/notices/${postId}/pin`, {});
+
+    if (!response.ok) {
+      throw new Error('고정 상태 변경에 실패했습니다.');
+    }
+
+    return response;
+  },
 };

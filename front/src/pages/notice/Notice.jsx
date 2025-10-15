@@ -1,23 +1,115 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PencilIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { noticeApi } from '../../services/api';
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  EllipsisHorizontalIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  MapPinIcon,
+} from '@heroicons/react/24/outline';
+import { noticeApi, clubApi } from '../../services/api';
 import SidebarLayout from '../../components/layout/SidebarLayout';
 import ClubSidebar from '../../components/layout/ClubSidebar';
+import useUserStore from '../../store/useUserStore';
+
+// 케밥 메뉴 컴포넌트
+function KebabMenu({ notice, onEdit, onDelete, onTogglePin }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [open]);
+
+  const isPinned = notice.isPinned === 'Y';
+
+  return (
+    <div className="relative" ref={menuRef} onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        aria-label="메뉴"
+        aria-expanded={open ? 'true' : 'false'}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(!open);
+        }}
+        className="p-1 hover:bg-gray-100 rounded"
+      >
+        <EllipsisHorizontalIcon className="w-5 h-5 text-gray-500" />
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-8 w-32 rounded-md border border-gray-200 bg-white shadow-lg z-50"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => {
+              setOpen(false);
+              onTogglePin();
+            }}
+            className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+            role="menuitem"
+          >
+            <MapPinIcon className="w-4 h-4" />
+            {isPinned ? '고정 해제' : '상단 고정'}
+          </button>
+          <div className="h-px bg-gray-100" />
+          <button
+            onClick={() => {
+              setOpen(false);
+              onEdit();
+            }}
+            className="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+            role="menuitem"
+          >
+            <PencilSquareIcon className="w-4 h-4" />
+            수정
+          </button>
+          <div className="h-px bg-gray-100" />
+          <button
+            onClick={() => {
+              setOpen(false);
+              onDelete();
+            }}
+            className="w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+            role="menuitem"
+          >
+            <TrashIcon className="w-4 h-4" />
+            삭제
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const Notice = () => {
   const { clubId } = useParams();
   const navigate = useNavigate();
+  const { user } = useUserStore();
 
   const [notices, setNotices] = useState([]);
   const [pinnedNotices, setPinnedNotices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [userRole, setUserRole] = useState(null);
   const itemsPerPage = 10;
 
   useEffect(() => {
     if (clubId) {
       fetchNotices();
+      fetchUserRole();
     }
   }, [clubId]);
 
@@ -41,6 +133,22 @@ const Notice = () => {
     }
   };
 
+  // 사용자의 동호회 내 역할 조회
+  const fetchUserRole = async () => {
+    try {
+      const clubs = await clubApi.getJoinedClubs();
+      const currentClub = clubs.find((c) => String(c.clubId) === String(clubId));
+      if (currentClub) {
+        setUserRole(currentClub.role);
+      }
+    } catch (error) {
+      console.error('역할 조회 실패:', error);
+    }
+  };
+
+  // 모임장 또는 운영진인지 확인
+  const isManager = userRole === '모임장' || userRole === '운영진';
+
   // 날짜 포맷팅
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -49,6 +157,36 @@ const Notice = () => {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}.${month}.${day}`;
+  };
+
+  // 수정 핸들러
+  const handleEdit = (noticeId) => {
+    navigate(`/clubs/${clubId}/notice/edit/${noticeId}`);
+  };
+
+  // 삭제 핸들러
+  const handleDelete = async (noticeId) => {
+    if (!window.confirm('이 공지사항을 삭제하시겠습니까?')) return;
+
+    try {
+      await noticeApi.deleteNotice(noticeId);
+      alert('공지사항이 삭제되었습니다.');
+      fetchNotices();
+    } catch (error) {
+      console.error('공지사항 삭제 실패:', error);
+      alert('공지사항 삭제에 실패했습니다.');
+    }
+  };
+
+  // 고정/해제 핸들러
+  const handleTogglePin = async (noticeId) => {
+    try {
+      await noticeApi.togglePin(noticeId);
+      fetchNotices();
+    } catch (error) {
+      console.error('고정 상태 변경 실패:', error);
+      alert('고정 상태 변경에 실패했습니다.');
+    }
   };
 
   // 공지사항 행 렌더링
@@ -77,6 +215,18 @@ const Notice = () => {
 
         {/* 조회수 */}
         <div className="w-24 text-center text-sm text-gray-500">{notice.viewCount || 0}</div>
+
+        {/* 오버플로우 메뉴 - 모임장 또는 운영진만 표시 */}
+        {isManager && (
+          <div className="w-12 flex justify-center">
+            <KebabMenu
+              notice={notice}
+              onEdit={() => handleEdit(notice.postId)}
+              onDelete={() => handleDelete(notice.postId)}
+              onTogglePin={() => handleTogglePin(notice.postId)}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -115,12 +265,14 @@ const Notice = () => {
         {/* 헤더 */}
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-900">공지사항</h1>
-          <button
-            onClick={() => navigate(`/clubs/${clubId}/notice/write`)}
-            className="flex items-center gap-1.5 bg-[#4CA8FF] text-white px-5 py-1.5 rounded-lg text-sm font-medium hover:bg-[#4CA8FF]/90 transition-colors"
-          >
-            등록
-          </button>
+          {isManager && (
+            <button
+              onClick={() => navigate(`/clubs/${clubId}/notice/write`)}
+              className="flex items-center gap-1.5 bg-[#4CA8FF] text-white px-5 py-1.5 rounded-lg text-sm font-medium hover:bg-[#4CA8FF]/90 transition-colors"
+            >
+              등록
+            </button>
+          )}
         </div>
 
         {/* 테이블 */}
@@ -132,6 +284,7 @@ const Notice = () => {
               <div className="w-32 text-center">작성자</div>
               <div className="w-32 text-center">작성일</div>
               <div className="w-24 text-center">조회수</div>
+              {isManager && <div className="w-12"></div>}
             </div>
           </div>
 
@@ -170,53 +323,24 @@ const Notice = () => {
                       ? 'border-gray-200 text-gray-300 cursor-not-allowed'
                       : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
-                  aria-label="이전 페이지"
                 >
                   <ChevronLeftIcon className="w-5 h-5" />
                 </button>
 
-                {/* 첫 페이지 */}
-                {pageNumbers[0] > 1 && (
-                  <>
-                    <button
-                      onClick={() => setCurrentPage(1)}
-                      className="px-3 py-2 rounded border border-gray-300 text-sm text-gray-700 hover:bg-gray-50"
-                    >
-                      1
-                    </button>
-                    {pageNumbers[0] > 2 && <span className="text-gray-400">...</span>}
-                  </>
-                )}
-
-                {/* 페이지 번호들 */}
+                {/* 페이지 번호 */}
                 {pageNumbers.map((page) => (
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-2 rounded border text-sm ${
+                    className={`min-w-[2.5rem] px-3 py-2 rounded text-sm font-medium ${
                       currentPage === page
-                        ? 'bg-black text-white border-black'
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                        ? 'bg-[#4CA8FF] text-white'
+                        : 'text-gray-700 hover:bg-gray-50'
                     }`}
                   >
                     {page}
                   </button>
                 ))}
-
-                {/* 마지막 페이지 */}
-                {pageNumbers[pageNumbers.length - 1] < totalPages && (
-                  <>
-                    {pageNumbers[pageNumbers.length - 1] < totalPages - 1 && (
-                      <span className="text-gray-400">...</span>
-                    )}
-                    <button
-                      onClick={() => setCurrentPage(totalPages)}
-                      className="px-3 py-2 rounded border border-gray-300 text-sm text-gray-700 hover:bg-gray-50"
-                    >
-                      {totalPages}
-                    </button>
-                  </>
-                )}
 
                 {/* 다음 페이지 버튼 */}
                 <button
@@ -227,7 +351,6 @@ const Notice = () => {
                       ? 'border-gray-200 text-gray-300 cursor-not-allowed'
                       : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
-                  aria-label="다음 페이지"
                 >
                   <ChevronRightIcon className="w-5 h-5" />
                 </button>
