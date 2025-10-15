@@ -3,7 +3,7 @@ import Footer from './Footer';
 
 const SidebarLayout = ({ children, sidebar }) => {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-white">
       <Header />
       <main className="flex-1 max-w-7xl mx-auto px-6 py-8 w-full">
         <div className="flex gap-8">
