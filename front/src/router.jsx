@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
-import { MainLayout, AuthLayout, MyPageLayout } from './components/layout';
+import { MainLayout, AuthLayout, SidebarLayout } from './components/layout';
+import MyPageSidebar from './components/layout/MyPageSidebar';
 import Home from './pages/Home';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
@@ -115,14 +116,55 @@ const router = createBrowserRouter([
       </MainLayout>
     ),
   },
+  // 동호회별 공지사항 페이지
   {
-    path: '/notice',
+    path: '/notice/:clubId',
     element: (
-      <MyPageLayout>
+      <SidebarLayout sidebar={<MyPageSidebar />}>
         <Notice />
-      </MyPageLayout>
+      </SidebarLayout>
     ),
   },
+  // {
+  //   path: '/clubs/:clubId/notice',
+  //   element: (
+  //     <MainLayout>
+  //       <Notice />
+  //     </MainLayout>
+  //   ),
+  // },
+  // {
+  //   path: '/clubs/:clubId/notice/write',
+  //   element: (
+  //     <SidebarLayout>
+  //       <PostWrite />
+  //     </SidebarLayout>
+  //   ),
+  // },
+  // {
+  //   path: '/clubs/:clubId/community',
+  //   element: (
+  //     <MainLayout>
+  //       <Community />
+  //     </MainLayout>
+  //   ),
+  // },
+  // {
+  //   path: '/clubs/:clubId/community/:tab',
+  //   element: (
+  //     <MainLayout>
+  //       <CommunityDetail />
+  //     </MainLayout>
+  //   ),
+  // },
+  // {
+  //   path: '/clubs/:clubId/community/posts/:postId',
+  //   element: (
+  //     <MainLayout>
+  //       <PostDetail />
+  //     </MainLayout>
+  //   ),
+  // },
 ]);
 
 export default router;

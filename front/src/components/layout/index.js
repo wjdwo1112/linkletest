@@ -1,3 +1,4 @@
 export { default as MainLayout } from './MainLayout';
 export { default as AuthLayout } from './AuthLayout';
-export { default as MyPageLayout } from './MyPageLayout';
+export { default as SidebarLayout } from './SidebarLayout';
+export { default as ClubSideBar } from './ClubSidebar';
