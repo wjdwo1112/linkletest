@@ -39,6 +39,13 @@ public class NoticeService implements INoticeService {
 		return noticeRepository.noticeList();
 	}
 	
+	//동호회 공지사항 목록 조회
+	@Override
+	public List<NoticeSummary> getNoticesByClubId(Integer clubId) {
+		
+		return noticeRepository.getNoticesByClubId(clubId);
+	}
+	
 	@Transactional
 	@Override
 	public NoticeDetail getNotice(Integer postId, boolean increase) {
@@ -139,4 +146,6 @@ public class NoticeService implements INoticeService {
 		}
 		return null;
 	}
+
+	
 }

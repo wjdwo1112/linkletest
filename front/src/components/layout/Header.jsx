@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { BellIcon } from '@heroicons/react/24/outline';
 import useUserStore from '../../store/useUserStore';
-import { authApi } from '../../services/api';
+import { authApi, clubApi } from '../../services/api';
 import logo from '../../assets/images/logo.png';
 import defaultProfile from '../../assets/images/default-profile.png';
 
@@ -36,6 +36,25 @@ const Header = () => {
   }, [isDropdownOpen]);
 
   const profileImage = user?.profileImageUrl || defaultProfile;
+
+  // 내 동호회로 이동 (최신 가입 동호회)
+  const handleMyClubs = async () => {
+    try {
+      setIsDropdownOpen(false);
+      const clubs = await clubApi.getJoinedClubs();
+
+      if (clubs && clubs.length > 0) {
+        // 첫 번째 동호회(최신 가입)로 이동
+        navigate(`/clubs/${clubs[0].clubId}/notice`);
+      } else {
+        alert('가입한 동호회가 없습니다.');
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('동호회 목록 조회 실패:', error);
+      alert('동호회 정보를 불러올 수 없습니다.');
+    }
+  };
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -100,13 +119,12 @@ const Header = () => {
 
                   {isDropdownOpen && (
                     <div className="absolute right-0 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
-                      <Link
-                        to="/mypage/clubs"
-                        onClick={() => setIsDropdownOpen(false)}
+                      <button
+                        onClick={handleMyClubs}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                       >
                         내 동호회
-                      </Link>
+                      </button>
                       <Link
                         to="/mypage/profile"
                         onClick={() => setIsDropdownOpen(false)}

@@ -21,4 +21,6 @@ public interface INoticeService {
 
 	void deleteNotice(Integer postId, Integer memberId);
 
+	List<NoticeSummary> getNoticesByClubId(Integer clubId);
+
 }

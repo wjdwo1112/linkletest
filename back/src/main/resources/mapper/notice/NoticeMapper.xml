@@ -50,6 +50,30 @@ FROM
 
 </select>
 
+<!-- 동호회 공지사항 리스트 조회 -->
+<select id="getNoticesByClubId" resultType="com.ggamakun.linkle.domain.notice.dto.NoticeSummary">
+SELECT
+  p.post_id AS postId,
+  p.club_id AS clubId,
+  p.title AS title,	
+  p.content AS content,
+  p.post_type AS postType,
+  p.scope AS scope,
+  p.created_by AS createdBy,
+  p.created_At AS createdAt,
+  p.view_count AS viewCount,
+  p.is_pinned AS isPinned,
+  p.is_deleted AS isDeleted
+FROM
+  POST p
+  JOIN CLUB c ON c.club_id = p.club_id
+WHERE p.post_type='N'
+  AND p.is_deleted='N'
+  AND p.club_id =#{clubId}
+ORDER BY p.is_pinned DESC, p.created_at DESC
+
+</select>
+
 <!-- 조회수 증가 -->
 <update id="increaseViewCount">
 UPDATE POST

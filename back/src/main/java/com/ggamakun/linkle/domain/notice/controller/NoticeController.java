@@ -41,6 +41,12 @@ public class NoticeController {
 		return noticeService.noticeList();
 	}
 	
+	//동호회 공지사항 조회
+	@GetMapping("/club/{clubid}")
+	public List<NoticeSummary> getNoticesByClubId(@PathVariable("clubid") Integer clubId){
+		return noticeService.getNoticesByClubId(clubId);
+	}
+	
 	//공지사항 상세조회
 	@GetMapping("/{postid}")
 	public NoticeDetail getNotice(@PathVariable("postid") Integer postId) {

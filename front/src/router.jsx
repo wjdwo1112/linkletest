@@ -117,14 +117,23 @@ const router = createBrowserRouter([
     ),
   },
   // 동호회별 공지사항 페이지
+
   {
-    path: '/notice/:clubId',
-    element: (
-      <SidebarLayout sidebar={<MyPageSidebar />}>
-        <Notice />
-      </SidebarLayout>
-    ),
+    path: '/clubs/:clubId/notice',
+    element: <Notice />,
   },
+  {
+    path: '/clubs/:clubId/notice/:noticeId',
+    element: <Notice />,
+  },
+  // {
+  //   path: '/notice/:clubId',
+  //   element: (
+  //     <SidebarLayout sidebar={<MyPageSidebar />}>
+  //       <Notice />
+  //     </SidebarLayout>
+  //   ),
+  // },
   // {
   //   path: '/clubs/:clubId/notice',
   //   element: (

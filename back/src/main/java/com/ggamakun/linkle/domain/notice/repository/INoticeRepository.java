@@ -27,4 +27,6 @@ public interface INoticeRepository {
 
 	int deleteNotice(Integer postId);
 
+	List<NoticeSummary> getNoticesByClubId(@Param("clubId") Integer clubId);
+
 }
