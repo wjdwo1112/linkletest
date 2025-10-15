@@ -66,7 +66,7 @@ public class NoticeController {
 	
 	//공지사항 수정
 	@PutMapping("/{postid}")
-	public ResponseEntity<NoticeDetail> updateNotice(@PathVariable("postid") Integer postId, UpdateNoticeRequest request,
+	public ResponseEntity<NoticeDetail> updateNotice(@PathVariable("postid") Integer postId, @RequestBody UpdateNoticeRequest request,
 													 @Parameter(hidden = true)@AuthenticationPrincipal CustomUserDetails userDetails){
 		Integer memberId = userDetails.getMember().getMemberId();
 		NoticeDetail updated = noticeService.updateNotice(postId,request,memberId);

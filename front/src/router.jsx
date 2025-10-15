@@ -17,7 +17,7 @@ import PostWrite from './pages/community/PostWrite';
 import Notice from './pages/notice/Notice';
 import NoticeDetail from './pages/notice/NoticeDetail';
 import NoticeWrite from './pages/notice/NoticeWrite';
-
+import NoticeEdit from './pages/notice/NoticeEdit';
 const router = createBrowserRouter([
   // 메인 레이아웃
   {
@@ -131,6 +131,10 @@ const router = createBrowserRouter([
   {
     path: '/clubs/:clubId/notice/write',
     element: <NoticeWrite />,
+  },
+  {
+    path: '/clubs/:clubId/notice/edit/:postId',
+    element: <NoticeEdit />,
   },
   // {
   //   path: '/notice/:clubId',
