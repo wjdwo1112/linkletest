@@ -117,10 +117,9 @@ const Notice = () => {
           <h1 className="text-2xl font-bold text-gray-900">공지사항</h1>
           <button
             onClick={() => navigate(`/clubs/${clubId}/notice/write`)}
-            className="flex items-center gap-2 bg-blue-500 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+            className="flex items-center gap-1.5 bg-[#4CA8FF] text-white px-5 py-1.5 rounded-lg text-sm font-medium hover:bg-[#4CA8FF]/90 transition-colors"
           >
-            <PencilIcon className="w-4 h-4" />
-            글쓰기
+            등록
           </button>
         </div>
 

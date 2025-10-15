@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import { UserCircleIcon } from '@heroicons/react/24/outline';
 import { noticeApi } from '../../services/api';
 import SidebarLayout from '../../components/layout/SidebarLayout';
@@ -11,6 +12,32 @@ const NoticeDetail = () => {
 
   const [notice, setNotice] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // DOMPurify 설정 - ReactQuill에서 사용하는 태그만 허용
+  const sanitizeConfig = {
+    ALLOWED_TAGS: [
+      'p',
+      'br',
+      'strong',
+      'em',
+      'u',
+      's',
+      'h1',
+      'h2',
+      'h3',
+      'ul',
+      'ol',
+      'li',
+      'a',
+      'img',
+      'blockquote',
+      'code',
+      'pre',
+      'span',
+    ],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style', 'target'],
+    ALLOW_DATA_ATTR: false,
+  };
 
   useEffect(() => {
     if (noticeId) {
@@ -95,10 +122,15 @@ const NoticeDetail = () => {
         {/* 본문 내용 */}
         <div className="mb-8">
           {/* 이모티콘 */}
-          <div className="mb-6 text-4xl">🎉</div>
+          <div className="mb-6 text-4xl"></div>
 
-          {/* 내용 */}
-          <div className="text-gray-700 whitespace-pre-wrap leading-relaxed">{notice.content}</div>
+          {/* 내용 - DOMPurify로 HTML 안전하게 렌더링 */}
+          <div
+            className="text-gray-700 leading-relaxed prose max-w-none"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(notice.content, sanitizeConfig),
+            }}
+          />
 
           {/* 이미지가 있는 경우 */}
           {notice.images && (
