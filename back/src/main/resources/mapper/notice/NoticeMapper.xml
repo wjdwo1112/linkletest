@@ -91,6 +91,7 @@ SELECT
 	p.title AS title,
 	p.content AS content,
 	p.images AS images,
+	p.is_pinned AS isPinned,
 	p.created_by AS createdBy,
 	m.name AS authorName,
 	m.nickname AS authorNickName,

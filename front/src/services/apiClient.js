@@ -1,74 +1,61 @@
+import axios from 'axios';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// 공통 요청 헤더 생성
-const getHeaders = () => {
-  return {
+// axios 인스턴스 생성
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
     'Content-Type': 'application/json',
-  };
-};
+  },
+  withCredentials: true, // 쿠키 자동 전송
+});
 
-// 기본 fetch 함수
-export const apiRequest = async (url, options = {}) => {
-  const config = {
-    headers: getHeaders(),
-    credentials: 'include', // 쿠키 자동 전송
-    ...options,
-  };
+// 요청 인터셉터
+apiClient.interceptors.request.use(
+  (config) => {
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
 
-  try {
-    const response = await fetch(`${API_BASE_URL}${url}`, config);
-
-    if (response.status === 401) {
-      window.location.href = '/login';
-      throw new Error('인증이 만료되었습니다.');
-    }
-
+// 응답 인터셉터
+apiClient.interceptors.response.use(
+  (response) => {
     return response;
-  } catch (error) {
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      window.location.href = '/login';
+    }
     console.error('API 요청 에러:', error);
-    throw error;
-  }
-};
+    return Promise.reject(error);
+  },
+);
 
 // GET 요청
 export const get = async (url) => {
-  const response = await apiRequest(url, {
-    method: 'GET',
-  });
-
-  if (!response.ok) {
-    throw new Error('데이터를 가져올 수 없습니다.');
-  }
-
-  return await response.json();
+  const response = await apiClient.get(url);
+  return response.data;
 };
 
 // POST 요청
 export const post = async (url, data) => {
-  const response = await apiRequest(url, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-
+  const response = await apiClient.post(url, data);
   return response;
 };
 
 // PUT 요청
 export const put = async (url, data) => {
-  const response = await apiRequest(url, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  });
-
+  const response = await apiClient.put(url, data);
   return response;
 };
 
 // DELETE 요청
 export const del = async (url) => {
-  const response = await apiRequest(url, {
-    method: 'DELETE',
-  });
-
+  const response = await apiClient.delete(url);
   return response;
 };
 

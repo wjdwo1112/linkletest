@@ -23,47 +23,45 @@ export const noticeApi = {
 
   // 공지사항 등록
   createNotice: async (noticeData) => {
-    const response = await post('/notices', noticeData);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('공지사항 등록 실패 응답:', errorText);
+    try {
+      const response = await post('/notices', noticeData);
+      return response.data;
+    } catch (error) {
+      console.error('공지사항 등록 실패:', error);
       throw new Error('공지사항 등록에 실패했습니다.');
     }
-
-    return response;
   },
 
   // 공지사항 수정
   updateNotice: async (postId, noticeData) => {
-    const response = await put(`/notices/${postId}`, noticeData);
-
-    if (!response.ok) {
+    try {
+      const response = await put(`/notices/${postId}`, noticeData);
+      return response.data;
+    } catch (error) {
+      console.error('공지사항 수정 실패:', error);
       throw new Error('공지사항 수정에 실패했습니다.');
     }
-
-    return await response.json();
   },
 
   // 공지사항 삭제
   deleteNotice: async (postId) => {
-    const response = await del(`/notices/${postId}`);
-
-    if (!response.ok) {
+    try {
+      const response = await del(`/notices/${postId}`);
+      return response.data;
+    } catch (error) {
+      console.error('공지사항 삭제 실패:', error);
       throw new Error('공지사항 삭제에 실패했습니다.');
     }
-
-    return response;
   },
 
   // 공지사항 고정/해제 토글
   togglePin: async (postId) => {
-    const response = await put(`/notices/${postId}/pin`, {});
-
-    if (!response.ok) {
+    try {
+      const response = await put(`/notices/${postId}/pin`, {});
+      return response.data;
+    } catch (error) {
+      console.error('고정 상태 변경 실패:', error);
       throw new Error('고정 상태 변경에 실패했습니다.');
     }
-
-    return response;
   },
 };

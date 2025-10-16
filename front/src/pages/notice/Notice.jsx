@@ -171,18 +171,19 @@ const Notice = () => {
     try {
       await noticeApi.deleteNotice(noticeId);
       alert('공지사항이 삭제되었습니다.');
-      fetchNotices();
+      await fetchNotices();
     } catch (error) {
       console.error('공지사항 삭제 실패:', error);
       alert('공지사항 삭제에 실패했습니다.');
     }
   };
 
-  // 고정/해제 핸들러
+  // 고정/해제 핸들러 - await 추가
   const handleTogglePin = async (noticeId) => {
     try {
       await noticeApi.togglePin(noticeId);
-      fetchNotices();
+      // fetchNotices()에 await를 추가하여 에러가 발생하면 catch에서 처리
+      await fetchNotices();
     } catch (error) {
       console.error('고정 상태 변경 실패:', error);
       alert('고정 상태 변경에 실패했습니다.');

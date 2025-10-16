@@ -283,98 +283,112 @@ export default function CommunityDetail() {
       </div>
 
       {/* 타임라인 */}
-      <div className="relative">
-        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-200 pointer-events-none" />
+      {rows.length > 0 ? (
+        <>
+          {/* 게시글 영역 - 중앙 수직선 포함 */}
+          <div className="relative">
+            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-200 pointer-events-none" />
 
-        <div>
-          {rows.length > 0 ? (
-            rows.map(([left, right], idx) => (
-              <div key={idx} className="grid grid-cols-2 gap-x-0 py-8 border-b border-gray-200">
-                <div className="pr-8">
-                  {left && (
-                    <article className="grid grid-cols-[1fr_auto] gap-6">
-                      <div>
-                        <div className="text-sm text-gray-500 mb-1">{left.clubName}</div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                          <Link to={`/community/posts/${left.postId}`} className="hover:underline">
-                            {left.title}
-                          </Link>
-                        </h3>
-                        <div className="text-sm text-gray-500 flex items-center gap-4">
-                          <span className="font-medium text-gray-800">
-                            {left.authorNickname || left.authorName || '익명'}
-                          </span>
-                          <span>{formatDate(left.createdAt)}</span>
-                          <span className="flex items-center gap-1">
-                            <EyeIcon className="w-4 h-4" />
-                            {left.viewCount || 0}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <HeartIcon className="w-4 h-4" />
-                            {left.likeCount || 0}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <ChatBubbleOvalLeftIcon className="w-4 h-4" />
-                            {left.commentCount || 0}
-                          </span>
+            <div>
+              {rows.map(([left, right], idx) => (
+                <div
+                  key={idx}
+                  className={`grid grid-cols-2 gap-x-0 py-8 ${
+                    idx !== rows.length - 1 ? 'border-b border-gray-200' : ''
+                  }`}
+                >
+                  <div className="pr-8">
+                    {left && (
+                      <article className="grid grid-cols-[1fr_auto] gap-6">
+                        <div>
+                          <div className="text-sm text-gray-500 mb-1">{left.clubName}</div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                            <Link
+                              to={`/community/posts/${left.postId}`}
+                              className="hover:underline"
+                            >
+                              {left.title}
+                            </Link>
+                          </h3>
+                          <div className="text-sm text-gray-500 flex items-center gap-4">
+                            <span className="font-medium text-gray-800">
+                              {left.authorNickname || left.authorName || '익명'}
+                            </span>
+                            <span>{formatDate(left.createdAt)}</span>
+                            <span className="flex items-center gap-1">
+                              <EyeIcon className="w-4 h-4" />
+                              {left.viewCount || 0}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <HeartIcon className="w-4 h-4" />
+                              {left.likeCount || 0}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <ChatBubbleOvalLeftIcon className="w-4 h-4" />
+                              {left.commentCount || 0}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <Thumb src={getFirstImage(left.images)} alt={left.title} />
-                    </article>
-                  )}
-                </div>
+                        <Thumb src={getFirstImage(left.images)} alt={left.title} />
+                      </article>
+                    )}
+                  </div>
 
-                <div className="pl-8">
-                  {right && (
-                    <article className="grid grid-cols-[1fr_auto] gap-6">
-                      <div>
-                        <div className="text-sm text-gray-500 mb-1">{right.clubName}</div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                          <Link to={`/community/posts/${right.postId}`} className="hover:underline">
-                            {right.title}
-                          </Link>
-                        </h3>
-                        <div className="text-sm text-gray-500 flex items-center gap-4">
-                          <span className="font-medium text-gray-800">
-                            {right.authorNickname || right.authorName || '익명'}
-                          </span>
-                          <span>{formatDate(right.createdAt)}</span>
-                          <span className="flex items-center gap-1">
-                            <EyeIcon className="w-4 h-4" />
-                            {right.viewCount || 0}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <HeartIcon className="w-4 h-4" />
-                            {right.likeCount || 0}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <ChatBubbleOvalLeftIcon className="w-4 h-4" />
-                            {right.commentCount || 0}
-                          </span>
+                  <div className="pl-8">
+                    {right && (
+                      <article className="grid grid-cols-[1fr_auto] gap-6">
+                        <div>
+                          <div className="text-sm text-gray-500 mb-1">{right.clubName}</div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                            <Link
+                              to={`/community/posts/${right.postId}`}
+                              className="hover:underline"
+                            >
+                              {right.title}
+                            </Link>
+                          </h3>
+                          <div className="text-sm text-gray-500 flex items-center gap-4">
+                            <span className="font-medium text-gray-800">
+                              {right.authorNickname || right.authorName || '익명'}
+                            </span>
+                            <span>{formatDate(right.createdAt)}</span>
+                            <span className="flex items-center gap-1">
+                              <EyeIcon className="w-4 h-4" />
+                              {right.viewCount || 0}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <HeartIcon className="w-4 h-4" />
+                              {right.likeCount || 0}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <ChatBubbleOvalLeftIcon className="w-4 h-4" />
+                              {right.commentCount || 0}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <Thumb src={getFirstImage(right.images)} alt={right.title} />
-                    </article>
-                  )}
+                        <Thumb src={getFirstImage(right.images)} alt={right.title} />
+                      </article>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-12 text-gray-500">게시글이 없습니다.</div>
-          )}
-        </div>
+              ))}
+            </div>
+          </div>
 
-        {/* 무한스크롤 센티넬 & 상태 표시 */}
-        <div ref={sentinelRef} className="h-10" />
-        <div className="flex items-center justify-center py-6">
-          {isAppending && (
-            <div className="text-gray-400 text-sm animate-pulse">더 불러오는 중…</div>
-          )}
-          {!loading && noMore && rows.length > 0 && (
-            <div className="text-gray-400 text-sm">더 이상 게시글이 없습니다.</div>
-          )}
-        </div>
-      </div>
+          {/* 무한스크롤 센티넬 & 상태 표시 - 게시글 영역 밖 */}
+          <div ref={sentinelRef} className="h-10" />
+          <div className="flex items-center justify-center py-6">
+            {isAppending && (
+              <div className="text-gray-400 text-sm animate-pulse">더 불러오는 중…</div>
+            )}
+            {!loading && noMore && (
+              <div className="text-gray-400 text-sm">더 이상 게시글이 없습니다.</div>
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="text-center py-12 text-gray-500">게시글이 없습니다.</div>
+      )}
 
       <WriteFab />
     </div>
