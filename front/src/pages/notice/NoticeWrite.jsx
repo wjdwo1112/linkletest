@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'quill/dist/quill.snow.css';
@@ -16,10 +16,10 @@ export default function NoticeWrite() {
 
   const [title, setTitle] = useState('');
   const [html, setHtml] = useState('');
-  const [uploadedImages, setUploadedImages] = useState([]);
+  const [uploadedFiles, setUploadedFiles] = useState([]); // { fileId, fileUrl, originalFileName }
   const [isPinned, setIsPinned] = useState('N');
 
-  // 이미지 핸들러 - S3 업로드만 하고 에디터에는 삽입 안 함
+  // 이미지 핸들러 - S3 업로드 후 DB에 저장하고 fileId 받기
   const handleImageClick = () => {
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
@@ -32,9 +32,10 @@ export default function NoticeWrite() {
         if (!file.type.startsWith('image/')) continue;
 
         try {
-          const imageUrl = await fileApi.uploadImage(file);
-          setUploadedImages((prev) => [...prev, imageUrl]);
-          console.log('이미지 업로드 성공:', imageUrl);
+          // fileApi.uploadImage()는 { fileId, fileUrl, originalFileName } 반환
+          const uploadResponse = await fileApi.uploadImage(file);
+          setUploadedFiles((prev) => [...prev, uploadResponse]);
+          console.log('이미지 업로드 성공:', uploadResponse);
         } catch (error) {
           console.error('이미지 업로드 실패:', error);
           alert('이미지 업로드에 실패했습니다.');
@@ -86,7 +87,7 @@ export default function NoticeWrite() {
 
   // 이미지 삭제
   const handleImageRemove = (index) => {
-    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -94,11 +95,14 @@ export default function NoticeWrite() {
     if (!html.trim()) return window.alert('내용을 입력해 주세요.');
 
     try {
+      // fileId들을 '/'로 구분하여 문자열로 만듦
+      const images = uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.fileId).join('/') : null;
+
       const noticeData = {
         clubId: parseInt(clubId),
         title: title.trim(),
         content: html,
-        images: uploadedImages.length > 0 ? uploadedImages.join(',') : null,
+        images: images, // "1/2/3" 형태
         postType: 'N',
         isPinned: isPinned,
       };
@@ -195,16 +199,16 @@ export default function NoticeWrite() {
         </div>
 
         {/* 업로드된 이미지 미리보기 */}
-        {uploadedImages.length > 0 && (
+        {uploadedFiles.length > 0 && (
           <div className="border border-gray-200 rounded p-4 mb-4">
             <div className="text-sm font-semibold text-gray-700 mb-3">첨부된 이미지</div>
             <div className="grid grid-cols-4 gap-3">
-              {uploadedImages.map((url, index) => (
+              {uploadedFiles.map((file, index) => (
                 <div key={index} className="relative group">
                   <img
-                    src={url}
-                    alt={`첨부 ${index + 1}`}
-                    className="w-full h-24 object-cover rounded border border-gray-200"
+                    src={file.fileUrl}
+                    alt={file.originalFileName || `첨부 ${index + 1}`}
+                    className="w-full h-24 object-cover rounded border border-gray-200 bg-gray-100"
                   />
                   <button
                     onClick={() => handleImageRemove(index)}

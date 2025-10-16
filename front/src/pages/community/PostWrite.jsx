@@ -17,7 +17,7 @@ export default function PostWrite() {
   const [visibility, setVisibility] = useState('PUBLIC');
   const [title, setTitle] = useState('');
   const [html, setHtml] = useState('');
-  const [uploadedImages, setUploadedImages] = useState([]);
+  const [uploadedFiles, setUploadedFiles] = useState([]); // { fileId, fileUrl, originalFileName }
 
   useEffect(() => {
     const fetchJoinedClubs = async () => {
@@ -49,7 +49,7 @@ export default function PostWrite() {
     fetchJoinedClubs();
   }, []);
 
-  // ✅ 이미지 핸들러 - S3 업로드만 하고 에디터에는 삽입 안 함
+  // 이미지 핸들러 - S3 업로드 후 DB에 저장하고 fileId 받기
   const handleImageClick = () => {
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
@@ -62,9 +62,10 @@ export default function PostWrite() {
         if (!file.type.startsWith('image/')) continue;
 
         try {
-          const imageUrl = await fileApi.uploadImage(file);
-          setUploadedImages((prev) => [...prev, imageUrl]);
-          console.log('이미지 업로드 성공:', imageUrl);
+          // fileApi.uploadImage()는 { fileId, fileUrl, originalFileName } 반환
+          const uploadResponse = await fileApi.uploadImage(file);
+          setUploadedFiles((prev) => [...prev, uploadResponse]);
+          console.log('이미지 업로드 성공:', uploadResponse);
         } catch (error) {
           console.error('이미지 업로드 실패:', error);
           alert('이미지 업로드에 실패했습니다.');
@@ -74,7 +75,7 @@ export default function PostWrite() {
     input.click();
   };
 
-  // ✅ 이미지 버튼 포함된 toolbar
+  // 이미지 버튼 포함된 toolbar
   const modules = useRef({
     toolbar: {
       container: [
@@ -83,11 +84,11 @@ export default function PostWrite() {
         [{ color: [] }, { background: [] }],
         [{ list: 'ordered' }, { list: 'bullet' }, { align: [] }],
         ['blockquote', 'code-block'],
-        ['link', 'image'], // ✅ 이미지 버튼 유지
+        ['link', 'image'],
         ['clean'],
       ],
       handlers: {
-        image: handleImageClick, // ✅ 커스텀 핸들러
+        image: handleImageClick,
       },
     },
     clipboard: { matchVisual: false },
@@ -106,7 +107,6 @@ export default function PostWrite() {
     'blockquote',
     'code-block',
     'link',
-    // ✅ 'image'는 formats에서 제거 - 에디터에 이미지 삽입 방지
   ]).current;
 
   const handleEditorChange = (content, delta, source) => {
@@ -115,9 +115,9 @@ export default function PostWrite() {
     }
   };
 
-  // ✅ 이미지 삭제
+  // 이미지 삭제
   const handleImageRemove = (index) => {
-    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -128,11 +128,14 @@ export default function PostWrite() {
     try {
       const scope = visibility === 'PUBLIC' ? '전체' : '회원';
 
+      // fileId들을 '/'로 구분하여 문자열로 만듦
+      const images = uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.fileId).join('/') : null;
+
       const postData = {
         clubId: parseInt(club),
         title: title.trim(),
         content: html,
-        images: uploadedImages.length > 0 ? uploadedImages.join(',') : null,
+        images: images, // "1/2/3" 형태
         postType: 'P',
         scope: scope,
       };
@@ -242,17 +245,17 @@ export default function PostWrite() {
         />
       </div>
 
-      {/* ✅ 업로드된 이미지 미리보기 */}
-      {uploadedImages.length > 0 && (
+      {/* 업로드된 이미지 미리보기 */}
+      {uploadedFiles.length > 0 && (
         <div className="border border-gray-200 rounded p-4">
           <div className="text-sm font-semibold text-gray-700 mb-3">첨부된 이미지</div>
           <div className="grid grid-cols-4 gap-3">
-            {uploadedImages.map((url, index) => (
+            {uploadedFiles.map((file, index) => (
               <div key={index} className="relative group">
                 <img
-                  src={url}
-                  alt={`첨부 ${index + 1}`}
-                  className="w-full h-24 object-cover rounded border border-gray-200"
+                  src={file.fileUrl}
+                  alt={file.originalFileName || `첨부 ${index + 1}`}
+                  className="w-full h-24 object-cover rounded border border-gray-200 bg-gray-100"
                 />
                 <button
                   onClick={() => handleImageRemove(index)}
