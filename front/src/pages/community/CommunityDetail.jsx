@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   HeartIcon,
@@ -6,13 +6,12 @@ import {
   EyeIcon,
   PhotoIcon,
   PencilSquareIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 import { postApi } from '../../services/api/postApi';
 
 const DEFAULT_THUMB = 'https://via.placeholder.com/160x110/CCCCCC/FFFFFF?text=No+Image';
 
+// 탭 라벨
 const CATEGORY_LIST = [
   '전체',
   '운동/스포츠',
@@ -25,6 +24,7 @@ const CATEGORY_LIST = [
   '외국어',
 ];
 
+// DB 매핑
 const CATEGORY_DB_MAP = {
   '운동/스포츠': '운동·스포츠',
   '문화/예술': '문화·예술',
@@ -36,7 +36,8 @@ const CATEGORY_DB_MAP = {
   외국어: '외국어',
 };
 
-const POSTS_PER_PAGE = 10;
+// 한 번에 추가로 렌더링할 아이템 개수(= 이전의 페이지 크기)
+const BATCH_SIZE = 10;
 
 function Thumb({ src, alt }) {
   const [imgSrc, setImgSrc] = useState(src);
@@ -48,6 +49,7 @@ function Thumb({ src, alt }) {
           alt={alt || ''}
           className="absolute inset-0 w-full h-full object-cover"
           onError={() => setImgSrc(DEFAULT_THUMB)}
+          loading="lazy"
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
@@ -62,96 +64,6 @@ function toRows(list) {
   const rows = [];
   for (let i = 0; i < list.length; i += 2) rows.push([list[i], list[i + 1] ?? null]);
   return rows;
-}
-
-function Pagination({ currentPage, totalPages, onPageChange }) {
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisible = 5;
-
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-
-    if (endPage - startPage + 1 < maxVisible) {
-      startPage = Math.max(1, endPage - maxVisible + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    return pages;
-  };
-
-  const pages = getPageNumbers();
-
-  return (
-    <div className="flex items-center justify-center gap-2 mt-12 pb-8">
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className={`p-2 rounded border ${
-          currentPage === 1
-            ? 'border-gray-200 text-gray-300 cursor-not-allowed'
-            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-        }`}
-        aria-label="이전 페이지"
-      >
-        <ChevronLeftIcon className="w-5 h-5" />
-      </button>
-
-      {pages[0] > 1 && (
-        <>
-          <button
-            onClick={() => onPageChange(1)}
-            className="px-3 py-2 rounded border border-gray-300 text-sm text-gray-700 hover:bg-gray-50"
-          >
-            1
-          </button>
-          {pages[0] > 2 && <span className="text-gray-400">...</span>}
-        </>
-      )}
-
-      {pages.map((page) => (
-        <button
-          key={page}
-          onClick={() => onPageChange(page)}
-          className={`px-3 py-2 rounded border text-sm ${
-            currentPage === page
-              ? 'bg-black text-white border-black'
-              : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-          }`}
-        >
-          {page}
-        </button>
-      ))}
-
-      {pages[pages.length - 1] < totalPages && (
-        <>
-          {pages[pages.length - 1] < totalPages - 1 && <span className="text-gray-400">...</span>}
-          <button
-            onClick={() => onPageChange(totalPages)}
-            className="px-3 py-2 rounded border border-gray-300 text-sm text-gray-700 hover:bg-gray-50"
-          >
-            {totalPages}
-          </button>
-        </>
-      )}
-
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className={`p-2 rounded border ${
-          currentPage === totalPages
-            ? 'border-gray-200 text-gray-300 cursor-not-allowed'
-            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-        }`}
-        aria-label="다음 페이지"
-      >
-        <ChevronRightIcon className="w-5 h-5" />
-      </button>
-    </div>
-  );
 }
 
 function WriteFab() {
@@ -178,8 +90,15 @@ export default function CommunityDetail() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
 
+  // 무한스크롤용 상태
+  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
+  const [isAppending, setIsAppending] = useState(false);
+  const [noMore, setNoMore] = useState(false);
+  const sentinelRef = useRef(null);
+  const observerRef = useRef(null);
+
+  // 초기/탭 변경 시 데이터 로드
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -205,8 +124,10 @@ export default function CommunityDetail() {
           setPosts(data);
         }
 
-        // 카테고리 변경 시 페이지를 1로 리셋
-        setCurrentPage(1);
+        // 탭/카테고리 바뀌면 무한스크롤 상태 리셋
+        setVisibleCount(BATCH_SIZE);
+        setNoMore(false);
+        window.scrollTo({ top: 0, behavior: 'instant' });
       } catch (err) {
         console.error('게시글 목록 조회 실패:', err);
         setError('게시글을 불러올 수 없습니다.');
@@ -218,13 +139,72 @@ export default function CommunityDetail() {
     fetchPosts();
   }, [decodedTab]);
 
-  const handleSelectCategory = (category) => {
-    navigate(`/community/${encodeURIComponent(category)}`);
+  // IntersectionObserver 세팅
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+
+    // 모든 아이템을 이미 보여줬으면 관찰 불필요
+    if (noMore || loading) return;
+
+    // 기존 옵저버 정리
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+
+    // 폴백: 브라우저에 IntersectionObserver가 없으면 scroll 이벤트 사용
+    if (typeof IntersectionObserver === 'undefined') {
+      const onScroll = () => {
+        if (isAppending || noMore) return;
+        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+        if (scrollTop + clientHeight >= scrollHeight - 200) {
+          appendMore();
+        }
+      };
+      window.addEventListener('scroll', onScroll);
+      return () => window.removeEventListener('scroll', onScroll);
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting) appendMore();
+      },
+      {
+        root: null,
+        rootMargin: '400px', // 미리 로드
+        threshold: 0,
+      },
+    );
+
+    observerRef.current.observe(sentinelRef.current);
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleCount, posts.length, noMore, loading]);
+
+  const appendMore = () => {
+    if (isAppending || noMore) return;
+
+    setIsAppending(true);
+    // 살짝의 지연을 넣어 스피너가 보이고 급격한 연속호출 방지
+    setTimeout(() => {
+      setVisibleCount((prev) => {
+        const next = Math.min(prev + BATCH_SIZE, posts.length);
+        if (next >= posts.length) setNoMore(true);
+        return next;
+      });
+      setIsAppending(false);
+    }, 250);
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleSelectCategory = (category) => {
+    navigate(`/community/${encodeURIComponent(category)}`);
   };
 
   const formatDate = (dateString) => {
@@ -251,12 +231,9 @@ export default function CommunityDetail() {
     return images.length > 0 ? images[0] : null;
   };
 
-  // 페이지네이션 계산
-  const totalPages = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
-  const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
-  const endIndex = startIndex + POSTS_PER_PAGE;
-  const currentPosts = posts.slice(startIndex, endIndex);
-  const rows = toRows(currentPosts);
+  // 현재 화면에 보여줄 목록 (무한스크롤로 누적 노출)
+  const visiblePosts = posts.slice(0, visibleCount);
+  const rows = toRows(visiblePosts);
 
   if (loading) {
     return (
@@ -282,8 +259,9 @@ export default function CommunityDetail() {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-6">
+      {/* 카테고리 탭 */}
       <div className="mb-8">
-        <div className="flex gap-2 justify-center">
+        <div className="flex gap-2 justify-center flex-wrap">
           {CATEGORY_LIST.map((cat) => {
             const selected = selectedCategory === cat;
             return (
@@ -304,6 +282,7 @@ export default function CommunityDetail() {
         </div>
       </div>
 
+      {/* 타임라인 */}
       <div className="relative">
         <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-200 pointer-events-none" />
 
@@ -384,13 +363,18 @@ export default function CommunityDetail() {
             <div className="text-center py-12 text-gray-500">게시글이 없습니다.</div>
           )}
         </div>
-      </div>
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
+        {/* 무한스크롤 센티넬 & 상태 표시 */}
+        <div ref={sentinelRef} className="h-10" />
+        <div className="flex items-center justify-center py-6">
+          {isAppending && (
+            <div className="text-gray-400 text-sm animate-pulse">더 불러오는 중…</div>
+          )}
+          {!loading && noMore && rows.length > 0 && (
+            <div className="text-gray-400 text-sm">더 이상 게시글이 없습니다.</div>
+          )}
+        </div>
+      </div>
 
       <WriteFab />
     </div>
