@@ -20,22 +20,25 @@
     <!-- 회원 ID로 프로필 조회 -->
     <select id="findById" parameterType="int" resultType="com.ggamakun.linkle.domain.member.entity.Member">
         SELECT 
-            member_id as memberId,
-            file_id as fileId,
-            email,
-            name,
-            nickname,
-            birth_date as birthDate,
-            gender,
-            sido,
-            sigungu,
-            description,
-            interests,
-            join_date as joinDate,
-            provider,
-            provider_id as providerId,
-            email_verified as emailVerified
-        FROM Member 
+            m.member_id as memberId,
+            m.file_id as fileId,
+            m.email,
+            m.name,
+            m.nickname,
+            m.birth_date as birthDate,
+            m.gender,
+            m.sido,
+            m.sigungu,
+            m.description,
+            m.interests,
+            m.join_date as joinDate,
+            m.provider,
+            m.provider_id as providerId,
+            m.email_verified as emailVerified,
+            f.file_link as profileUrl
+        FROM Member m 
+        LEFT JOIN FILE_STORAGE on f f.file_id = m.file_id 
+        AND f.is_deleted = 'N'
         WHERE member_id = #{memberId}
         AND is_deleted = 'N'
     </select>

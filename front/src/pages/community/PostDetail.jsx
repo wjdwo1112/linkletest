@@ -539,7 +539,15 @@ export default function PostDetail() {
           {comments.map((comment) => (
             <div key={comment.commentId} className="border-b border-gray-100 pb-4">
               <div className="flex items-start gap-3">
-                <UserCircleIcon className="w-8 h-8 text-gray-300 flex-shrink-0 mt-1" />
+                <img
+                  src={getProfileSrc(comment.profileUrl)}
+                  alt={comment.authorNickname || comment.authorName || '프로필'}
+                  className="w-8 h-8 rounded-full object-cover bg-gray-100 flex-shrink-0 mt-1"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = DEFAULT_PROFILE;
+                  }}
+                />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
                     <div>
@@ -651,7 +659,15 @@ export default function PostDetail() {
                     <div className="mt-3 ml-6 space-y-4 pl-4 pt-3 border-t border-gray-100">
                       {comment.replies.map((reply) => (
                         <div key={reply.commentId} className="flex items-start gap-2">
-                          <UserCircleIcon className="w-6 h-6 text-gray-300 flex-shrink-0 mt-1" />
+                          <img
+                            src={getProfileSrc(reply.profileUrl)}
+                            alt={reply.authorNickname || reply.authorName || '프로필'}
+                            className="w-6 h-6 rounded-full object-cover bg-gray-100 flex-shrink-0 mt-1"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = DEFAULT_PROFILE;
+                            }}
+                          />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-1">
                               <div>

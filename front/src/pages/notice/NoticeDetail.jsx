@@ -224,6 +224,8 @@ const NoticeDetail = () => {
       alert('고정 상태 변경에 실패했습니다.');
     }
   };
+  const DEFAULT_PROFILE = '/assets/default-profile.png';
+  const getProfileSrc = (url) => (url && url.trim() !== '' ? url : DEFAULT_PROFILE);
 
   const formatDateTime = (s) => {
     if (!s) return '';
@@ -282,11 +284,15 @@ const NoticeDetail = () => {
 
         {/* 작성자 메타 + 하단 구분선 */}
         <div className="flex items-center gap-3 pb-4 mb-6 border-b border-gray-200">
-          <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-            <span className="text-sm font-medium text-gray-600">
-              {notice.authorNickname ? notice.authorNickname[0] : '관'}
-            </span>
-          </div>
+          <img
+            src={getProfileSrc(notice.profileUrl)}
+            alt={notice.authorNickname || '프로필'}
+            className="w-10 h-10 rounded-full object-cover bg-gray-100"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = DEFAULT_PROFILE;
+            }}
+          />
           <div>
             <div className="text-sm font-semibold text-gray-800">
               {notice.authorNickname || '관리자'}
