@@ -15,6 +15,7 @@ import { postApi } from '../../services/api/postApi';
 import { commentApi } from '../../services/api/commentApi';
 import { fileApi } from '../../services/api/fileApi';
 import useUserStore from '../../store/useUserStore';
+import DEFAULT_PROFILE from '../../assets/images/default-profile.png';
 
 function KebabMenu({ onEdit, onDelete }) {
   const [open, setOpen] = useState(false);
@@ -110,7 +111,6 @@ export default function PostDetail() {
   const [imageUrls, setImageUrls] = useState([]);
   const [imagesLoading, setImagesLoading] = useState(false);
 
-  const DEFAULT_PROFILE = '/assets/default-profile.png'; // 네가 가진 기본이미지 경로
   const getProfileSrc = (url) => {
     if (!url || url.trim() === '' || url === 'null') {
       return DEFAULT_PROFILE;

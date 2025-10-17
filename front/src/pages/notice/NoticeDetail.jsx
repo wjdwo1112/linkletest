@@ -13,6 +13,7 @@ import { fileApi } from '../../services/api/fileApi';
 import SidebarLayout from '../../components/layout/SidebarLayout';
 import ClubSidebar from '../../components/layout/ClubSidebar';
 import useUserStore from '../../store/useUserStore';
+import DEFAULT_PROFILE from '../../assets/images/default-profile.png';
 
 // 케밥 메뉴 컴포넌트
 function KebabMenu({ notice, onEdit, onDelete, onTogglePin }) {
@@ -224,7 +225,7 @@ const NoticeDetail = () => {
       alert('고정 상태 변경에 실패했습니다.');
     }
   };
-  const DEFAULT_PROFILE = '/assets/default-profile.png';
+
   const getProfileSrc = (url) => {
     if (!url || url.trim() === '' || url === 'null') {
       return DEFAULT_PROFILE;
