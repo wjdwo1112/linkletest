@@ -81,7 +81,7 @@ public class FileController {
     
     @GetMapping("/{fileid}")
     @Operation(summary = "파일 정보 조회", description = "파일 ID로 파일 정보를 조회합니다.")
-    public ResponseEntity<FileStorage> getFile(@PathVariable Integer fileId){
+    public ResponseEntity<FileStorage> getFile(@PathVariable("fileid") Integer fileId){
     	FileStorage file = fileStorageService.getFileById(fileId);
     	if(file == null) {
     		return ResponseEntity.notFound().build();

@@ -16,7 +16,7 @@ export default function NoticeEdit() {
 
   const [title, setTitle] = useState('');
   const [html, setHtml] = useState('');
-  const [uploadedImages, setUploadedImages] = useState([]);
+  const [uploadedFiles, setUploadedFiles] = useState([]); // { fileId, fileUrl, originalFileName }
   const [isPinned, setIsPinned] = useState('N');
   const [loading, setLoading] = useState(true);
 
@@ -31,10 +31,19 @@ export default function NoticeEdit() {
         setHtml(notice.content || '');
         setIsPinned(notice.isPinned || 'N');
 
-        // 이미지가 있으면 배열로 변환
+        // 이미지가 있으면 fileId로 파일 정보 조회
         if (notice.images) {
-          const imageArray = notice.images.split(',').map((url) => url.trim());
-          setUploadedImages(imageArray);
+          const fileIds = notice.images.split('/').map((id) => parseInt(id.trim()));
+
+          // 각 fileId로 파일 정보 조회
+          const fileInfos = await fileApi.getFiles(fileIds);
+          setUploadedFiles(
+            fileInfos.map((file) => ({
+              fileId: file.fileId,
+              fileUrl: file.fileLink,
+              originalFileName: file.originalFileName,
+            })),
+          );
         }
       } catch (error) {
         console.error('공지사항 조회 실패:', error);
@@ -50,7 +59,7 @@ export default function NoticeEdit() {
     }
   }, [postId, clubId, navigate]);
 
-  // 이미지 핸들러 - S3 업로드만 하고 에디터에는 삽입 안 함
+  // 이미지 핸들러 - S3 업로드 후 DB에 저장하고 fileId 받기
   const handleImageClick = () => {
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
@@ -63,9 +72,10 @@ export default function NoticeEdit() {
         if (!file.type.startsWith('image/')) continue;
 
         try {
-          const imageUrl = await fileApi.uploadImage(file);
-          setUploadedImages((prev) => [...prev, imageUrl]);
-          console.log('이미지 업로드 성공:', imageUrl);
+          // fileApi.uploadImage()는 { fileId, fileUrl, originalFileName } 반환
+          const uploadResponse = await fileApi.uploadImage(file);
+          setUploadedFiles((prev) => [...prev, uploadResponse]);
+          console.log('이미지 업로드 성공:', uploadResponse);
         } catch (error) {
           console.error('이미지 업로드 실패:', error);
           alert('이미지 업로드에 실패했습니다.');
@@ -117,7 +127,7 @@ export default function NoticeEdit() {
 
   // 이미지 삭제
   const handleImageRemove = (index) => {
-    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -125,10 +135,13 @@ export default function NoticeEdit() {
     if (!html.trim()) return window.alert('내용을 입력해 주세요.');
 
     try {
+      // fileId들을 '/'로 구분하여 문자열로 만듦
+      const images = uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.fileId).join('/') : null;
+
       const noticeData = {
         title: title.trim(),
         content: html,
-        images: uploadedImages.length > 0 ? uploadedImages.join(',') : null,
+        images: images, // "1/2/3" 형태
         isPinned: isPinned,
       };
 
@@ -234,16 +247,16 @@ export default function NoticeEdit() {
         </div>
 
         {/* 업로드된 이미지 미리보기 */}
-        {uploadedImages.length > 0 && (
+        {uploadedFiles.length > 0 && (
           <div className="border border-gray-200 rounded p-4 mb-4">
             <div className="text-sm font-semibold text-gray-700 mb-3">첨부된 이미지</div>
             <div className="grid grid-cols-4 gap-3">
-              {uploadedImages.map((url, index) => (
+              {uploadedFiles.map((file, index) => (
                 <div key={index} className="relative group">
                   <img
-                    src={url}
-                    alt={`첨부 ${index + 1}`}
-                    className="w-full h-24 object-cover rounded border border-gray-200"
+                    src={file.fileUrl}
+                    alt={file.originalFileName || `첨부 ${index + 1}`}
+                    className="w-full h-24 object-cover rounded border border-gray-200 bg-gray-100"
                   />
                   <button
                     onClick={() => handleImageRemove(index)}

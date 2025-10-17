@@ -9,6 +9,7 @@ import {
   MapPinIcon,
 } from '@heroicons/react/24/outline';
 import { noticeApi, clubApi } from '../../services/api';
+import { fileApi } from '../../services/api/fileApi';
 import SidebarLayout from '../../components/layout/SidebarLayout';
 import ClubSidebar from '../../components/layout/ClubSidebar';
 import useUserStore from '../../store/useUserStore';
@@ -102,6 +103,7 @@ const NoticeDetail = () => {
   const [notice, setNotice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]); // fileId로 조회한 이미지 파일 목록
 
   const sanitizeConfig = {
     ALLOWED_TAGS: [
@@ -140,6 +142,33 @@ const NoticeDetail = () => {
       setLoading(true);
       const data = await noticeApi.getNoticeDetail(noticeId);
       setNotice(data);
+
+      // 이미지가 있으면 처리
+      if (data.images) {
+        // URL 형식인지 fileId 형식인지 판별
+        if (data.images.includes('http')) {
+          // 기존 URL 형식 (comma-separated): "url1,url2,url3"
+          const imageUrls = data.images.split(',').map((url) => url.trim());
+          const filesData = imageUrls.map((url, index) => ({
+            fileId: null,
+            fileLink: url,
+            originalFileName: `이미지 ${index + 1}`,
+          }));
+          setImageFiles(filesData);
+        } else {
+          // 새로운 fileId 형식 (slash-separated): "1/2/3"
+          const fileIds = data.images.split('/').map((id) => parseInt(id.trim()));
+
+          try {
+            // 각 fileId로 파일 정보 조회
+            const fileInfos = await fileApi.getFiles(fileIds);
+            setImageFiles(fileInfos);
+          } catch (error) {
+            console.error('파일 정보 조회 실패:', error);
+            setImageFiles([]);
+          }
+        }
+      }
     } catch (e) {
       console.error(e);
       alert('공지사항을 불러올 수 없습니다.');
@@ -276,15 +305,15 @@ const NoticeDetail = () => {
           }}
         />
 
-        {/* 이미지가 있는 경우 */}
-        {notice.images && (
-          <div className="mt-6">
-            {notice.images.split(',').map((url, i) => (
+        {/* 이미지가 있는 경우 - fileId 기반으로 불러온 이미지 표시 */}
+        {imageFiles.length > 0 && (
+          <div className="mt-6 space-y-4">
+            {imageFiles.map((file, i) => (
               <img
-                key={i}
-                src={url.trim()}
-                alt={`공지사항 이미지 ${i + 1}`}
-                className="max-w-full h-auto rounded-lg"
+                key={file.fileId || i}
+                src={file.fileLink}
+                alt={file.originalFileName || `공지사항 이미지 ${i + 1}`}
+                className="max-w-full h-auto rounded-lg bg-gray-100"
                 onError={(e) => (e.currentTarget.style.display = 'none')}
               />
             ))}
