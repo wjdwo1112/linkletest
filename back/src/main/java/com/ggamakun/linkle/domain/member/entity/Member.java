@@ -26,7 +26,6 @@ public class Member {
     private String sigungu;
     private String description;
     private String interests;
-    private String profileUrl;
     private Timestamp joinDate;
     private String isWithdrawn;
     private Timestamp leaveDate;

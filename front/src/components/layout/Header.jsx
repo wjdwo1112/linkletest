@@ -3,13 +3,16 @@ import { useState, useEffect, useRef } from 'react';
 import { BellIcon } from '@heroicons/react/24/outline';
 import useUserStore from '../../store/useUserStore';
 import { authApi, clubApi } from '../../services/api';
+import { fileApi } from '../../services/api/fileApi';
+import axios from 'axios';
 import logo from '../../assets/images/logo.png';
 import defaultProfile from '../../assets/images/default-profile.png';
 
 const Header = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, clearUser } = useUserStore();
+  const { user, isAuthenticated, clearUser, updateUser } = useUserStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [profileImage, setProfileImage] = useState(defaultProfile);
   const dropdownRef = useRef(null);
 
   const handleLogout = () => {
@@ -35,7 +38,48 @@ const Header = () => {
     };
   }, [isDropdownOpen]);
 
-  const profileImage = user?.profileImageUrl || defaultProfile;
+  // 프로필 이미지 로드
+  useEffect(() => {
+    const loadProfileImage = async () => {
+      if (!isAuthenticated || !user) {
+        setProfileImage(defaultProfile);
+        return;
+      }
+
+      try {
+        // 백엔드에서 현재 로그인한 사용자 정보 조회
+        const response = await axios.get('/member/profile');
+        const memberData = response.data;
+
+        // fileId가 있으면 파일 정보 조회
+        if (memberData.fileId) {
+          try {
+            const fileData = await fileApi.getFile(memberData.fileId);
+            if (fileData && fileData.fileLink) {
+              setProfileImage(fileData.fileLink);
+              // store에도 업데이트
+              updateUser({
+                ...memberData,
+                profileImageUrl: fileData.fileLink,
+              });
+            } else {
+              setProfileImage(defaultProfile);
+            }
+          } catch (error) {
+            console.error('프로필 이미지 로드 실패:', error);
+            setProfileImage(defaultProfile);
+          }
+        } else {
+          setProfileImage(defaultProfile);
+        }
+      } catch (error) {
+        console.error('사용자 정보 조회 실패:', error);
+        setProfileImage(defaultProfile);
+      }
+    };
+
+    loadProfileImage();
+  }, [isAuthenticated, user?.id, updateUser]);
 
   // 내 동호회로 이동 (최신 가입 동호회)
   const handleMyClubs = async () => {

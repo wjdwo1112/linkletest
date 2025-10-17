@@ -44,8 +44,11 @@ public class FileController {
     public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file,
     										 @Parameter(hidden = true)@AuthenticationPrincipal CustomUserDetails userDetails) {
         try {
+        	
+        	
         	//사용자 ID 가져오기
         	Integer uploaderId = userDetails != null ? userDetails.getMember().getMemberId() : null;
+        	log.info("멤버아이디 :{}",uploaderId);
         	
         	//파일 바이트로 해시 생성 후 중복 체크
         	byte[] fileBytes = file.getBytes();
