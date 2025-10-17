@@ -10,9 +10,9 @@ const MyPageSidebar = () => {
       isActive: location.pathname === '/mypage/profile',
     },
     {
-      label: '나의 동호회',
-      path: '/mypage/clubs',
-      isActive: location.pathname === '/mypage/clubs',
+      label: '비밀번호 변경',
+      path: '/mypage/password',
+      isActive: location.pathname === '/mypage/password',
     },
     {
       label: '나의 활동',

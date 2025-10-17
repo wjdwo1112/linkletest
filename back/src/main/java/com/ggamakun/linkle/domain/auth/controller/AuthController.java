@@ -11,12 +11,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ggamakun.linkle.domain.auth.dto.FindIdRequestDto;
 import com.ggamakun.linkle.domain.auth.dto.FindIdResponseDto;
+import com.ggamakun.linkle.domain.auth.dto.ForgotPasswordRequestDto;
 import com.ggamakun.linkle.domain.auth.dto.LoginRequestDto;
 import com.ggamakun.linkle.domain.auth.dto.LoginResponseDto;
+import com.ggamakun.linkle.domain.auth.dto.PasswordResponseDto;
 import com.ggamakun.linkle.domain.auth.dto.RegisterResponseDto;
 import com.ggamakun.linkle.domain.auth.dto.RegisterStep1RequestDto;
 import com.ggamakun.linkle.domain.auth.dto.RegisterStep2RequestDto;
 import com.ggamakun.linkle.domain.auth.dto.RegisterStep3RequestDto;
+import com.ggamakun.linkle.domain.auth.dto.ResetPasswordRequestDto;
 import com.ggamakun.linkle.domain.auth.service.AuthService;
 import com.ggamakun.linkle.domain.auth.service.EmailService;
 import com.ggamakun.linkle.domain.member.entity.Member;
@@ -250,4 +253,57 @@ public class AuthController {
         
         return ResponseEntity.ok(response);
     }
+    
+    @PostMapping("/forgot-password")
+    @Operation(summary = "비밀번호 찾기", description = "이메일로 비밀번호 재설정 링크를 전송합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200", 
+            description = "재설정 이메일 전송 성공",
+            content = @Content(schema = @Schema(implementation = PasswordResponseDto.class))
+        ),
+        @ApiResponse(
+            responseCode = "400", 
+            description = "요청 실패"
+        )
+    })
+    public ResponseEntity<PasswordResponseDto> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequestDto request) {
+        log.info("비밀번호 찾기 요청: {}", request.getEmail());
+        
+        emailService.sendPasswordResetEmail(request.getEmail());
+        
+        PasswordResponseDto response = PasswordResponseDto.builder()
+                .message("비밀번호 재설정 이메일이 발송되었습니다.")
+                .build();
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "비밀번호 재설정", description = "새로운 비밀번호로 재설정합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200", 
+            description = "비밀번호 재설정 성공",
+            content = @Content(schema = @Schema(implementation = PasswordResponseDto.class))
+        ),
+        @ApiResponse(
+            responseCode = "400", 
+            description = "재설정 실패"
+        )
+    })
+    public ResponseEntity<PasswordResponseDto> resetPassword(
+            @Valid @RequestBody ResetPasswordRequestDto request) {
+        log.info("비밀번호 재설정 요청");
+        
+        authService.resetPassword(request.getToken(), request.getNewPassword());
+        
+        PasswordResponseDto response = PasswordResponseDto.builder()
+                .message("비밀번호가 성공적으로 재설정되었습니다.")
+                .build();
+        
+        return ResponseEntity.ok(response);
+    }
+    
 }

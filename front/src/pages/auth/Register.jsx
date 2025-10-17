@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '../../services/api';
 
 export default function Register() {
@@ -94,6 +94,13 @@ export default function Register() {
 
   return (
     <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8">
+      <div className="mb-6">
+        <Link to="/login" className="inline-flex items-center text-gray-600 hover:text-gray-900">
+          <span className="mr-2">←</span>
+          <span className="text-sm">로그인으로 돌아가기</span>
+        </Link>
+      </div>
+
       <div className="flex items-center justify-center mb-8">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-medium">

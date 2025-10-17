@@ -42,5 +42,85 @@ AND is_deleted='N'
 
 </select>
 
+	<!-- 동호회 생성 -->
+    <insert id="insertClub" parameterType="com.ggamakun.linkle.domain.club.dto.CreateClubRequestDto">
+        <selectKey keyProperty="clubId" resultType="int" order="BEFORE">
+            SELECT SEQ_CLUB.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO CLUB (
+            club_id,
+            file_id,
+            name,
+            leader_id,
+            description,
+            opened_at,
+            created_by,
+            created_at,
+            region,
+            max_members,
+            category_id,
+            is_deleted
+        ) VALUES (
+            #{clubId},
+            #{fileId},
+            #{name},
+            #{createdBy},
+            #{description},
+            SYSDATE,
+            #{createdBy},
+            SYSDATE,
+            #{sido} || ' ' || #{sigungu},
+            #{maxMembers},
+            #{categoryId},
+            'N'
+        )
+    </insert>
+
+    <!-- 동호회 회원 추가 -->
+    <insert id="insertClubMember">
+        INSERT INTO CLUB_MEMBER (
+            club_id,
+            member_id,
+            role,
+            created_by,
+            created_at,
+            status,
+            joined_at,
+            is_deleted
+        ) VALUES (
+            #{clubId},
+            #{memberId},
+            '리더',
+            #{memberId},
+            SYSDATE,
+            '승인',
+            SYSDATE,
+            'N'
+        )
+    </insert>
+
+    <!-- 동호회 조회 -->
+    <select id="findById" parameterType="int" resultType="com.ggamakun.linkle.domain.club.entity.Club">
+        SELECT 
+            club_id as clubId,
+            file_id as fileId,
+            name,
+            leader_id as leaderId,
+            description,
+            opened_at as openedAt,
+            closed_at as closedAt,
+            created_by as createdBy,
+            created_at as createdAt,
+            updated_by as updatedBy,
+            updated_at as updatedAt,
+            region,
+            max_members as maxMembers,
+            category_id as categoryId,
+            is_deleted as isDeleted
+        FROM CLUB
+        WHERE club_id = #{clubId}
+          AND is_deleted = 'N'
+    </select>
+
 
 </mapper>

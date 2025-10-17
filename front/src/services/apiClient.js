@@ -8,54 +8,56 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // 쿠키 자동 전송
+  withCredentials: true,
 });
 
-// 요청 인터셉터
-apiClient.interceptors.request.use(
-  (config) => {
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  },
-);
-
-// 응답 인터셉터
 apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       window.location.href = '/login';
+      return Promise.reject(new Error('인증이 만료되었습니다.'));
     }
-    console.error('API 요청 에러:', error);
-    return Promise.reject(error);
+
+    const errorMessage = error.response?.data?.message || error.message || '요청에 실패했습니다.';
+    const customError = new Error(errorMessage);
+    customError.status = error.response?.status;
+    customError.response = error.response;
+
+    console.error('API 요청 에러:', {
+      status: error.response?.status,
+      message: errorMessage,
+      url: error.config?.url,
+    });
+
+    return Promise.reject(customError);
   },
 );
 
-// GET 요청
+export const apiRequest = async (url, options = {}) => {
+  return await apiClient({
+    url,
+    ...options,
+  });
+};
+
 export const get = async (url) => {
   const response = await apiClient.get(url);
   return response.data;
 };
 
-// POST 요청
 export const post = async (url, data) => {
   const response = await apiClient.post(url, data);
   return response;
 };
 
-// PUT 요청
 export const put = async (url, data) => {
   const response = await apiClient.put(url, data);
   return response;
 };
 
-// DELETE 요청
-export const del = async (url) => {
-  const response = await apiClient.delete(url);
+export const del = async (url, data) => {
+  const response = await apiClient.delete(url, { data });
   return response;
 };
 

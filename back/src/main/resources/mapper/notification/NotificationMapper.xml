@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ggamakun.linkle.domain.notification.repository.INotificationRepository">
+
+<!-- 회원의 알림 목록 조회 -->
+    <select id="findByReceiverId" resultType="com.ggamakun.linkle.domain.notification.dto.NotificationDto">
+        SELECT
+            notification_id AS notificationId,
+            title,
+            content,
+            link_url AS linkUrl,
+            is_read AS isRead,
+            sent_at AS sentAt,
+            read_at AS readAt
+        FROM NOTIFICATION
+        WHERE receiver_id = #{receiverId}
+        AND is_deleted = 'N'
+        ORDER BY sent_at DESC
+    </select>
+
+    <!-- 알림 생성 -->
+    <insert id="insertNotification" parameterType="com.ggamakun.linkle.domain.notification.dto.CreateNotificationRequestDto">
+        INSERT INTO NOTIFICATION (
+            NOTIFICATION_ID,
+            TITLE,
+            CONTENT,
+            RECEIVER_ID,
+            LINK_URL,
+            CREATED_BY,
+            CREATED_AT,
+            SENT_AT,
+            IS_READ,
+            IS_DELETED
+        ) VALUES (
+            SEQ_NOTIFICATION.NEXTVAL,
+            #{title},
+            #{content},
+            #{receiverId},
+            #{linkUrl},
+            #{createdBy},
+            SYSDATE,
+            SYSDATE,
+            'N',
+            'N'
+        )
+    </insert>
+
+    <!-- 알림 읽음 처리 -->
+    <update id="markAsRead">
+        UPDATE NOTIFICATION
+        SET is_read = 'Y',
+            read_at = SYSDATE,
+            updated_at = SYSDATE
+        WHERE notification_id = #{notificationId}
+        AND receiver_id = #{memberId}
+        AND is_deleted = 'N'
+    </update>
+
+    <!-- 모든 알림 읽음 처리 -->
+    <update id="markAllAsRead">
+        UPDATE NOTIFICATION
+        SET is_read = 'Y',
+            read_at = SYSDATE,
+            updated_at = SYSDATE
+        WHERE receiver_id = #{memberId}
+        AND is_read = 'N'
+        AND is_deleted = 'N'
+    </update>
+
+    <!-- 알림 삭제 -->
+    <update id="deleteNotification">
+        UPDATE NOTIFICATION
+        SET is_deleted = 'Y',
+            updated_at = SYSDATE
+        WHERE notification_id = #{notificationId}
+        AND receiver_id = #{memberId}
+        AND is_deleted = 'N'
+    </update>
+
+</mapper>

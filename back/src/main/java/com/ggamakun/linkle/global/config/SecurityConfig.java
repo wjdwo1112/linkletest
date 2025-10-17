@@ -45,6 +45,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
             	.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/", "/css/**", "/images/**", "/js/**", "/h2-console/**").permitAll()
+                .requestMatchers("/ws/**").permitAll()
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/member/**").permitAll()
                 .requestMatchers("/categories/**").permitAll()

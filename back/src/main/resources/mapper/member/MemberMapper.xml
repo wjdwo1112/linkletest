@@ -8,8 +8,6 @@
             member_id as memberId,
             email,
             password,
-            name,
-            nickname,
             provider,
             provider_id as providerId
         FROM Member 
@@ -34,7 +32,7 @@
             join_date as joinDate,
             provider,
             provider_id as providerId,
-            email_verified as emailVerified,
+            email_verified as emailVerified
         FROM Member 
         WHERE member_id = #{memberId}
         AND is_deleted = 'N'
@@ -135,15 +133,20 @@
     <update id="updateMember" parameterType="com.ggamakun.linkle.domain.member.entity.Member">
         UPDATE member
         SET
+        	<if test="password != null">password = #{password},</if>
             <if test="nickname != null">nickname = #{nickname},</if>
             <if test="birthDate != null">birth_date = #{birthDate},</if>
             <if test="gender != null">gender = #{gender},</if>
             <if test="sido != null">sido = #{sido},</if>
             <if test="sigungu != null">sigungu = #{sigungu},</if>
+            <if test="description != null">description = #{description},</if>
             <if test="interests != null">interests = #{interests},</if>
             <if test="emailVerified != null">email_verified = #{emailVerified},</if>
             <if test="verificationToken != null">verification_token = #{verificationToken},</if>
             <if test="tokenExpiryDate != null">token_expiry_date = #{tokenExpiryDate},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            <if test="isWithdrawn != null">is_withdrawn = #{isWithdrawn},</if>
+            <if test='isWithdrawn != null and isWithdrawn.equals("Y")'>leave_date = SYSDATE,</if>
             updated_by = #{updatedBy},
             updated_at = SYSDATE
         WHERE member_id = #{memberId}

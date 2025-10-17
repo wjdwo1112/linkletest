@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authApi } from '../../services/api';
+import AlertModal from '../../components/common/AlertModal';
+import { useAlert } from '../../hooks/useAlert';
 
 export default function RegisterStep2() {
   const navigate = useNavigate();
   const location = useLocation();
   const memberId = location.state?.memberId;
+  const { alertState, showAlert, closeAlert } = useAlert();
 
   const [formData, setFormData] = useState({
     nickname: '',
@@ -21,10 +24,10 @@ export default function RegisterStep2() {
 
   useEffect(() => {
     if (!memberId) {
-      alert('잘못된 접근입니다.');
-      navigate('/signup');
+      showAlert('잘못된 접근입니다.');
+      setTimeout(() => navigate('/signup'), 1000);
     }
-  }, [memberId, navigate]);
+  }, [memberId, navigate, showAlert]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -64,7 +67,7 @@ export default function RegisterStep2() {
       }
     } catch (error) {
       console.error('닉네임 중복 체크 에러:', error);
-      alert('닉네임 중복 체크에 실패했습니다.');
+      showAlert('닉네임 중복 체크에 실패했습니다.');
     }
   };
 
@@ -126,7 +129,7 @@ export default function RegisterStep2() {
       navigate('/signup/step3', { state: { memberId } });
     } catch (error) {
       console.error('2단계 에러:', error);
-      alert(error.message || '회원 정보 등록에 실패했습니다.');
+      showAlert(error.message || '회원 정보 등록에 실패했습니다.');
     }
   };
 
@@ -136,7 +139,14 @@ export default function RegisterStep2() {
 
   return (
     <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8">
-      {/* 단계 표시 */}
+      <AlertModal
+        isOpen={alertState.isOpen}
+        onClose={closeAlert}
+        title={alertState.title}
+        message={alertState.message}
+        confirmText={alertState.confirmText}
+      />
+
       <div className="flex items-center justify-center mb-8">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-medium">
@@ -174,7 +184,7 @@ export default function RegisterStep2() {
             <button
               type="button"
               onClick={handleNicknameCheck}
-              className="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors whitespace-nowrap"
+              className="px-4 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary-hover transition-colors whitespace-nowrap"
             >
               중복확인
             </button>

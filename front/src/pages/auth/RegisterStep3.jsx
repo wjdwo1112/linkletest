@@ -70,6 +70,10 @@ export default function RegisterStep3() {
     }
   };
 
+  const handlePrevious = () => {
+    navigate('/signup/step2', { state: { memberId } });
+  };
+
   return (
     <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8 relative">
       <div className="text-center mb-6">
@@ -131,17 +135,23 @@ export default function RegisterStep3() {
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={`w-full py-3 rounded-lg font-medium transition-colors ${
-            isLoading
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-primary text-white hover:bg-primary-hover'
-          }`}
-        >
-          {isLoading ? '처리 중...' : '완료'}
-        </button>
+        <div className="flex gap-3 mt-6">
+          <button
+            type="button"
+            onClick={handlePrevious}
+            disabled={isLoading}
+            className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            이전
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading || selectedCategories.length < 3}
+            className="flex-1 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? '처리중...' : '완료'}
+          </button>
+        </div>
       </form>
     </div>
   );

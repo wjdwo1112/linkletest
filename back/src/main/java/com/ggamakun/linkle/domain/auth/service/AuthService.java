@@ -1,5 +1,8 @@
 package com.ggamakun.linkle.domain.auth.service;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -138,4 +141,36 @@ public class AuthService {
         
         return localPart.charAt(0) + "***" + domain;
     }
+    
+    /**
+     * 비밀번호 재설정
+     */
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        log.info("비밀번호 재설정 시작");
+        
+        Member member = memberRepository.findByVerificationToken(token);
+        
+        if (member == null) {
+            throw new BadRequestException("유효하지 않은 재설정 토큰입니다.");
+        }
+        
+        if (member.getTokenExpiryDate().before(Timestamp.valueOf(LocalDateTime.now()))) {
+            throw new BadRequestException("재설정 토큰이 만료되었습니다.");
+        }
+        
+        if (member.isSocialUser()) {
+            throw new BadRequestException("소셜 로그인 계정은 비밀번호 재설정을 사용할 수 없습니다.");
+        }
+        
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        member.setPassword(encodedPassword);
+        member.setVerificationToken(null);
+        member.setTokenExpiryDate(null);
+        
+        memberRepository.updateMember(member);
+        
+        log.info("비밀번호 재설정 완료: {}", member.getEmail());
+    }
+    
 }
