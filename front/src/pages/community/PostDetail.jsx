@@ -110,6 +110,9 @@ export default function PostDetail() {
   const [imageUrls, setImageUrls] = useState([]);
   const [imagesLoading, setImagesLoading] = useState(false);
 
+  const DEFAULT_PROFILE = '/assets/default-profile.png'; // 네가 가진 기본이미지 경로
+  const getProfileSrc = (url) => (url && url.trim() !== '' ? url : DEFAULT_PROFILE);
+
   const sanitizeConfig = {
     ALLOWED_TAGS: [
       'p',
@@ -438,9 +441,14 @@ export default function PostDetail() {
       <div className="bg-white">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <UserCircleIcon className="w-10 h-10 text-gray-300" />
+            <img
+              src={getProfileSrc(post.profileUrl)}
+              alt={post.authorNickname || '프로필'}
+              className="w-10 h-10 rounded-full object-cover bg-gray-100"
+            />
+
             <div>
-              <div className="font-semibold text-gray-800">{post.authorNickName || '익명'}</div>
+              <div className="font-semibold text-gray-800">{post.authorNickname || '익명'}</div>
               <div className="text-xs text-gray-400">
                 {post.createdAt} 조회 {post.viewCount}
               </div>

@@ -36,9 +36,13 @@ SELECT
  c.like_count AS likeCount,
  c.comment_count AS commentCount,
  m.name AS authorName,
- m.nickname AS authorNickname
- FROM Comments c
- LEFT JOIN MEMBER m on c.created_by = m.member_id
+ m.nickname AS authorNickname,
+ m.file_id AS profileId,
+ f.file_link AS profileUrl
+ FROM COMMENTS c
+ LEFT JOIN MEMBER m ON c.created_by = m.member_id
+ LEFT JOIN FILE_STORAGE f ON f.file_id = m.file_id
+ AND f.is_deleted = 'N'
  WHERE c.comment_id = #{commentId}
  
  
