@@ -83,6 +83,7 @@ AND is_deleted = 'N'
 
 </update>
 
+<!-- 공지사항게시글 상세조회 -->
 <select id="findNoticeDetail" resultType="com.ggamakun.linkle.domain.notice.dto.NoticeDetail">
 SELECT
 	p.post_id AS postId,
@@ -94,12 +95,16 @@ SELECT
 	p.is_pinned AS isPinned,
 	p.created_by AS createdBy,
 	m.name AS authorName,
-	m.nickname AS authorNickName,
+	m.nickname AS authorNickname,
+	m.file_id AS profileId,
+	f.file_link AS profileUrl,
 	TO_CHAR(p.created_at, 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
 	p.view_count AS viewCount
 FROM POST p
 JOIN CLUB c ON c.club_id = p.club_id
 LEFT JOIN MEMBER m ON m.member_id = p.created_by
+LEFT JOIN FILE_STORAGE f ON f.file_id = m.file_id
+AND f.is_deleted = 'N'
 WHERE p.post_id = #{postId}
 AND p.is_deleted ='N'
 AND p.post_type = 'N'

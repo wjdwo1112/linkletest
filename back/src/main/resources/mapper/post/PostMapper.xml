@@ -82,10 +82,14 @@ SELECT
 	p.is_deleted AS isDeleted,
 	c.name AS clubName,
 	m.name AS authorName,
-	m.nickname AS authorNickName
+	m.nickname AS authorNickname,
+	m.file_id AS profileId,
+	f.file_link AS profileUrl
 FROM 
 	POST p JOIN CLUB c on c.club_id = p.club_id
 	LEFT JOIN MEMBER m ON m.member_id = p.created_by
+	LEFT JOIN FILE_STORAGE f ON f.file_id = m.file_id
+	AND f.is_deleted = 'N'
 	WHERE p.POST_ID = #{postId}
 	AND p.IS_DELETED ='N'
 	AND p.POST_TYPE = 'P'

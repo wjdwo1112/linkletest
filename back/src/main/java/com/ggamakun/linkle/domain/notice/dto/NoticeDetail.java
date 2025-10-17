@@ -17,6 +17,8 @@ public class NoticeDetail {
 	private Integer createdBy;
 	private String authorName;
 	private String authorNickname;
+	private Integer profileId;
+	private String profileUrl;
 	
 	private String createdAt;
 	private Integer viewCount;

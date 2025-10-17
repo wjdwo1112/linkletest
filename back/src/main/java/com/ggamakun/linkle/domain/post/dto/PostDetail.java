@@ -22,5 +22,7 @@ public class PostDetail {
 	private String isDeleted;
 	
 	private String authorName;
-	private String authorNickName;
+	private String authorNickname;
+	private Integer profileId;
+	private String profileUrl;
 }
