@@ -225,7 +225,12 @@ const NoticeDetail = () => {
     }
   };
   const DEFAULT_PROFILE = '/assets/default-profile.png';
-  const getProfileSrc = (url) => (url && url.trim() !== '' ? url : DEFAULT_PROFILE);
+  const getProfileSrc = (url) => {
+    if (!url || url.trim() === '' || url === 'null') {
+      return DEFAULT_PROFILE;
+    }
+    return url;
+  };
 
   const formatDateTime = (s) => {
     if (!s) return '';
@@ -288,10 +293,6 @@ const NoticeDetail = () => {
             src={getProfileSrc(notice.profileUrl)}
             alt={notice.authorNickname || '프로필'}
             className="w-10 h-10 rounded-full object-cover bg-gray-100"
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = DEFAULT_PROFILE;
-            }}
           />
           <div>
             <div className="text-sm font-semibold text-gray-800">

@@ -111,7 +111,12 @@ export default function PostDetail() {
   const [imagesLoading, setImagesLoading] = useState(false);
 
   const DEFAULT_PROFILE = '/assets/default-profile.png'; // 네가 가진 기본이미지 경로
-  const getProfileSrc = (url) => (url && url.trim() !== '' ? url : DEFAULT_PROFILE);
+  const getProfileSrc = (url) => {
+    if (!url || url.trim() === '' || url === 'null') {
+      return DEFAULT_PROFILE;
+    }
+    return url;
+  };
 
   const sanitizeConfig = {
     ALLOWED_TAGS: [
@@ -543,10 +548,6 @@ export default function PostDetail() {
                   src={getProfileSrc(comment.profileUrl)}
                   alt={comment.authorNickname || comment.authorName || '프로필'}
                   className="w-8 h-8 rounded-full object-cover bg-gray-100 flex-shrink-0 mt-1"
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.src = DEFAULT_PROFILE;
-                  }}
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
@@ -663,10 +664,6 @@ export default function PostDetail() {
                             src={getProfileSrc(reply.profileUrl)}
                             alt={reply.authorNickname || reply.authorName || '프로필'}
                             className="w-6 h-6 rounded-full object-cover bg-gray-100 flex-shrink-0 mt-1"
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = DEFAULT_PROFILE;
-                            }}
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-1">
