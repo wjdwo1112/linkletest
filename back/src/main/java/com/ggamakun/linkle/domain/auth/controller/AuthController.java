@@ -84,8 +84,8 @@ public class AuthController {
         response.addCookie(refreshTokenCookie);
         
         // 응답에서 토큰 제거 (쿠키로만 전송)
-        loginResponse.setAccessToken(null);
-        loginResponse.setRefreshToken(null);
+        //loginResponse.setAccessToken(null);
+        //loginResponse.setRefreshToken(null);
         
         return ResponseEntity.ok(loginResponse);
     }

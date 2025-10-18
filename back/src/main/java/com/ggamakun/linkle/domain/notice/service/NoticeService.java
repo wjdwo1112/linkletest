@@ -70,8 +70,10 @@ public class NoticeService implements INoticeService {
 		}
 		return dto;
 	}
-
+	
+	//공지사항 등록
 	@Override
+	@Transactional
 	public Integer insertNotice(CreateNoticeRequest request) {
 		String memberRole = clubRepository.getMemberRole(request.getClubId(), request.getCreatedBy());
 		if(memberRole == null) {

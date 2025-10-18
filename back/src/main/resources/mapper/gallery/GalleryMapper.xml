@@ -1,3 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="mapper.gallery.GalleryMapper"></mapper>
+<mapper namespace="com.ggamakun.linkle.domain.gallery.repository.IGalleryRepository">
+<select id="galleryList" resultType="com.ggamakun.linkle.domain.gallery.dto.GalleryDto">
+SELECT 
+g.gallery_id AS galleryId,
+c.name AS clubName,
+m.nickname AS nickname,
+g.scope AS scope,
+f.file_id AS fileId,
+f.file_link AS fileLink,
+g.created_by AS createdBy,
+TO_CHAR(g.created_at, 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
+g.like_count AS likeCount
+FROM GALLERY g
+LEFT JOIN FILE_STORAGE f ON  g.file_id = f.file_id
+AND f.is_deleted = 'N'
+LEFT JOIN MEMBER m ON g.created_by = m.member_id
+AND m.is_deleted = 'N'
+LEFT JOIN CLUB c ON g.club_id = c.club_id
+AND c.is_deleted = 'N'
+WHERE g.is_deleted = 'N'
+ORDER BY g.created_at DESC
+
+
+
+</select>
+
+<select id="findById" resultType="com.ggamakun.linkle.domain.gallery.dto.GalleryDto">
+SELECT
+g.gallery_id AS galleryId,
+c.name AS clubName,
+m.nickname AS nickname,
+g.scope AS scope,
+f.file_id AS fileId,
+f.file_link AS fileLink,
+g.created_by AS createdBy,
+TO_CHAR(g.created_at, 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
+g.like_count AS likeCount
+FROM GALLERY g
+LEFT JOIN FILE_STORAGE f ON  g.file_id = f.file_id
+AND f.is_deleted = 'N'
+LEFT JOIN MEMBER m ON g.created_by = m.member_id
+AND m.is_deleted = 'N'
+LEFT JOIN CLUB c ON g.club_id = c.club_id
+AND c.is_deleted = 'N'
+WHERE g.gallery_id = #{galleryId}
+AND g.is_deleted = 'N'
+</select>
+
+<insert id="insertGallery" parameterType="com.ggamakun.linkle.domain.gallery.dto.CreateGalleryRequest">
+
+INSERT INTO GALLERY
+(gallery_id, club_id, file_id, like_count, scope, created_by, created_at)
+VALUES
+(SEQ_Gallery.NEXTVAL, #{clubId}, #{fileId}, #{scope}, #{createdBy}, SYSDATE)
+</insert>
+
+<update id="deleteGallery">
+UPDATE GALLERY
+SET is_deleted = 'Y',
+updated_by = #{memberId},
+updated_at = SYSDATE
+WHERE gallery_id = #{galleryId}
+AND is_deleted = 'N' 
+</update> 
+</mapper>

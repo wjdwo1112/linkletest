@@ -4,16 +4,14 @@ import lombok.Data;
 
 @Data
 public class GalleryDto {
-	private Integer postId;
-	private Integer clubId;
-	private String title;
-	private String content;
-	private String images;
-	private String postType;
+	private Integer galleryId;
+	private String clubName;
+	private String nickname;
 	private String scope;
+	private String fileId;
+	private String fileLink;
 	private Integer createdBy;
 	private String createdAt;
-	private Integer viewCount;
 	private Integer likeCount;
 	
 }
