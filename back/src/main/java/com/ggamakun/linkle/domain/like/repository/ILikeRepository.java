@@ -17,4 +17,13 @@ public interface ILikeRepository {
 	int existsCommentLike(@Param("commentId") Integer commentId, @Param("memberId") Integer memberId);
 	int reactivateCommentLike(@Param("commentId") Integer commentId, @Param("memberId") Integer memberId);
 	
+	// 갤러리 좋아요 취소
+	int cancelGalleryLike(@Param("galleryId") Integer galleryId, @Param("memberId") Integer memberId);
+	// 갤러리 좋아요 재활성화
+	int reactivateGalleryLike(@Param("galleryId") Integer galleryId, @Param("memberId") Integer memberId);
+	// 갤러리 좋아요 추가
+	void insertGalleryLike(@Param("galleryId") Integer galleryId, @Param("memberId") Integer memberId);
+	// 갤러리 좋아요 존재 여부
+	int existsGalleryLike(@Param("galleryId") Integer galleryId, @Param("memberId") Integer memberId);
+	
 }

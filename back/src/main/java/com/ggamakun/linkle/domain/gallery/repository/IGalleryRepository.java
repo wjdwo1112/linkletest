@@ -17,8 +17,20 @@ public interface IGalleryRepository {
 	GalleryDto findById(@Param("galleryId") Integer galleryId);
 
 	//갤러리 등록
-	Integer insertGallery(@Param("request") CreateGalleryRequest request);
-
+	Integer insertGallery(CreateGalleryRequest request);
+	
+	//갤러리 삭제
 	int deleteGallery(@Param("galleryId") Integer galleryId, @Param("memberId") Integer memberId);
 
+	//좋아요 증가
+	int increaseLikeCount(Integer galleryId);
+	
+	//좋아요 감소
+	int decreaseLikeCount(Integer galleryId);
+	
+	//현재 좋아요 조회
+	Integer getLikeCount(Integer galleryId);
+	
+	
+	
 }

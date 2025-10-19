@@ -102,4 +102,55 @@ AND TARGET_ID = #{commentId}
 AND IS_DELETED = 'N'
 AND IS_CANCELED = 'N'
 </select>
+
+<!-- 갤러리 좋아요 취소 -->
+<update id="cancelGalleryLike">
+UPDATE LIKE_LOG
+SET IS_CANCELED = 'Y',
+	UPDATED_BY = #{memberId},
+	UPDATED_AT = SYSDATE
+WHERE MEMBER_ID = #{memberId}
+AND TARGET_TYPE = 'G'
+AND TARGET_ID = #{galleryId}
+AND IS_CANCELED = 'N'
+AND IS_DELETED = 'N'
+</update>
+
+<!-- 비활성 이력이 있으면 재활성화 -->
+<update id="reactivateGalleryLike">
+UPDATE LIKE_LOG
+	SET IS_CANCELED = 'N',
+	LIKED_AT = SYSDATE,
+	UPDATED_BY = #{memberId},
+	UPDATED_AT = SYSDATE
+WHERE LIKE_ID=(
+SELECT MAX(LIKE_ID)
+	FROM LIKE_LOG
+	WHERE MEMBER_ID = #{memberId}
+		AND TARGET_TYPE = 'G'
+		AND TARGET_ID = #{galleryId}
+		AND IS_CANCELED = 'Y'
+		AND IS_DELETED = 'N'
+)
+</update>
+
+<!-- 갤러리 좋아요 추가 -->
+<insert id="insertGalleryLike">
+INSERT INTO LIKE_LOG(
+  LIKE_ID, MEMBER_ID, CREATED_BY, CREATED_AT,
+  LIKED_AT, TARGET_TYPE, TARGET_ID, IS_CANCELED, IS_DELETED)
+VALUES(
+  SEQ_LIKE_LOG.NEXTVAL, #{memberId}, #{memberId}, SYSDATE, SYSDATE, 'G', #{galleryId}, 'N', 'N')
+</insert>
+
+<!-- 갤러리 좋아요 존재 여부 -->
+<select id="existsGalleryLike" resultType="int">
+SELECT COUNT(1)
+FROM LIKE_LOG
+WHERE MEMBER_ID = #{memberId}
+AND TARGET_TYPE = 'G'
+AND TARGET_ID = #{galleryId}
+AND IS_DELETED = 'N'
+AND IS_CANCELED = 'N'
+</select>
 </mapper>

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ggamakun.linkle.domain.comment.repository.ICommentRepository;
+import com.ggamakun.linkle.domain.gallery.repository.IGalleryRepository;
 import com.ggamakun.linkle.domain.like.dto.LikeResponseDto;
 import com.ggamakun.linkle.domain.like.repository.ILikeRepository;
 import com.ggamakun.linkle.domain.post.repository.IPostRepository;
@@ -17,6 +18,7 @@ public class LikeService implements ILikeService {
 	private final ILikeRepository likeRepository;
 	private final IPostRepository postRepository;
 	private final ICommentRepository commentRepository;
+	private final IGalleryRepository galleryRepository;
 	
 	@Transactional
 	@Override
@@ -97,6 +99,48 @@ public class LikeService implements ILikeService {
 
 	private int safeCommentCount(Integer commentId) {
 		Integer cnt = commentRepository.getLikeCount(commentId);
+		return cnt == null ? 0 : cnt;
+	}
+	
+	
+	
+	//-----------------------갤러리---------------------------------
+	@Transactional
+	@Override
+	public LikeResponseDto toggleGalleryLike(Integer galleryId, Integer memberId) {
+		
+		int canceled = likeRepository.cancelGalleryLike(galleryId, memberId);
+		if(canceled > 0) {
+			galleryRepository.decreaseLikeCount(galleryId);
+			return new LikeResponseDto(false, safeGalleryCount(galleryId));
+		}
+		
+		int reactivated = likeRepository.reactivateGalleryLike(galleryId, memberId);
+		if(reactivated > 0) {
+			galleryRepository.increaseLikeCount(galleryId);
+			return new LikeResponseDto(true, safeGalleryCount(galleryId));
+		}
+		
+		try {
+			likeRepository.insertGalleryLike(galleryId, memberId);
+			galleryRepository.increaseLikeCount(galleryId);
+		}catch(DuplicateKeyException e) {
+			
+		}
+		return new LikeResponseDto(true, safeGalleryCount(galleryId));
+	}
+		
+
+	@Override
+	public LikeResponseDto getGalleryStatus(Integer galleryId, Integer memberId) {
+	    boolean liked = likeRepository.existsGalleryLike(galleryId, memberId) > 0;
+	    Integer cnt = galleryRepository.getLikeCount(galleryId);
+	    int count = (cnt == null ? 0: cnt);
+	    return new LikeResponseDto(liked, count);
+	}
+
+	private int safeGalleryCount(Integer galleryId) {
+		Integer cnt = galleryRepository.getLikeCount(galleryId);
 		return cnt == null ? 0 : cnt;
 	}
 }

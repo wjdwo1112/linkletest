@@ -12,4 +12,6 @@ public interface ILikeService {
 	LikeResponseDto toggleCommentLike(Integer commentId, Integer memberId);
 	LikeResponseDto getCommentStatus(Integer commentId, Integer memberId);
 	
+	LikeResponseDto toggleGalleryLike(Integer galleryId, Integer memberId);
+	LikeResponseDto getGalleryStatus(Integer galleryId, Integer memberId);
 }

@@ -64,4 +64,31 @@ updated_at = SYSDATE
 WHERE gallery_id = #{galleryId}
 AND is_deleted = 'N' 
 </update> 
+
+<!-- 좋아요 증가 -->
+<update id="increaseLikeCount">
+UPDATE GALLERY
+SET LIKE_COUNT = LIKE_COUNT + 1
+WHERE GALLERY_ID = #{galleryId}
+AND IS_DELETED = 'N'
+</update>
+
+<!-- 좋아요 감소 -->
+<update id="decreaseLikeCount">
+UPDATE GALLERY
+SET LIKE_COUNT = LIKE_COUNT - 1
+WHERE GALLERY_ID = #{galleryId}
+AND IS_DELETED = 'N'
+AND LIKE_COUNT > 0
+</update>
+
+<!-- 현재 좋아요 조회 -->
+<select id="getLikeCount" resultType="int">
+SELECT 
+LIKE_COUNT 
+FROM GALLERY
+WHERE GALLERY_ID = #{galleryId}
+AND IS_DELETED = 'N'
+</select>
+
 </mapper>
