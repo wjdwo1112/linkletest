@@ -24,6 +24,7 @@ import AccountWithdrawal from './pages/mypage/AccountWithdrawal';
 import NoticeDetail from './pages/notice/NoticeDetail';
 import NoticeWrite from './pages/notice/NoticeWrite';
 import NoticeEdit from './pages/notice/NoticeEdit';
+import Gallery from './pages/gallery/Gallery';
 const router = createBrowserRouter([
   {
     path: '/',
@@ -135,6 +136,14 @@ const router = createBrowserRouter([
     element: (
       <MainLayout>
         <PostWrite />
+      </MainLayout>
+    ),
+  },
+  {
+    path: '/gallery',
+    element: (
+      <MainLayout>
+        <Gallery />
       </MainLayout>
     ),
   },
