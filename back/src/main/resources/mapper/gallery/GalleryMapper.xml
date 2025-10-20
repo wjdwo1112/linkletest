@@ -80,9 +80,9 @@ AND g.is_deleted = 'N'
 <insert id="insertGallery" parameterType="com.ggamakun.linkle.domain.gallery.dto.CreateGalleryRequest">
 
 INSERT INTO GALLERY
-(gallery_id, club_id, file_id, like_count, scope, created_by, created_at)
+(gallery_id, club_id, file_id,  scope, created_by, created_at)
 VALUES
-(SEQ_Gallery.NEXTVAL, #{clubId}, #{fileId}, #{scope}, #{createdBy}, SYSDATE)
+(SEQ_GALLERY.NEXTVAL, #{clubId}, #{fileId}, #{scope}, #{createdBy}, SYSDATE)
 </insert>
 
 <update id="deleteGallery">

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { galleryApi } from '../../services/api/galleryApi';
+import { clubApi } from '../../services/api/clubApi';
 import useUserStore from '../../store/useUserStore';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
   const { user, isAuthenticated: isLoggedIn } = useUserStore();
@@ -8,11 +10,14 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
   const [likeCount, setLikeCount] = useState(gallery.likeCount || 0);
   const [loading, setLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
     if (isLoggedIn) {
       fetchLikeStatus();
+      fetchUserRole();
     }
   }, [gallery.galleryId, isLoggedIn]);
 
@@ -39,6 +44,19 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
     }
   };
 
+  // 사용자의 동호회 내 역할 조회
+  const fetchUserRole = async () => {
+    try {
+      const clubs = await clubApi.getJoinedClubs();
+      const currentClub = clubs.find((c) => c.clubId === gallery.clubId);
+      if (currentClub) {
+        setUserRole(currentClub.role);
+      }
+    } catch (error) {
+      console.error('역할 조회 실패:', error);
+    }
+  };
+
   const handleLikeToggle = async () => {
     if (!isLoggedIn) {
       alert('로그인이 필요합니다.');
@@ -59,10 +77,6 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
   };
 
   const handleDelete = async () => {
-    if (!confirm('정말 삭제하시겠습니까?')) {
-      return;
-    }
-
     try {
       await galleryApi.deleteGallery(gallery.galleryId);
       alert('갤러리가 삭제되었습니다.');
@@ -73,7 +87,15 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
     }
   };
 
+  const handleDeleteClick = () => {
+    setShowMenu(false);
+    setShowDeleteModal(true);
+  };
+
+  // 작성자 본인이거나 운영진/모임장인 경우 삭제 가능
   const isAuthor = isLoggedIn && user?.memberId === gallery.createdBy;
+  const isManager = userRole === '모임장' || userRole === '운영진';
+  const canDelete = isAuthor || isManager;
 
   return (
     <div
@@ -144,51 +166,69 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
                 className="flex items-center gap-1 disabled:opacity-50"
               >
                 <svg
-                  className={`w-6 h-6 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-700'}`}
-                  fill={isLiked ? 'currentColor' : 'none'}
+                  className={`w-6 h-6 ${
+                    isLiked ? 'fill-red-500 text-red-500' : 'fill-none text-gray-400'
+                  }`}
                   stroke="currentColor"
-                  strokeWidth={2}
                   viewBox="0 0 24 24"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
+                    strokeWidth={2}
                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                   />
                 </svg>
-                <span className="text-sm font-medium text-gray-900">{likeCount}</span>
+                <span className="text-sm text-gray-600">{likeCount}</span>
               </button>
 
-              <div className="relative" ref={menuRef}>
-                <button
-                  onClick={() => setShowMenu(!showMenu)}
-                  className="p-1 text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="5" r="2" />
-                    <circle cx="12" cy="12" r="2" />
-                    <circle cx="12" cy="19" r="2" />
-                  </svg>
-                </button>
+              {/* 삭제 메뉴 - 작성자 또는 운영진/모임장만 표시 */}
+              {canDelete && (
+                <div className="relative" ref={menuRef}>
+                  <button
+                    onClick={() => setShowMenu(!showMenu)}
+                    className="p-1 hover:bg-gray-100 rounded"
+                  >
+                    <svg
+                      className="w-5 h-5 text-gray-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                      />
+                    </svg>
+                  </button>
 
-                {showMenu && (
-                  <div className="absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded-none shadow-lg z-10">
-                    {isAuthor ? (
+                  {showMenu && (
+                    <div className="absolute right-0 mt-1 w-24 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                       <button
-                        onClick={() => {
-                          setShowMenu(false);
-                          handleDelete();
-                        }}
-                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-none"
+                        onClick={handleDeleteClick}
+                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                       >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
                         삭제
                       </button>
-                    ) : (
-                      <div className="px-4 py-2 text-sm text-gray-400">메뉴 없음</div>
-                    )}
-                  </div>
-                )}
-              </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -225,6 +265,17 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
           </div>
         </div>
       </div>
+
+      {/* 삭제 확인 모달 */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="사진 삭제"
+        message="정말 삭제하시겠습니까?"
+        confirmText="확인"
+        cancelText="취소"
+      />
     </div>
   );
 }

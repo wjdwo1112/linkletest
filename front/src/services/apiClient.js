@@ -41,8 +41,14 @@ export const apiRequest = async (url, options = {}) => {
   });
 };
 
-export const get = async (url) => {
-  const response = await apiClient.get(url);
+// export const get = async (url) => {
+//   const response = await apiClient.get(url);
+//   return response.data;
+// };
+
+// config 옵션을 받도록 수정
+export const get = async (url, config = {}) => {
+  const response = await apiClient.get(url, config);
   return response.data;
 };
 
