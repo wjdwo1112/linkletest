@@ -62,6 +62,7 @@ public class SecurityConfig {
                 .requestMatchers("/comments/**").permitAll()
                 .requestMatchers("/notices/**").permitAll()
                 .requestMatchers("/gallery/**").permitAll()
+                .requestMatchers("/notifications/**").permitAll()
                 .anyRequest().authenticated()
                 
             )

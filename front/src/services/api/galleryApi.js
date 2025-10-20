@@ -1,9 +1,10 @@
 import { get, post, del } from '../apiClient';
 
 export const galleryApi = {
-  // 갤러리 목록 조회
-  getGalleryList: async () => {
-    return await get('/gallery/list');
+  // 갤러리 목록 조회 (동호회 필터링 가능)
+  getGalleryList: async (clubId) => {
+    const params = clubId ? { clubId } : {};
+    return await get('/gallery/list', { params });
   },
 
   // 갤러리 상세 조회

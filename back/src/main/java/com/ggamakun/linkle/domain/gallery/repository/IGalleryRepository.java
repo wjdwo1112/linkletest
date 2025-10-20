@@ -13,7 +13,10 @@ public interface IGalleryRepository {
 
 	//갤러리 리스트 조회
 	List<GalleryDto> galleryList();
-
+	
+	//동호회별 갤러리 리스트 조회
+	List<GalleryDto> galleryListByClubId(@Param("clubId") Integer clubId);
+	//갤러리 상세 조회
 	GalleryDto findById(@Param("galleryId") Integer galleryId);
 
 	//갤러리 등록

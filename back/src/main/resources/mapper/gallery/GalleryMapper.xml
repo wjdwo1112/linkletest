@@ -4,6 +4,7 @@
 <select id="galleryList" resultType="com.ggamakun.linkle.domain.gallery.dto.GalleryDto">
 SELECT 
 g.gallery_id AS galleryId,
+g.club_id AS clubId,
 c.name AS clubName,
 m.nickname AS nickname,
 g.scope AS scope,
@@ -26,9 +27,37 @@ ORDER BY g.created_at DESC
 
 </select>
 
+<!-- 동호회별 갤러리리스트 조회 -->
+<select id="galleryListByClubId" resultType="com.ggamakun.linkle.domain.gallery.dto.GalleryDto">
+SELECT 
+g.gallery_id AS galleryId,
+g.club_id AS clubId,
+c.name AS clubName,
+m.nickname AS nickname,
+g.scope AS scope,
+f.file_id AS fileId,
+f.file_link AS fileLink,
+g.created_by AS createdBy,
+TO_CHAR(g.created_at, 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
+g.like_count AS likeCount
+FROM GALLERY g
+LEFT JOIN FILE_STORAGE f ON  g.file_id = f.file_id
+AND f.is_deleted = 'N'
+LEFT JOIN MEMBER m ON g.created_by = m.member_id
+AND m.is_deleted = 'N'
+LEFT JOIN CLUB c ON g.club_id = c.club_id
+AND c.is_deleted = 'N'
+WHERE g.is_deleted = 'N'
+AND g.club_id = #{clubId}
+ORDER BY g.created_at DESC
+
+
+</select>
+
 <select id="findById" resultType="com.ggamakun.linkle.domain.gallery.dto.GalleryDto">
 SELECT
 g.gallery_id AS galleryId,
+g.club_id AS clubId,
 c.name AS clubName,
 m.nickname AS nickname,
 g.scope AS scope,

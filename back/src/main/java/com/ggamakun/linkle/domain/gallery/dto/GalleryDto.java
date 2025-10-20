@@ -6,6 +6,7 @@ import lombok.Data;
 public class GalleryDto {
 	private Integer galleryId;
 	private String clubName;
+	private Integer clubId;
 	private String nickname;
 	private String scope;
 	private String fileId;

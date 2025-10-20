@@ -25,6 +25,11 @@ public class GalleryService implements IGalleryService
 	}
 	
 	@Override
+	public List<GalleryDto> galleryListByClubId(Integer clubId){
+		return galleryRepository.galleryListByClubId(clubId);
+	}
+	
+	@Override
 	public GalleryDto getGallery(Integer galleryId) {
 		
 		return galleryRepository.findById(galleryId);

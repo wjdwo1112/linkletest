@@ -83,9 +83,9 @@ public class AuthController {
         refreshTokenCookie.setMaxAge(60 * 60 * 24 * 14); // 14일
         response.addCookie(refreshTokenCookie);
         
-        // 응답에서 토큰 제거 (쿠키로만 전송)
-        //loginResponse.setAccessToken(null);
-        //loginResponse.setRefreshToken(null);
+//         응답에서 토큰 제거 (쿠키로만 전송)
+//        loginResponse.setAccessToken(null);
+//        loginResponse.setRefreshToken(null);
         
         return ResponseEntity.ok(loginResponse);
     }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ggamakun.linkle.domain.gallery.dto.CreateGalleryRequest;
@@ -29,7 +30,10 @@ public class GalleryController {
 	
 	//갤러리 목록 조회
 	@GetMapping("list")
-	public List<GalleryDto> GalleryList(){
+	public List<GalleryDto> galleryList(@RequestParam(name = "clubId", required = false) Integer clubId){
+		if(clubId != null) {
+			return galleryService.galleryListByClubId(clubId);
+		}
 		return galleryService.galleryList();
 	}
 	

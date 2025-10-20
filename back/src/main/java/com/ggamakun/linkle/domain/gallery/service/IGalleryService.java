@@ -15,4 +15,6 @@ public interface IGalleryService {
 
 	void deleteGallery(Integer galleryId, Integer memberId);
 
+	List<GalleryDto> galleryListByClubId(Integer clubId);
+
 }
