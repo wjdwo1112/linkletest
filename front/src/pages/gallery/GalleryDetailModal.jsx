@@ -3,6 +3,7 @@ import { galleryApi } from '../../services/api/galleryApi';
 import { clubApi } from '../../services/api/clubApi';
 import useUserStore from '../../store/useUserStore';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import { useNavigate } from 'react-router-dom';
 
 export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
   const { user, isAuthenticated: isLoggedIn } = useUserStore();
@@ -13,6 +14,7 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
   const [userRole, setUserRole] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const menuRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -153,8 +155,11 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
                   />
                 </svg>
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="font-semibold text-gray-900 truncate">{gallery.clubName}</div>
+              <div
+                onClick={() => navigate(`/clubs/${gallery.clubId}`)} // 백틱 사용!
+                className="font-semibold text-gray-900 truncate cursor-pointer hover:text-blue-600"
+              >
+                {gallery.clubName}
               </div>
             </div>
 

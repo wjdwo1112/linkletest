@@ -25,6 +25,7 @@ import NoticeDetail from './pages/notice/NoticeDetail';
 import NoticeWrite from './pages/notice/NoticeWrite';
 import NoticeEdit from './pages/notice/NoticeEdit';
 import Gallery from './pages/gallery/Gallery';
+import ClubDetail from './pages/club/ClubDetail';
 const router = createBrowserRouter([
   {
     path: '/',
@@ -185,6 +186,14 @@ const router = createBrowserRouter([
       <SidebarLayout sidebar={<MyPageSidebar />}>
         <AccountWithdrawal />
       </SidebarLayout>
+    ),
+  },
+  {
+    path: '/clubs/:clubId',
+    element: (
+      <MainLayout>
+        <ClubDetail />
+      </MainLayout>
     ),
   },
   {

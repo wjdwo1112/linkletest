@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ggamakun.linkle.domain.club.dto.ClubDetailDto;
 import com.ggamakun.linkle.domain.club.dto.ClubSummary;
 import com.ggamakun.linkle.domain.club.dto.CreateClubRequestDto;
 import com.ggamakun.linkle.domain.club.entity.Club;
@@ -22,7 +23,7 @@ public class ClubService implements IClubService{
 	
 	@Override
 	public List<ClubSummary> getJoinedClubs(Integer memberId) {
-		// TODO Auto-generated method stub
+		
 		return clubRepository.findClubsByMemberId(memberId);
 	}
 
@@ -46,6 +47,11 @@ public class ClubService implements IClubService{
 		log.info("동호회 생성 완료 - 동호회 ID: {}", clubId);
 		
 		return clubRepository.findById(clubId);
+	}
+
+	@Override
+	public ClubDetailDto getClubDetail(Integer clubId) {
+		return clubRepository.findDetailById(clubId);
 	}
 
 }
