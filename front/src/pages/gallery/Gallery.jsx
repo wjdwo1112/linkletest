@@ -144,9 +144,9 @@ export default function Gallery() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8">
+    <div className="max-w-5xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">갤러리</h1>
+        <h1 className="text-lg font-bold text-gray-800">갤러리</h1>
         <div className="flex items-center gap-3">
           {isLoggedIn && joinedClubs.length > 0 && (
             <div className="relative">
@@ -199,7 +199,7 @@ export default function Gallery() {
           {isLoggedIn && joinedClubs.length > 0 && (
             <button
               onClick={() => setIsUploadOpen(true)}
-              className="px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600"
+              className="px-4 py-2 bg-[#4FA3FF] text-white text-sm font-medium rounded-lg hover:bg-blue-600"
             >
               등록
             </button>
@@ -208,7 +208,7 @@ export default function Gallery() {
       </div>
 
       {/* 갤러리 그리드 - 3열 */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-1 md:gap-2">
         {visibleGalleries.length === 0 ? (
           <div className="col-span-3 text-center py-20 text-gray-500">
             등록된 갤러리가 없습니다.
@@ -218,13 +218,13 @@ export default function Gallery() {
             <div
               key={gallery.galleryId}
               onClick={() => handleImageClick(gallery)}
-              className="aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+              className="aspect-square bg-gray-200 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
             >
               {gallery.fileLink ? (
                 <img
                   src={gallery.fileLink}
                   alt={gallery.clubName}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-center"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
