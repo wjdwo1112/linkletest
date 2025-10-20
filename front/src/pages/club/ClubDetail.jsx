@@ -4,6 +4,8 @@ import { clubApi } from '../../services/api/clubApi';
 import { galleryApi } from '../../services/api/galleryApi';
 import useUserStore from '../../store/useUserStore';
 import defaultProfile from '../../assets/images/default-profile.png';
+import GalleryUploadModal from '../gallery/GalleryUploadModal';
+import GalleryDetailModal from '../gallery/GalleryDetailModal';
 
 export default function ClubDetail() {
   const { clubId } = useParams();
@@ -15,6 +17,9 @@ export default function ClubDetail() {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedGallery, setSelectedGallery] = useState(null);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -70,6 +75,27 @@ export default function ClubDetail() {
     }
   };
 
+  const handleUploadSuccess = async () => {
+    setIsUploadModalOpen(false);
+    await fetchClubData();
+  };
+
+  const handleImageClick = (gallery) => {
+    setSelectedGallery(gallery);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleDetailModalClose = () => {
+    setIsDetailModalOpen(false);
+    setSelectedGallery(null);
+  };
+
+  const handleDeleteSuccess = async () => {
+    setIsDetailModalOpen(false);
+    setSelectedGallery(null);
+    await fetchClubData();
+  };
+
   const toggleMenu = (id) => setOpenMenuId(openMenuId === id ? null : id);
 
   const getProfileSrc = (url) =>
@@ -93,13 +119,11 @@ export default function ClubDetail() {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
-      {/* 헤더*/}
-
       <div className="mb-8">
         <div className="relative w-fit mx-auto">
           {isManager && (
             <button
-              onClick={() => navigate(`/clubs/${clubId}/gallery/upload`)}
+              onClick={() => setIsUploadModalOpen(true)}
               className="absolute top-1 -right-12 px-4 py-2 text-xs rounded-md bg-[#4FA3FF] text-white hover:bg-blue-600"
             >
               등록
@@ -107,7 +131,6 @@ export default function ClubDetail() {
           )}
 
           <div className="flex items-start justify-center gap-8">
-            {/* 원형 프로필 */}
             <div className="w-36 h-36 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 ring-1 ring-gray-200">
               <img
                 src={getProfileSrc(club.fileLink)}
@@ -119,12 +142,10 @@ export default function ClubDetail() {
             <div className="pt-2 max-w-xl">
               <h1 className="text-xl font-bold text-gray-900">{club.clubName}</h1>
 
-              {/* 간단한 메타 (게시물 수만 노출) */}
               <div className="flex items-center gap-6 text-sm text-gray-700 mb-3">
                 <div>
                   <span className="font-semibold">사진</span> {galleries.length}
                 </div>
-                {/* 필요하면 팔로워/팔로잉 유사 항목 추가 가능 */}
               </div>
 
               <p className="text-sm text-gray-700 leading-6 whitespace-pre-wrap">
@@ -137,7 +158,6 @@ export default function ClubDetail() {
 
       <div className="h-px bg-gray-200 mb-4" />
 
-      {/* 사진 그리드 - 인스타 프로필: 3열, 좁은 간격, 정사각형, 라운드 없음 */}
       <div className="grid grid-cols-3 gap-[2px] md:gap-1">
         {galleries.length === 0 ? (
           <div className="col-span-3 text-center py-20 text-gray-500">등록된 사진이 없습니다.</div>
@@ -150,16 +170,17 @@ export default function ClubDetail() {
               {g.fileLink ? (
                 <img
                   src={g.fileLink}
-                  alt="갤러리"
-                  className="w-full h-full object-cover object-center group-hover:opacity-95 transition"
+                  alt=""
+                  onClick={() => handleImageClick(g)}
+                  className="w-full h-full object-cover cursor-pointer"
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-full h-full flex items-center justify-center bg-gray-200">
                   <svg
-                    className="w-14 h-14 text-gray-400"
-                    viewBox="0 0 24 24"
+                    className="w-12 h-12 text-gray-400"
                     fill="none"
                     stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
                     <path
                       strokeLinecap="round"
@@ -171,25 +192,35 @@ export default function ClubDetail() {
                 </div>
               )}
 
-              {/* 관리자용 점3 메뉴 (인스타는 없지만 유지) */}
               {isManager && (
-                <div className="absolute top-2 right-2" ref={menuRef}>
+                <div
+                  ref={openMenuId === g.galleryId ? menuRef : null}
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
                   <button
                     onClick={() => toggleMenu(g.galleryId)}
-                    className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow hover:bg-white"
+                    className="w-7 h-7 flex items-center justify-center bg-black/40 hover:bg-black/60 rounded-full"
                   >
-                    <svg className="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="12" cy="5" r="2" />
-                      <circle cx="12" cy="12" r="2" />
-                      <circle cx="12" cy="19" r="2" />
+                    <svg
+                      className="w-4 h-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                      />
                     </svg>
                   </button>
 
                   {openMenuId === g.galleryId && (
-                    <div className="absolute right-0 mt-1 w-24 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                    <div className="absolute right-0 mt-1 w-24 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                       <button
                         onClick={() => handleDeleteGallery(g.galleryId)}
-                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50 rounded-lg"
+                        className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-50"
                       >
                         삭제
                       </button>
@@ -201,6 +232,23 @@ export default function ClubDetail() {
           ))
         )}
       </div>
+
+      {isUploadModalOpen && (
+        <GalleryUploadModal
+          joinedClubs={[{ clubId: parseInt(clubId), name: club.clubName }]}
+          onClose={() => setIsUploadModalOpen(false)}
+          onSuccess={handleUploadSuccess}
+          preSelectedClubId={parseInt(clubId)}
+        />
+      )}
+
+      {isDetailModalOpen && selectedGallery && (
+        <GalleryDetailModal
+          gallery={selectedGallery}
+          onClose={handleDetailModalClose}
+          onDelete={handleDeleteSuccess}
+        />
+      )}
     </div>
   );
 }

@@ -1,13 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { galleryApi } from '../../services/api/galleryApi';
 import { fileApi } from '../../services/api/fileApi';
 
-export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess }) {
+export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, preSelectedClubId }) {
   const [selectedClubId, setSelectedClubId] = useState('');
   const [scope, setScope] = useState('PUBLIC');
   const [uploadedFile, setUploadedFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    if (preSelectedClubId) {
+      setSelectedClubId(String(preSelectedClubId));
+    }
+  }, [preSelectedClubId]);
 
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
@@ -61,7 +67,6 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess }) 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg w-full max-w-lg">
-        {/* 헤더 */}
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-lg font-bold text-gray-900">사진 등록</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -76,16 +81,15 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess }) 
           </button>
         </div>
 
-        {/* 본문 */}
         <div className="px-6 py-6 space-y-6">
-          {/* 게시할 동호회 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">게시할 동호회</label>
             <div className="relative">
               <select
                 value={selectedClubId}
                 onChange={(e) => setSelectedClubId(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900 appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={!!preSelectedClubId}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900 appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-700"
               >
                 <option value="">동호회를 선택하세요</option>
                 {joinedClubs.map((club) => (
@@ -112,7 +116,6 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess }) 
             </div>
           </div>
 
-          {/* 공개 범위 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">공개 범위</label>
             <div className="flex items-center gap-4">
@@ -141,7 +144,6 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess }) 
             </div>
           </div>
 
-          {/* 파일 선택 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">파일 선택</label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
@@ -197,7 +199,6 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess }) 
           </div>
         </div>
 
-        {/* 하단 버튼 */}
         <div className="px-6 py-4 border-t border-gray-200 flex gap-2">
           <button
             onClick={onClose}
