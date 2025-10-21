@@ -16,6 +16,7 @@ public class Member {
     
     private Integer memberId;
     private Integer fileId;
+    //private String profileImageUrl;
     private String email;
     private String password;
     private String name;

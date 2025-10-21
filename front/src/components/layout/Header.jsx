@@ -10,6 +10,7 @@ import ClubCreateModal from './ClubCreateModal';
 const Header = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, clearUser } = useUserStore();
+  console.log('Header user =', user);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isClubModalOpen, setIsClubModalOpen] = useState(false);
   const dropdownRef = useRef(null);

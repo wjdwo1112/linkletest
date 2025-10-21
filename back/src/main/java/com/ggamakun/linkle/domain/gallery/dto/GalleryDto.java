@@ -14,5 +14,7 @@ public class GalleryDto {
 	private Integer createdBy;
 	private String createdAt;
 	private Integer likeCount;
+	private String memberProfileImage;
+	private String clubProfileImage;
 	
 }

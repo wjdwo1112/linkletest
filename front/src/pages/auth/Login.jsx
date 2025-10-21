@@ -73,6 +73,7 @@ export default function Login() {
         email: data.email,
         name: data.name,
         nickname: data.nickname,
+        profileImageUrl: data.profileImageUrl ?? '',
       });
 
       navigate('/');

@@ -6,6 +6,7 @@
     <select id="findByEmailForAuth" parameterType="String" resultType="com.ggamakun.linkle.domain.member.entity.Member">
         SELECT 
             member_id as memberId,
+            file_id as fileId,
             email,
             password,
             provider,
@@ -31,8 +32,8 @@
             interests,
             join_date as joinDate,
             provider,
-            provider_id as providerId,
-            email_verified as emailVerified
+            provider_id as providerId
+            email_verified as emailVerified 
         FROM Member 
         WHERE member_id = #{memberId}
         AND is_deleted = 'N'

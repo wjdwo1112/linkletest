@@ -4,7 +4,7 @@ import { clubApi } from '../../services/api/clubApi';
 import useUserStore from '../../store/useUserStore';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import { useNavigate } from 'react-router-dom';
-
+import defaultProfile from '../../assets/images/default-profile.png';
 export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
   const { user, isAuthenticated: isLoggedIn } = useUserStore();
   const [isLiked, setIsLiked] = useState(false);
@@ -141,19 +141,11 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="w-11 h-11 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                <svg
-                  className="w-6 h-6 text-gray-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
+                <img
+                  src={gallery.clubProfileImage || defaultProfile}
+                  alt={gallery.clubName}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div
                 onClick={() => navigate(`/clubs/${gallery.clubId}`)} // 백틱 사용!
@@ -240,19 +232,11 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
           {/* 작성자 & 날짜 정보 */}
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
             <div className="w-5 h-5 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-              <svg
-                className="w-3 h-3 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
+              <img
+                src={gallery.memberProfileImage || defaultProfile}
+                alt={gallery.nickname}
+                className="w-full h-full object-cover"
+              />
             </div>
             <span className="text-gray-700">{gallery.nickname || '익명'}</span>
             <span className="text-gray-400">•</span>

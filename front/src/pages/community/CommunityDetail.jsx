@@ -302,7 +302,7 @@ export default function CommunityDetail() {
                       <article className="grid grid-cols-[1fr_auto] gap-6">
                         <div>
                           <div className="text-sm text-gray-500 mb-1">{left.clubName}</div>
-                          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2 break-words">
                             <Link
                               to={`/community/posts/${left.postId}`}
                               className="hover:underline"
@@ -310,23 +310,25 @@ export default function CommunityDetail() {
                               {left.title}
                             </Link>
                           </h3>
-                          <div className="text-sm text-gray-500 flex items-center gap-4">
-                            <span className="font-medium text-gray-800">
+                          <div className="text-sm text-gray-500 flex items-center gap-4 flex-wrap">
+                            <span className="font-medium text-gray-800 flex-shrink-0">
                               {left.authorNickname || left.authorName || '익명'}
                             </span>
                             <span>{formatDate(left.createdAt)}</span>
-                            <span className="flex items-center gap-1">
-                              <EyeIcon className="w-4 h-4" />
-                              {left.viewCount || 0}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <HeartIcon className="w-4 h-4" />
-                              {left.likeCount || 0}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <ChatBubbleOvalLeftIcon className="w-4 h-4" />
-                              {left.commentCount || 0}
-                            </span>
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              <span className="flex items-center gap-1">
+                                <EyeIcon className="w-4 h-4" />
+                                {left.viewCount || 0}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <HeartIcon className="w-4 h-4" />
+                                {left.likeCount || 0}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <ChatBubbleOvalLeftIcon className="w-4 h-4" />
+                                {left.commentCount || 0}
+                              </span>
+                            </div>
                           </div>
                         </div>
                         <Thumb src={getFirstImage(left.images)} alt={left.title} />
@@ -339,7 +341,7 @@ export default function CommunityDetail() {
                       <article className="grid grid-cols-[1fr_auto] gap-6">
                         <div>
                           <div className="text-sm text-gray-500 mb-1">{right.clubName}</div>
-                          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2 break-words">
                             <Link
                               to={`/community/posts/${right.postId}`}
                               className="hover:underline"
@@ -347,23 +349,25 @@ export default function CommunityDetail() {
                               {right.title}
                             </Link>
                           </h3>
-                          <div className="text-sm text-gray-500 flex items-center gap-4">
-                            <span className="font-medium text-gray-800">
+                          <div className="text-sm text-gray-500 flex items-center gap-4 flex-wrap">
+                            <span className="font-medium text-gray-800 flex-shrink-0">
                               {right.authorNickname || right.authorName || '익명'}
                             </span>
                             <span>{formatDate(right.createdAt)}</span>
-                            <span className="flex items-center gap-1">
-                              <EyeIcon className="w-4 h-4" />
-                              {right.viewCount || 0}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <HeartIcon className="w-4 h-4" />
-                              {right.likeCount || 0}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <ChatBubbleOvalLeftIcon className="w-4 h-4" />
-                              {right.commentCount || 0}
-                            </span>
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              <span className="flex items-center gap-1">
+                                <EyeIcon className="w-4 h-4" />
+                                {right.viewCount || 0}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <HeartIcon className="w-4 h-4" />
+                                {right.likeCount || 0}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <ChatBubbleOvalLeftIcon className="w-4 h-4" />
+                                {right.commentCount || 0}
+                              </span>
+                            </div>
                           </div>
                         </div>
                         <Thumb src={getFirstImage(right.images)} alt={right.title} />

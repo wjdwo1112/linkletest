@@ -9,9 +9,12 @@ SELECT
 	c.name AS name,
 	c.description AS description,
 	cm.status AS status,
-	cm.role AS role
+	cm.role AS role,
+	f.file_link AS fileLink
 FROM CLUB c
 JOIN CLUB_MEMBER cm ON c.club_id = cm.club_id
+LEFT JOIN FILE_STORAGE f ON c.file_id = f.file_id
+AND f.is_deleted='N'
 WHERE cm.member_id = #{memberId}
 	AND c.is_deleted = 'N'
 	AND cm.is_deleted = 'N'

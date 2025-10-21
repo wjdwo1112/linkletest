@@ -56,6 +56,8 @@ public class MemberService {
 					.map(Category::getName)
 					.collect(Collectors.toList());
 		}
+		
+		
 
 		return MemberProfileDto.builder()
 				.memberId(member.getMemberId())

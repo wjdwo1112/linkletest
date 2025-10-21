@@ -12,14 +12,20 @@ f.file_id AS fileId,
 f.file_link AS fileLink,
 g.created_by AS createdBy,
 TO_CHAR(g.created_at, 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
-g.like_count AS likeCount
+g.like_count AS likeCount,
+mf.file_link AS memberProfileImage,
+cf.file_link AS clubProfileImage
 FROM GALLERY g
 LEFT JOIN FILE_STORAGE f ON  g.file_id = f.file_id
 AND f.is_deleted = 'N'
 LEFT JOIN MEMBER m ON g.created_by = m.member_id
 AND m.is_deleted = 'N'
+LEFT JOIN FILE_STORAGE mf ON m.file_id = mf.file_id
+AND mf.is_deleted = 'N'
 LEFT JOIN CLUB c ON g.club_id = c.club_id
 AND c.is_deleted = 'N'
+LEFT JOIN FILE_STORAGE cf ON c.file_id = cf.file_id
+AND cf.is_deleted = 'N'
 WHERE g.is_deleted = 'N'
 ORDER BY g.created_at DESC
 
@@ -65,14 +71,20 @@ f.file_id AS fileId,
 f.file_link AS fileLink,
 g.created_by AS createdBy,
 TO_CHAR(g.created_at, 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
-g.like_count AS likeCount
+g.like_count AS likeCount,
+mf.file_link AS memberprofileImage,
+cf.file_link As clubProfileImage
 FROM GALLERY g
 LEFT JOIN FILE_STORAGE f ON  g.file_id = f.file_id
 AND f.is_deleted = 'N'
 LEFT JOIN MEMBER m ON g.created_by = m.member_id
 AND m.is_deleted = 'N'
+LEFT JOIN FILE_STORAGE mf ON m.file_id = mf.file_id
+AND mf.is_deleted='N'
 LEFT JOIN CLUB c ON g.club_id = c.club_id
 AND c.is_deleted = 'N'
+LEFT JOIN FILE_STORAGE cf ON c.file_id = cf.file_id
+AND cf.is_deleted = 'N'
 WHERE g.gallery_id = #{galleryId}
 AND g.is_deleted = 'N'
 </select>

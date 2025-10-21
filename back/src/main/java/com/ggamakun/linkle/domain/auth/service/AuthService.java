@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ggamakun.linkle.domain.auth.dto.LoginRequestDto;
 import com.ggamakun.linkle.domain.auth.dto.LoginResponseDto;
 import com.ggamakun.linkle.domain.auth.dto.RegisterStep1RequestDto;
+import com.ggamakun.linkle.domain.file.entity.FileStorage;
+import com.ggamakun.linkle.domain.file.repository.IFileStorageRepository;
 import com.ggamakun.linkle.domain.member.entity.Member;
 import com.ggamakun.linkle.domain.member.repository.IMemberRepository;
 import com.ggamakun.linkle.global.exception.BadRequestException;
@@ -25,6 +27,7 @@ public class AuthService {
     
     private final IMemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    //private final IFileStorageRepository fileStorageRepository;
     private final JwtUtil jwtUtil;
     
     /**
@@ -84,6 +87,15 @@ public class AuthService {
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             throw new BadRequestException("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
+        
+//        // 프로필 이미지 URL 조회
+//        String profileImageUrl = null;
+//        if (member.getFileId() != null) {
+//            FileStorage file = fileStorageRepository.findById(member.getFileId());
+//            if (file != null) {
+//                profileImageUrl = file.getFileLink();
+//            }
+//        }
         
         // JWT 토큰 생성
         String accessToken = jwtUtil.createAccessToken(member.getMemberId(), member.getEmail());

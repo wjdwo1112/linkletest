@@ -22,6 +22,9 @@ public class MemberProfileDto {
     @Schema(description = "프로필 이미지 ID", example = "1")
     private Integer fileId;
     
+//    @Schema(description = "프로필 이미지 URL", example = "https://linkle-bucket.s3.ap-northeast-2.amazonaws.com/...")
+//    private String profileImageUrl;
+    
     @Schema(description = "이메일", example = "user@example.com")
     private String email;
     

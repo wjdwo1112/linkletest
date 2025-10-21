@@ -9,4 +9,5 @@ public class ClubSummary {
 	private String description;
 	private String status;
 	private String role;
+	private String fileLink;
 }
