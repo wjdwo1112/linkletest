@@ -11,7 +11,6 @@ import {
 import { noticeApi, clubApi } from '../../services/api';
 import SidebarLayout from '../../components/layout/SidebarLayout';
 import ClubSidebar from '../../components/layout/ClubSidebar';
-import useUserStore from '../../store/useUserStore';
 
 // 케밥 메뉴 컴포넌트
 function KebabMenu({ notice, onEdit, onDelete, onTogglePin }) {
@@ -97,7 +96,6 @@ function KebabMenu({ notice, onEdit, onDelete, onTogglePin }) {
 const Notice = () => {
   const { clubId } = useParams();
   const navigate = useNavigate();
-  const { user } = useUserStore();
 
   const [notices, setNotices] = useState([]);
   const [pinnedNotices, setPinnedNotices] = useState([]);
@@ -147,7 +145,7 @@ const Notice = () => {
   };
 
   // 모임장 또는 운영진인지 확인
-  const isManager = userRole === '모임장' || userRole === '운영진';
+  const isManager = userRole === 'LEADER' || userRole === 'MANAGER';
 
   // 날짜 포맷팅
   const formatDate = (dateString) => {

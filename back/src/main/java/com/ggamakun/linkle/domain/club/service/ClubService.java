@@ -48,6 +48,11 @@ public class ClubService implements IClubService{
 		
 		return clubRepository.findById(clubId);
 	}
+	
+	@Override
+	public int getApprovedMemberCount(Integer clubId) {
+		return clubRepository.getApprovedMemberCount(clubId);
+	}
 
 	@Override
 	public ClubDetailDto getClubDetail(Integer clubId) {

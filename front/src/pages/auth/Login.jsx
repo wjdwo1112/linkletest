@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import useUserStore from '../../store/useUserStore';
-import { authApi } from '../../services/api';
+import { authApi, clubApi, fileApi } from '../../services/api';
 import logo from '../../assets/images/logo.png';
 
 export default function Login() {
@@ -14,7 +14,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { setUser, setLoading, setError } = useUserStore();
+  const { setUser, setCurrentClub, setLoading, setError } = useUserStore();
 
   useEffect(() => {
     const errorMessage = searchParams.get('message');
@@ -68,13 +68,33 @@ export default function Login() {
     try {
       const data = await authApi.login(formData.email, formData.password);
 
+      // fileId가 있으면 프로필 이미지 URL 조회
+      let profileImageUrl = '';
+      if (data.fileId) {
+        try {
+          const fileData = await fileApi.getFile(data.fileId);
+          profileImageUrl = fileData.fileLink || '';
+        } catch (error) {
+          console.error('프로필 이미지 조회 실패:', error);
+        }
+      }
       setUser({
         id: data.memberId,
         email: data.email,
         name: data.name,
         nickname: data.nickname,
-        profileImageUrl: data.profileImageUrl ?? '',
+        fileId: data.fileId,
+        profileImageUrl: data.profileImageUrl,
       });
+
+      try {
+        const clubs = await clubApi.getJoinedClubs();
+        if (clubs && clubs.length > 0) {
+          setCurrentClub(clubs[0].clubId, clubs[0].role);
+        }
+      } catch (clubError) {
+        console.error('동호회 목록 조회 실패:', clubError);
+      }
 
       navigate('/');
     } catch (error) {

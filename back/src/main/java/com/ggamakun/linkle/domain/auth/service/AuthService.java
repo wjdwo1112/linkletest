@@ -88,15 +88,7 @@ public class AuthService {
             throw new BadRequestException("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
         
-//        // 프로필 이미지 URL 조회
-//        String profileImageUrl = null;
-//        if (member.getFileId() != null) {
-//            FileStorage file = fileStorageRepository.findById(member.getFileId());
-//            if (file != null) {
-//                profileImageUrl = file.getFileLink();
-//            }
-//        }
-        
+
         // JWT 토큰 생성
         String accessToken = jwtUtil.createAccessToken(member.getMemberId(), member.getEmail());
         String refreshToken = jwtUtil.createRefreshToken(member.getMemberId(), member.getEmail());
@@ -108,6 +100,8 @@ public class AuthService {
                 .email(member.getEmail())
                 .name(member.getName())
                 .nickname(member.getNickname())
+                //fileId 추가
+                .fileId(member.getFileId())
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .message("로그인에 성공했습니다.")

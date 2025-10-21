@@ -183,8 +183,6 @@ const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         <div className="px-6 py-4">
-          <p className="text-sm text-gray-600 mb-6">함께할 사람들을 모아보세요</p>
-
           <div className="space-y-6">
             <div>
               <label className="flex items-center text-sm font-medium text-gray-900 mb-2">

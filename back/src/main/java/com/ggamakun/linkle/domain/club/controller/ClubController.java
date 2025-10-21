@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Tag(name = "동호회", description = "동호회 관련 API")
 public class ClubController {
+	
 	private final IClubService clubService;
 
 	@GetMapping("/clubs/joined")
@@ -69,6 +70,19 @@ public class ClubController {
 		Integer memberId = userDetails.getMember().getMemberId();
 		Club club = clubService.createClub(request, memberId);
 		return ResponseEntity.status(HttpStatus.CREATED).body(club);
+	}
+	
+	@GetMapping("/clubs/{clubId}/member-count")
+	@Operation(
+			summary = "동호회 승인된 회원 수 조회",
+			description = "특정 동호회의 승인된 회원 수를 조회합니다."
+			)
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "조회 성공")
+	})
+	public ResponseEntity<Integer> getApprovedMemberCount(@PathVariable("clubId") Integer clubId) {
+		int count = clubService.getApprovedMemberCount(clubId);
+		return ResponseEntity.ok(count);
 	}
 	
 	@GetMapping("/clubs/{clubId}")

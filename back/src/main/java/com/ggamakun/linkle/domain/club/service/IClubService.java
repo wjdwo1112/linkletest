@@ -13,6 +13,9 @@ public interface IClubService {
 	
 	// 동호회 생성
 	Club createClub(CreateClubRequestDto request, Integer memberId);
+	
+	// 동호회 승인된 회원 수 조회
+	int getApprovedMemberCount(Integer clubId);
 
 	//동호회 상세 조회
 	ClubDetailDto getClubDetail(Integer clubId);

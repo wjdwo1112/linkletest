@@ -80,7 +80,7 @@ public class NoticeService implements INoticeService {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN,"해당 동호회의 회원이 아닙니다.");
 		}
 		
-		if(!"모임장".equals(memberRole) && "운영진".equals(memberRole)) {
+		if(!"LEADER".equals(memberRole) && "MANAGER".equals(memberRole)) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "공지사항은 모임장과 운영진만 등록할 수 있습니다" );
 			
 		}
@@ -98,7 +98,7 @@ public class NoticeService implements INoticeService {
 		
 		boolean isAuthor = notice.getCreatedBy().equals(memberId);
 		String memberRole = clubRepository.getMemberRole(notice.getClubId(), memberId);
-		boolean isManager = "모임장".equals(memberRole)|| "운영진".equals(memberRole);
+		boolean isManager = "LEADER".equals(memberRole)|| "MANAGER".equals(memberRole);
 		
 		if(!isAuthor && !isManager) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN,"운영진만 수정할 수 있다");
@@ -124,7 +124,7 @@ public class NoticeService implements INoticeService {
 		
 		//모임장 또는 운영진만 가능
 		String memberRole = clubRepository.getMemberRole(notice.getClubId(), memberId);
-		boolean isManager = "모임장".equals(memberRole) || "운영진".equals(memberRole);
+		boolean isManager = "LEADER".equals(memberRole) || "MANAGER".equals(memberRole);
 		
 		if(!isManager) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "운영진만 사용할 수 있습니다");
@@ -151,7 +151,7 @@ public class NoticeService implements INoticeService {
 		
 		boolean isAuthor = notice.getCreatedBy().equals(memberId);
 		String memberRole = clubRepository.getMemberRole(notice.getClubId(), memberId);
-		boolean isManager = "모임장".equals(memberRole)|| "운영진".equals(memberRole);
+		boolean isManager = "LEADER".equals(memberRole)|| "MANAGER".equals(memberRole);
 		
 		if(!isAuthor && !isManager) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN,"운영진만 수정할 수 있다");
