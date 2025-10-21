@@ -52,7 +52,7 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, pr
       const galleryData = {
         clubId: parseInt(selectedClubId),
         fileId: uploadedFile.fileId,
-        scope: scope === 'PUBLIC' ? '전체' : '멤버',
+        scope: scope === 'PUBLIC' ? 'ALL' : 'ALL',
       };
 
       await galleryApi.createGallery(galleryData);

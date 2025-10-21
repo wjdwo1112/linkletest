@@ -96,7 +96,7 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
 
   // 작성자 본인이거나 운영진/모임장인 경우 삭제 가능
   const isAuthor = isLoggedIn && user?.memberId === gallery.createdBy;
-  const isManager = userRole === '모임장' || userRole === '운영진';
+  const isManager = userRole === 'LEADER' || userRole === 'MANAGER';
   const canDelete = isAuthor || isManager;
 
   return (

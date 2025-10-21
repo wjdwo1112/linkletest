@@ -60,7 +60,7 @@ export default function ClubDetail() {
     }
   };
 
-  const isManager = userRole === '모임장' || userRole === '운영진';
+  const isManager = userRole === 'LEADER' || userRole === 'MANAGER';
 
   const handleDeleteGallery = async (galleryId) => {
     if (!window.confirm('이 사진을 삭제하시겠습니까?')) return;
