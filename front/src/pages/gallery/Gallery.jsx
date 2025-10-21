@@ -4,15 +4,18 @@ import { clubApi } from '../../services/api/clubApi';
 import useUserStore from '../../store/useUserStore';
 import GalleryDetailModal from './GalleryDetailModal';
 import GalleryUploadModal from './GalleryUploadModal';
+import AlertModal from '../../components/common/AlertModal';
+import { useAlert } from '../../hooks/useAlert';
 
-const BATCH_SIZE = 9; // 한 번에 로드할 갤러리 개수 (3의 배수)
+const BATCH_SIZE = 9;
 
 export default function Gallery() {
-  const { user, isAuthenticated: isLoggedIn } = useUserStore();
+  const { isAuthenticated: isLoggedIn } = useUserStore();
+  const { alertState, showAlert, closeAlert } = useAlert();
 
   const [galleries, setGalleries] = useState([]);
   const [joinedClubs, setJoinedClubs] = useState([]);
-  const [selectedClubId, setSelectedClubId] = useState(null);
+  const [selectedClubIds, setSelectedClubIds] = useState([]); // 배열로 변경
   const [loading, setLoading] = useState(true);
 
   const [selectedGallery, setSelectedGallery] = useState(null);
@@ -20,12 +23,12 @@ export default function Gallery() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
-  // 무한스크롤용 상태
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
   const [isAppending, setIsAppending] = useState(false);
   const [noMore, setNoMore] = useState(false);
   const sentinelRef = useRef(null);
   const observerRef = useRef(null);
+  const filterDropdownRef = useRef(null);
 
   useEffect(() => {
     fetchData();
@@ -33,13 +36,25 @@ export default function Gallery() {
 
   useEffect(() => {
     fetchGalleries();
-    // 필터 변경시 무한스크롤 상태 리셋
     setVisibleCount(BATCH_SIZE);
     setNoMore(false);
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [selectedClubId]);
+  }, [selectedClubIds]);
 
-  // 무한스크롤 Intersection Observer 설정
+  // 필터 드롭다운 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target)) {
+        setShowFilterDropdown(false);
+      }
+    };
+
+    if (showFilterDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showFilterDropdown]);
+
   useEffect(() => {
     if (loading || isAppending || noMore) return;
     if (visibleCount >= galleries.length) {
@@ -96,7 +111,7 @@ export default function Gallery() {
       }
     } catch (error) {
       console.error('데이터 조회 실패:', error);
-      alert('데이터를 불러오는데 실패했습니다.');
+      showAlert('데이터를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -104,8 +119,28 @@ export default function Gallery() {
 
   const fetchGalleries = async () => {
     try {
-      const galleriesData = await galleryApi.getGalleryList(selectedClubId);
-      setGalleries(galleriesData || []);
+      // 선택된 동호회가 없으면 전체 조회
+      if (selectedClubIds.length === 0) {
+        const galleriesData = await galleryApi.getGalleryList();
+        setGalleries(galleriesData || []);
+      } else {
+        // 선택된 동호회들의 갤러리를 가져와서 합침
+        const allGalleries = [];
+        for (const clubId of selectedClubIds) {
+          const galleriesData = await galleryApi.getGalleryList(clubId);
+          if (galleriesData && galleriesData.length > 0) {
+            allGalleries.push(...galleriesData);
+          }
+        }
+
+        // galleryId 기준으로 중복 제거 (혹시 모를 중복 방지)
+        const uniqueGalleries = allGalleries.filter(
+          (gallery, index, self) =>
+            index === self.findIndex((g) => g.galleryId === gallery.galleryId),
+        );
+
+        setGalleries(uniqueGalleries);
+      }
     } catch (error) {
       console.error('갤러리 조회 실패:', error);
       setGalleries([]);
@@ -128,11 +163,28 @@ export default function Gallery() {
   };
 
   const handleFilterClick = (clubId) => {
-    setSelectedClubId(clubId);
-    setShowFilterDropdown(false);
+    if (clubId === null) {
+      // 전체 보기 클릭
+      setSelectedClubIds([]);
+      setShowFilterDropdown(false);
+    } else {
+      // 동호회 선택/해제
+      setSelectedClubIds((prev) => {
+        if (prev.includes(clubId)) {
+          // 이미 선택되어 있으면 제거
+          return prev.filter((id) => id !== clubId);
+        } else {
+          // 최대 3개까지만 선택 가능
+          if (prev.length >= 3) {
+            showAlert('최대 3개까지만 선택할 수 있습니다.');
+            return prev;
+          }
+          return [...prev, clubId];
+        }
+      });
+    }
   };
 
-  // 현재 화면에 보여줄 갤러리 목록
   const visibleGalleries = galleries.slice(0, visibleCount);
 
   if (loading) {
@@ -145,11 +197,19 @@ export default function Gallery() {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
+      <AlertModal
+        isOpen={alertState.isOpen}
+        onClose={closeAlert}
+        title={alertState.title}
+        message={alertState.message}
+        confirmText={alertState.confirmText}
+      />
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-lg font-bold text-gray-800">갤러리</h1>
         <div className="flex items-center gap-3">
           {isLoggedIn && joinedClubs.length > 0 && (
-            <div className="relative">
+            <div className="relative" ref={filterDropdownRef}>
               <button
                 onClick={() => setShowFilterDropdown(!showFilterDropdown)}
                 className="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 flex items-center gap-2"
@@ -163,14 +223,19 @@ export default function Gallery() {
                   />
                 </svg>
                 필터
+                {selectedClubIds.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 bg-blue-500 text-white text-xs rounded-full">
+                    {selectedClubIds.length}
+                  </span>
+                )}
               </button>
 
               {showFilterDropdown && (
                 <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                   <button
                     onClick={() => handleFilterClick(null)}
-                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
-                      selectedClubId === null
+                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between ${
+                      selectedClubIds.length === 0
                         ? 'bg-blue-50 text-blue-600 font-medium'
                         : 'text-gray-700'
                     }`}
@@ -178,17 +243,31 @@ export default function Gallery() {
                     전체 보기
                   </button>
                   <div className="h-px bg-gray-100" />
+                  <div className="px-3 py-2 text-xs text-gray-500">최대 3개까지 선택 가능</div>
                   {joinedClubs.map((club) => (
                     <button
                       key={club.clubId}
                       onClick={() => handleFilterClick(club.clubId)}
-                      className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
-                        selectedClubId === club.clubId
+                      className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between ${
+                        selectedClubIds.includes(club.clubId)
                           ? 'bg-blue-50 text-blue-600 font-medium'
                           : 'text-gray-700'
                       }`}
                     >
-                      {club.name}
+                      <span>{club.name}</span>
+                      {selectedClubIds.includes(club.clubId) && (
+                        <svg
+                          className="w-4 h-4 text-blue-600"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -207,7 +286,6 @@ export default function Gallery() {
         </div>
       </div>
 
-      {/* 갤러리 그리드 - 3열 */}
       <div className="grid grid-cols-3 gap-1 md:gap-2">
         {visibleGalleries.length === 0 ? (
           <div className="col-span-3 text-center py-20 text-gray-500">
@@ -248,7 +326,6 @@ export default function Gallery() {
         )}
       </div>
 
-      {/* 무한스크롤 센티넬 & 상태 표시 */}
       {visibleGalleries.length > 0 && (
         <>
           <div ref={sentinelRef} className="h-10" />
