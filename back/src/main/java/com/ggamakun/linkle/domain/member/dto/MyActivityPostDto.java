@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MyActivityPostDto {
 	private Integer postId;
+	private Integer clubId;
 	private String title;
 	private String content;
 	private Integer viewCount;
@@ -18,4 +19,10 @@ public class MyActivityPostDto {
 	private Integer commentCount;
 	private String createdAt;
 	private String authorNickname;
+	private String clubName;
+	private Integer commentId;
+	private String commentContent;
+	private String commentedAt;
+	private Integer likeId;
+	private String likedAt;
 }

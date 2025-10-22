@@ -4,15 +4,19 @@
 <!-- 내가 쓴 게시글 -->
 <select id="findMyPosts" resultType="com.ggamakun.linkle.domain.member.dto.MyActivityPostDto">
 SELECT 
+p.post_id AS postId,
+p.club_id AS clubId,
 p.title AS title,
 p.content AS content,
 p.view_count AS viewCount,
 p.like_count AS likeCount,
 p.comment_Count AS commentCount,
 TO_CHAR(p.created_at, 'YYYY.MM.DD') AS createdAt,
-m.nickname AS authorNickname
+m.nickname AS authorNickname,
+c.name AS clubName
 FROM POST p
 LEFT JOIN MEMBER m ON p.created_by = m.member_id
+LEFT JOIN CLUB C on p.club_id = c.club_id
 WHERE p.created_by = #{memberId}
 AND p.is_deleted = 'N'
 ORDER BY p.created_at DESC
@@ -21,39 +25,37 @@ ORDER BY p.created_at DESC
 <!-- 내가 댓글 단 글 -->
 <select id="findPostsWithMyComments" resultType="com.ggamakun.linkle.domain.member.dto.MyActivityPostDto">
 SELECT
+cmt.comment_id AS commentId,
+cmt.content AS commentContent,
+p.post_id AS postId,
 p.title AS title,
-p.content AS content,
-p.view_count AS viewCount,
-p.like_count AS likeCount,
-p.comment_Count AS commentCount,
-TO_CHAR(p.created_at, 'YYYY.MM.DD') AS createdAt,
-m.nickname AS authorNickname
-FROM POST p
-LEFT JOIN MEMBER m ON p.created_by = m.member_id
-LEFT JOIN COMMENTS c ON p.post_id = c.post_id
-WHERE c.created_by = #{memberId}
+TO_CHAR(cmt.created_at, 'YYYY.MM.DD') AS commentedAt
+FROM COMMENTS cmt
+INNER JOIN POST p ON cmt.post_id = p.post_id
+WHERE cmt.created_by = #{memberId}
+AND cmt.is_deleted = 'N'
 AND p.is_deleted = 'N'
-AND c.is_deleted = 'N'
-ORDER BY p.created_at DESC
+ORDER BY cmt.created_at DESC
 </select>
 
 <!-- 내가 좋아요 누른 글 -->
 <select id="findMyLikedPosts" resultType="com.ggamakun.linkle.domain.member.dto.MyActivityPostDto">
 SELECT
+l.like_id AS likeId,
+p.post_id AS postId,
 p.title AS title,
 p.content AS content,
 p.view_count AS viewCount,
-p.like_count AS likeCount,
-p.comment_Count AS commentCount,
 TO_CHAR(p.created_at, 'YYYY.MM.DD') AS createdAt,
 m.nickname AS authorNickname
-FROM POST p
+FROM LIKE_LOG l
+INNER JOIN POST p ON l.target_id = p.post_id
 LEFT JOIN MEMBER m ON p.created_by = m.member_id
-LEFT JOIN LIKE_LOG ON l p.post_id = l.target_id
 WHERE l.member_id = #{memberId}
 AND l.target_type = 'P'
-AND p.is_deleted = 'N'
 AND l.is_canceled = 'N'
+AND l.is_deleted = 'N'
+AND p.is_deleted = 'N'
 ORDER BY l.created_at DESC
 </select>
 

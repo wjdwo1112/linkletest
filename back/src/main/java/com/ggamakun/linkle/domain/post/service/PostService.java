@@ -51,7 +51,7 @@ public class PostService implements IPostService {
 		if(dto == null)throw new ResponseStatusException(HttpStatus.NOT_FOUND,"post not found");
 		
 		//scope가 '회원'이면 동호회 멤버만 볼 수 있음
-		if("회원".equals(dto.getScope())) {
+		if("MEMBER".equals(dto.getScope())) {
 			Integer currentMemberId = getCurrentMemberId();
 		
 			//로그인 안한 경우
