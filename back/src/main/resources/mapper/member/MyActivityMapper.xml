@@ -8,7 +8,7 @@ p.title AS title,
 p.content AS content,
 p.view_count AS viewCount,
 p.like_count AS likeCount,
-p.commentCount AS commentCount,
+p.comment_Count AS commentCount,
 TO_CHAR(p.created_at, 'YYYY.MM.DD') AS createdAt,
 m.nickname AS authorNickname
 FROM POST p
@@ -25,7 +25,7 @@ p.title AS title,
 p.content AS content,
 p.view_count AS viewCount,
 p.like_count AS likeCount,
-p.commentCount AS commentCount,
+p.comment_Count AS commentCount,
 TO_CHAR(p.created_at, 'YYYY.MM.DD') AS createdAt,
 m.nickname AS authorNickname
 FROM POST p
@@ -38,13 +38,13 @@ ORDER BY p.created_at DESC
 </select>
 
 <!-- 내가 좋아요 누른 글 -->
-<select id="findMyLikedPosts " resultType="com.ggamakun.linkle.domain.member.dto.MyActivityPostDto">
+<select id="findMyLikedPosts" resultType="com.ggamakun.linkle.domain.member.dto.MyActivityPostDto">
 SELECT
 p.title AS title,
 p.content AS content,
 p.view_count AS viewCount,
 p.like_count AS likeCount,
-p.commentCount AS commentCount,
+p.comment_Count AS commentCount,
 TO_CHAR(p.created_at, 'YYYY.MM.DD') AS createdAt,
 m.nickname AS authorNickname
 FROM POST p

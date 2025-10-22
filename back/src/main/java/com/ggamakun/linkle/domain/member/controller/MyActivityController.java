@@ -22,7 +22,7 @@ public class MyActivityController {
 	private final IMyActivityService myActivityService;
 	
 	@GetMapping("/posts")
-	public ResponseEntity<List<MyActivityPostDto>> getActivities(@RequestParam String type,
+	public ResponseEntity<List<MyActivityPostDto>> getActivities(@RequestParam(name = "type", required = false, defaultValue = "ALL") String type,
 														   @Parameter(hidden = true)@AuthenticationPrincipal CustomUserDetails userDetails){
 		Integer memberId = userDetails.getMember().getMemberId();
 		log.info("나의 활동 조회 memberId: {}, type: {}",memberId, type);
