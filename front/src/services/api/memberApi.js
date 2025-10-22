@@ -31,7 +31,7 @@ export const memberApi = {
   },
   // 나의 활동 조회
   getMyActivities: async (type = 'all') => {
-    const response = await apiClient.get('/member/activities/posts', {
+    const response = await apiClient.get('/member/activities', {
       params: { type },
     });
     return response.data;
