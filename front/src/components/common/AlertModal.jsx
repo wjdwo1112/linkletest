@@ -6,7 +6,7 @@ export default function AlertModal({ isOpen, onClose, title, message, confirmTex
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
+      <div className="fixed inset-0 bg-black/80 bg-opacity-50" onClick={onClose}></div>
       <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 z-10">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">{title || '알림'}</h3>

@@ -126,7 +126,7 @@ export default function PostWrite() {
     if (!club) return window.alert('동호회를 선택해 주세요.');
 
     try {
-      const scope = visibility === 'PUBLIC' ? '전체' : '회원';
+      const scope = visibility === 'PUBLIC' ? 'ALL' : 'MEMBER';
 
       // fileId들을 '/'로 구분하여 문자열로 만듦
       const images = uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.fileId).join('/') : null;

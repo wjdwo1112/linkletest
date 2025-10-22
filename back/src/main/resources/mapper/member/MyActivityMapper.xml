@@ -18,6 +18,7 @@ FROM POST p
 LEFT JOIN MEMBER m ON p.created_by = m.member_id
 LEFT JOIN CLUB C on p.club_id = c.club_id
 WHERE p.created_by = #{memberId}
+AND p.post_type = 'P'
 AND p.is_deleted = 'N'
 ORDER BY p.created_at DESC
 </select>
