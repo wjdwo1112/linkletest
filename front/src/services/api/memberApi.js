@@ -29,4 +29,11 @@ export const memberApi = {
     const response = await del('/member/withdrawal', password ? { password } : {});
     return response.data;
   },
+  // 나의 활동 조회
+  getMyActivities: async (type = 'all') => {
+    const response = await apiClient.get('/member/activities/posts', {
+      params: { type },
+    });
+    return response.data;
+  },
 };

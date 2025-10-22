@@ -34,6 +34,7 @@ import ChangePassword from './pages/mypage/ChangePassword';
 import AccountWithdrawal from './pages/mypage/AccountWithdrawal';
 import Gallery from './pages/gallery/Gallery';
 import ClubDetail from './pages/club/ClubDetail';
+import MyActivities from './pages/myactivity/MyActivities';
 
 const router = createBrowserRouter([
   {
@@ -193,6 +194,14 @@ const router = createBrowserRouter([
     element: (
       <SidebarLayout sidebar={<MyPageSidebar />}>
         <ProfileEdit />
+      </SidebarLayout>
+    ),
+  },
+  {
+    path: '/mypage/activities',
+    element: (
+      <SidebarLayout sidebar={<MyPageSidebar />}>
+        <MyActivities />
       </SidebarLayout>
     ),
   },

@@ -67,7 +67,7 @@ public class GalleryService implements IGalleryService
 		String role = clubRepository.getMemberRole(gallery.getClubId(), memberId);
 		
 		//모임장 또는 운영진인 경우 삭제 허용
-		if("모임장".equals(role) || "운영진".equals(role)) {
+		if("LEADER".equals(role) || "MANAGER".equals(role)) {
 			int deleted = galleryRepository.deleteGallery(galleryId, memberId);
 			if(deleted == 0) {
 				throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"게시글 삭제에 실패했다.");

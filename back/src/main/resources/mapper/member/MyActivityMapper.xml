@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ggamakun.linkle.domain.member.repository.IMyActivityRepository">
+<!-- 내가 쓴 게시글 -->
+<select id="findMyPosts" resultType="com.ggamakun.linkle.domain.member.dto.MyActivityPostDto">
+SELECT 
+p.title AS title,
+p.content AS content,
+p.view_count AS viewCount,
+p.like_count AS likeCount,
+p.commentCount AS commentCount,
+TO_CHAR(p.created_at, 'YYYY.MM.DD') AS createdAt,
+m.nickname AS authorNickname
+FROM POST p
+LEFT JOIN MEMBER m ON p.created_by = m.member_id
+WHERE p.created_by = #{memberId}
+AND p.is_deleted = 'N'
+ORDER BY p.created_at DESC
+</select>
+
+<!-- 내가 댓글 단 글 -->
+<select id="findPostsWithMyComments" resultType="com.ggamakun.linkle.domain.member.dto.MyActivityPostDto">
+SELECT
+p.title AS title,
+p.content AS content,
+p.view_count AS viewCount,
+p.like_count AS likeCount,
+p.commentCount AS commentCount,
+TO_CHAR(p.created_at, 'YYYY.MM.DD') AS createdAt,
+m.nickname AS authorNickname
+FROM POST p
+LEFT JOIN MEMBER m ON p.created_by = m.member_id
+LEFT JOIN COMMENTS c ON p.post_id = c.post_id
+WHERE c.created_by = #{memberId}
+AND p.is_deleted = 'N'
+AND c.is_deleted = 'N'
+ORDER BY p.created_at DESC
+</select>
+
+<!-- 내가 좋아요 누른 글 -->
+<select id="findMyLikedPosts " resultType="com.ggamakun.linkle.domain.member.dto.MyActivityPostDto">
+SELECT
+p.title AS title,
+p.content AS content,
+p.view_count AS viewCount,
+p.like_count AS likeCount,
+p.commentCount AS commentCount,
+TO_CHAR(p.created_at, 'YYYY.MM.DD') AS createdAt,
+m.nickname AS authorNickname
+FROM POST p
+LEFT JOIN MEMBER m ON p.created_by = m.member_id
+LEFT JOIN LIKE_LOG ON l p.post_id = l.target_id
+WHERE l.member_id = #{memberId}
+AND l.target_type = 'P'
+AND p.is_deleted = 'N'
+AND l.is_canceled = 'N'
+ORDER BY l.created_at DESC
+</select>
+
+
+
+
+</mapper>
