@@ -3,6 +3,7 @@ package com.ggamakun.linkle.domain.club.service;
 import java.util.List;
 
 import com.ggamakun.linkle.domain.club.dto.ClubDetailDto;
+import com.ggamakun.linkle.domain.club.dto.ClubMemberDto;
 import com.ggamakun.linkle.domain.club.dto.ClubSummary;
 import com.ggamakun.linkle.domain.club.dto.CreateClubRequestDto;
 import com.ggamakun.linkle.domain.club.entity.Club;
@@ -19,5 +20,8 @@ public interface IClubService {
 
 	//동호회 상세 조회
 	ClubDetailDto getClubDetail(Integer clubId);
+
+	//동호회 회원 목록 조회
+	List<ClubMemberDto> getClubMembers(Integer clubId);
 
 }

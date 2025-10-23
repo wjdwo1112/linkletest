@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ggamakun.linkle.domain.club.dto.ClubDetailDto;
+import com.ggamakun.linkle.domain.club.dto.ClubMemberDto;
 import com.ggamakun.linkle.domain.club.dto.ClubSummary;
 import com.ggamakun.linkle.domain.club.dto.CreateClubRequestDto;
 import com.ggamakun.linkle.domain.club.entity.Club;
@@ -98,6 +99,21 @@ public class ClubController {
 	public ResponseEntity<ClubDetailDto> getClubDetail(@PathVariable("clubId") Integer clubId) {
 		ClubDetailDto club = clubService.getClubDetail(clubId);
 		return ResponseEntity.ok(club);
+	}
+	
+	@GetMapping("/clubs/{clubid}/members")
+	@Operation(
+			summary = "동호회 회원 목록 조회",
+			description = "특정 동호회의 승인된 회원 목록을 조회합니다.",
+			security = @SecurityRequirement(name = "JWT")
+			)
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "조회 성공"),
+			@ApiResponse(responseCode = "404", description = "동호회를 찾을 수 없음")
+	})
+	public ResponseEntity<List<ClubMemberDto>> getClubMembers(@PathVariable("clubid") Integer clubId){
+		List<ClubMemberDto> members = clubService.getClubMembers(clubId);
+		return ResponseEntity.ok(members);
 	}
 }
 

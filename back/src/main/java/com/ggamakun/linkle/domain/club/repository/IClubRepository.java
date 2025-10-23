@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.ggamakun.linkle.domain.club.dto.ClubDetailDto;
+import com.ggamakun.linkle.domain.club.dto.ClubMemberDto;
 import com.ggamakun.linkle.domain.club.dto.ClubSummary;
 import com.ggamakun.linkle.domain.club.dto.CreateClubRequestDto;
 import com.ggamakun.linkle.domain.club.entity.Club;
@@ -36,4 +37,7 @@ public interface IClubRepository {
 
 	//동호회 상세 조회
 	ClubDetailDto findDetailById(@Param("clubId") Integer clubId);
+
+	//동호회 회원 목록 조회
+	List<ClubMemberDto> findMembersByClubId(Integer clubId);
 }

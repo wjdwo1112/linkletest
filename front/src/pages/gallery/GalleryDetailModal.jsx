@@ -105,16 +105,16 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-none w-full max-w-lg overflow-hidden"
+        className="bg-white rounded-none w-full max-w-3xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 이미지 영역 */}
-        <div className="bg-gray-200 flex items-center justify-center" style={{ height: '400px' }}>
+        <div className="bg-gray-200 flex items-center justify-center" style={{ height: '520px' }}>
           {gallery.fileLink ? (
             <img
               src={gallery.fileLink}
               alt={gallery.clubName}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
