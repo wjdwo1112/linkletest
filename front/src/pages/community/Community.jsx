@@ -8,8 +8,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { postApi } from '../../services/api/postApi';
 
-const DEFAULT_THUMB = 'https://via.placeholder.com/800x600/CCCCCC/FFFFFF?text=No+Image';
-
 const CATEGORY_META = [
   { icon: '⚽', title: '운동/스포츠', dbName: '운동·스포츠' },
   { icon: '🎨', title: '문화/예술', dbName: '문화·예술' },

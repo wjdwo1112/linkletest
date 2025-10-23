@@ -64,7 +64,9 @@ public class SecurityConfig {
                 .requestMatchers("/notices/**").permitAll()
                 .requestMatchers("/gallery/**").permitAll()
                 .requestMatchers("/notifications/**").permitAll()
-                .requestMatchers("GET","/clubs/*").permitAll()
+                .requestMatchers("GET", "/clubs/joined").authenticated()
+                .requestMatchers("GET","/clubs/**").permitAll()
+                .requestMatchers("GET", "/schedules/**").permitAll()
                 .anyRequest().authenticated()
                 
             )

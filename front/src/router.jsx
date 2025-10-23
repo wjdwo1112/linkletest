@@ -33,10 +33,9 @@ import ProfileEdit from './pages/mypage/ProfileEdit';
 import ChangePassword from './pages/mypage/ChangePassword';
 import AccountWithdrawal from './pages/mypage/AccountWithdrawal';
 import Gallery from './pages/gallery/Gallery';
-import ClubDetail from './pages/club/ClubDetail';
+import ClubProfile from './pages/club/ClubProfile';
 import MyActivities from './pages/myactivity/MyActivities';
 import ClubDetailNew from './pages/club/ClubDetailNew';
-import ClubListPage from './pages/club/ClubListPage';
 
 const router = createBrowserRouter([
   {
@@ -223,15 +222,7 @@ const router = createBrowserRouter([
       </SidebarLayout>
     ),
   },
-  // 동호회 목록 페이지
-  {
-    path: '/clubs',
-    element: (
-      <MainLayout>
-        <ClubListPage />
-      </MainLayout>
-    ),
-  },
+
   // 동호회 새 상세 페이지 (목록에서 클릭시)
   {
     path: '/clubs/:clubId/detail',
@@ -245,7 +236,7 @@ const router = createBrowserRouter([
     path: '/clubs/:clubId',
     element: (
       <MainLayout>
-        <ClubDetail />
+        <ClubProfile />
       </MainLayout>
     ),
   },

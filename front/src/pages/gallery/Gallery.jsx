@@ -147,9 +147,23 @@ export default function Gallery() {
     }
   };
 
-  const handleImageClick = (gallery) => {
-    setSelectedGallery(gallery);
-    setIsDetailOpen(true);
+  const handleImageClick = async (g) => {
+    try {
+      const [detail, clubDetail] = await Promise.all([
+        galleryApi.getGallery(g.galleryId), // memberProfileImage, nickname, createdAt 등
+        clubApi.getClubDetail(g.clubId), // fileLink(클럽 아바타)
+      ]);
+
+      setSelectedGallery({
+        ...g, // 기존 목록 데이터(파일 링크 등)
+        ...detail, // 작성자 프로필/닉네임 등
+        clubName: clubDetail.clubName,
+        clubProfileImage: clubDetail.fileLink,
+      });
+      setIsDetailOpen(true);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleUploadSuccess = () => {

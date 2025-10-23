@@ -6,8 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,7 +47,7 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getNotifications(memberId));
     }
 
-    @PatchMapping("/{notificationId}/read")
+    @PutMapping("/{notificationId}/read")
     @Operation(
         summary = "알림 읽음 처리",
         description = "특정 알림을 읽음 처리합니다.",
@@ -65,7 +65,7 @@ public class NotificationController {
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/read-all")
+    @PutMapping("/read-all")
     @Operation(
         summary = "모든 알림 읽음 처리",
         description = "현재 사용자의 모든 알림을 읽음 처리합니다.",

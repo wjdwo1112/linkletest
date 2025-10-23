@@ -144,6 +144,7 @@
 		c.description AS description,
 		c.category_id AS categoryId,
 		cat.name AS categoryName,
+		c.region AS region,
 		TO_CHAR(c.opened_at, 'YYYY-MM-DD HH24:MI:SS') AS openedAt
 		FROM CLUB c
 		LEFT JOIN FILE_STORAGE f on c.file_id = f.file_id
@@ -159,6 +160,7 @@
 	cm.member_id AS memberId,
 	m.name AS name,
 	m.nickname AS nickname,
+	m.description AS description,
 	cm.role AS role,
 	cm.status AS status,
 	f.file_link AS fileLink,
@@ -175,7 +177,7 @@
 	CASE cm.role
 	WHEN 'LEADER' THEN 1
 	WHEN 'MANAGER' THEN 2
-	WHEN 'MEMBER THEN 3
+	WHEN 'MEMBER' THEN 3
 	END,
 	cm.joined_at ASC
 	</select>

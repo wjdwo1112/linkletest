@@ -1,267 +1,331 @@
+// src/pages/club/ClubDetailNew.jsx
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { clubApi } from '../../services/api/clubApi';
 import { scheduleApi } from '../../services/api/scheduleApi';
+import {
+  LightBulbIcon,
+  UserGroupIcon,
+  StarIcon,
+  MapPinIcon,
+  ChevronRightIcon,
+  CalendarIcon,
+  ShieldCheckIcon,
+  UsersIcon,
+} from '@heroicons/react/24/outline';
+import defaultProfile from '../../assets/images/default-profile.png';
+import ViewModal from '../../components/common/ViewModal';
 
-const ClubDetailNew = () => {
+export default function ClubDetailNew() {
   const { clubId } = useParams();
-  const navigate = useNavigate();
   const [club, setClub] = useState(null);
   const [schedules, setSchedules] = useState([]);
   const [members, setMembers] = useState([]);
   const [memberCount, setMemberCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  // modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState(null); // 'admins' | 'members'
+  const openModal = (type) => {
+    setModalType(type);
+    setIsModalOpen(true);
+  };
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalType(null);
+  };
+
   useEffect(() => {
-    fetchClubDetail();
-    fetchSchedules();
-    fetchMemberCount();
-    fetchMembers();
+    (async () => {
+      try {
+        const [clubDetail, count, mems, sch] = await Promise.all([
+          clubApi.getClubDetail(clubId),
+          clubApi.getClubMemberCount(clubId),
+          clubApi.getClubMembers(clubId),
+          // 공개 GET이면 필요 시 { withCredentials:false } 옵션 추가 가능
+          scheduleApi.getSchedulesByClubId(clubId),
+        ]);
+        setClub(clubDetail);
+        setMemberCount(count);
+        setMembers(mems);
+        setSchedules(sch);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [clubId]);
 
-  const fetchClubDetail = async () => {
-    try {
-      const data = await clubApi.getClubDetail(clubId);
-      setClub(data);
-    } catch (error) {
-      console.error('동호회 정보를 불러오는데 실패했습니다:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchSchedules = async () => {
-    try {
-      const data = await scheduleApi.getSchedulesByClubId(clubId);
-      setSchedules(data);
-    } catch (error) {
-      console.error('일정 정보를 불러오는데 실패했습니다:', error);
-    }
-  };
-
-  const fetchMemberCount = async () => {
-    try {
-      const count = await clubApi.getClubMemberCount(clubId);
-      setMemberCount(count);
-    } catch (error) {
-      console.error('회원 수를 불러오는데 실패했습니다:', error);
-    }
-  };
-
-  const fetchMembers = async () => {
-    try {
-      const data = await clubApi.getClubMembers(clubId);
-      setMembers(data);
-    } catch (error) {
-      console.error('회원 목록을 불러오는데 실패했습니다:', error);
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return `${date.getMonth() + 1}월 ${date.getDate()}일`;
-  };
-
-  const formatTime = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    const hours = date.getHours();
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
-  };
+  // derived lists
+  const admins = members.filter((m) => m.role === 'LEADER' || m.role === 'MANAGER');
+  const visibleAdmins = admins.slice(0, 6);
+  const visibleMembers = members.slice(0, 6);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-gray-500">로딩 중...</div>
-      </div>
+      <div className="min-h-screen flex items-center justify-center text-gray-500">로딩 중…</div>
     );
   }
-
   if (!club) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-gray-500">동호회 정보를 찾을 수 없습니다.</div>
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        동호회 정보를 찾을 수 없습니다.
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* 상단 이미지 섹션 */}
-      <div className="mb-6">
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* 커버 */}
+      <div className="mb-6 rounded-2xl overflow-hidden border border-blue-200 shadow-sm">
         <img
-          src={club.fileLink || 'https://via.placeholder.com/800x200/cccccc/666666?text=Club+Image'}
-          alt={club.clubName}
-          className="w-full h-48 object-cover rounded-lg"
+          src={club.fileLink || defaultProfile}
+          alt="cover"
+          className="w-full h-48 object-cover"
         />
       </div>
 
-      {/* 메인 컨텐츠 영역 */}
       <div className="flex gap-8">
-        {/* 왼쪽 영역 - 동호회 정보 */}
+        {/* 왼쪽 */}
         <div className="flex-1">
-          {/* 동호회 썸네일 & 이름 */}
-          <div className="flex items-start gap-4 mb-6">
+          {/* 제목 & 태그 */}
+          <div className="flex items-start gap-4 mb-4">
             <img
-              src={club.fileLink || 'https://via.placeholder.com/80/cccccc/666666?text=Logo'}
-              alt={club.clubName}
-              className="w-20 h-20 rounded-lg object-cover"
+              src={club.fileLink || defaultProfile}
+              alt="logo"
+              className="w-16 h-16 rounded-lg object-cover"
             />
             <div className="flex-1">
-              <h1 className="text-2xl font-bold mb-2">{club.clubName}</h1>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span>{club.categoryName}</span>
-                <span>•</span>
-                <span>개설일 {formatDate(club.openedAt)}</span>
+              <h1 className="text-2xl font-bold">{club.clubName}</h1>
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-[13px]">
+                <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                  {club.categoryName || '카테고리'}
+                </span>
+                {club.region && (
+                  <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                    {club.region}
+                  </span>
+                )}
+                <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                  멤버 {memberCount}
+                </span>
               </div>
             </div>
           </div>
 
           {/* 모임 소개 */}
-          <div className="bg-blue-50 rounded-lg p-6 mb-6">
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-6">
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-blue-500">💡</span>
-              <h2 className="font-bold">모임 소개</h2>
+              <LightBulbIcon className="w-5 h-5 text-yellow-500" />
+              <span className="font-semibold">모임 소개</span>
             </div>
-            <p className="text-gray-700 whitespace-pre-wrap">{club.description}</p>
-            <div className="mt-4 text-sm text-gray-600">
-              <p>개설일: {club.openedAt ? new Date(club.openedAt).toLocaleDateString() : ''}</p>
-            </div>
-          </div>
-
-          {/* 운영진 섹션 */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold flex items-center gap-2">👥 운영진</h2>
-              <button className="text-sm text-gray-500">더보기 &gt;</button>
-            </div>
-            <div className="flex gap-4">
-              {members
-                .filter((m) => m.role === 'LEADER' || m.role === 'MANAGER')
-                .slice(0, 3)
-                .map((member) => (
-                  <div key={member.memberId} className="flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden mb-2">
-                      <img
-                        src={
-                          member.fileLink ||
-                          'https://via.placeholder.com/64/cccccc/666666?text=User'
-                        }
-                        alt={member.nickname}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <span className="text-sm font-medium">{member.nickname}</span>
-                    {member.role === 'LEADER' && (
-                      <span className="text-xs text-blue-500 mt-1">⭐ 리더</span>
-                    )}
-                    {member.role === 'MANAGER' && (
-                      <span className="text-xs text-blue-500 mt-1">운영진</span>
-                    )}
-                  </div>
-                ))}
+            <div className="text-sm text-gray-700 whitespace-pre-wrap">
+              {club.description || '소개가 없습니다.'}
             </div>
           </div>
 
-          {/* 모임 멤버 섹션 */}
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                👥 모임 멤버 {memberCount}
-              </h2>
-              <button className="text-sm text-gray-500">더보기 &gt;</button>
+          {/* 운영진 */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <UserGroupIcon className="w-5 h-5 text-gray-800" />
+                <span className="font-semibold">운영진</span>
+              </div>
+              <button
+                onClick={() => openModal('admins')}
+                className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50
+                          rounded-md px-2 py-1 cursor-pointer transition-colors"
+              >
+                더보기 <ChevronRightIcon className="w-4 h-4" />
+              </button>
             </div>
+
             <div className="grid grid-cols-6 gap-4">
-              {members.slice(0, 30).map((member) => (
-                <div key={member.memberId} className="flex flex-col items-center">
-                  <div className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden mb-1">
+              {visibleAdmins.map((m) => (
+                <div
+                  key={m.memberId}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50/60 p-3 flex flex-col items-center shadow-sm"
+                >
+                  <div className="w-14 h-14 rounded-full overflow-hidden">
                     <img
-                      src={
-                        member.fileLink || 'https://via.placeholder.com/56/cccccc/666666?text=User'
-                      }
-                      alt={member.nickname}
+                      src={m.fileLink || defaultProfile}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <span className="text-xs text-center truncate w-full">{member.nickname}</span>
-                  {member.role === 'LEADER' && (
-                    <span className="text-xs" style={{ color: '#4CA8FF' }}>
-                      ⭐
-                    </span>
-                  )}
-                  {member.role === 'MANAGER' && (
-                    <span className="text-xs" style={{ color: '#4CA8FF' }}>
-                      🔰
-                    </span>
-                  )}
+                  <div className="mt-2 text-[12px] truncate w-full text-center">
+                    {m.nickname || m.name}
+                  </div>
+                  <div
+                    className={
+                      'mt-1 text-[11px] px-1.5 py-0.5 rounded-full flex items-center gap-1 ' +
+                      (m.role === 'LEADER'
+                        ? 'bg-amber-50 text-amber-600'
+                        : 'bg-blue-50 text-blue-600')
+                    }
+                    title={m.role === 'LEADER' ? '모임장' : '운영진'}
+                  >
+                    {m.role === 'LEADER' ? (
+                      <>
+                        <StarIcon className="w-3.5 h-3.5 text-amber-500" />
+                        모임장
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheckIcon className="w-3.5 h-3.5 text-blue-500" />
+                        운영진
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 모임 멤버 */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <UsersIcon className="w-5 h-5 text-gray-800" />
+                <span className="font-semibold">모임 멤버 {memberCount}</span>
+              </div>
+              <button
+                onClick={() => openModal('members')}
+                className="flex items-center gap-1 text-sm text-gray-500  hover:text-gray-700 hover:bg-gray-50
+                            rounded-md px-2 py-1 cursor-pointer transition-colors"
+              >
+                더보기 <ChevronRightIcon className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-6 gap-x-6 gap-y-6">
+              {visibleMembers.map((m) => (
+                <div key={m.memberId} className="flex flex-col items-center">
+                  <div className="w-12 h-12 rounded-full overflow-hidden">
+                    <img
+                      src={m.fileLink || defaultProfile}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="mt-2 text-[12px] truncate w-full text-center">
+                    {m.nickname || m.name}
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* 오른쪽 영역 - 동호회 정보 & 일정 */}
-        <div className="w-80">
-          {/* 동호회 정보 카드 */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6 mb-4">
-            <h3 className="font-bold mb-4">{club.clubName}</h3>
-            <div className="space-y-3 text-sm">
+        {/* 오른쪽 사이드 */}
+        <aside className="w-80 shrink-0">
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
+            <div className="font-semibold mb-1">{club.clubName}</div>
+            <div className="text-sm text-gray-700 mb-3">{club.categoryName}</div>
+            <div className="space-y-2 text-sm text-gray-600">
+              {club.region && (
+                <div className="flex items-center gap-2">
+                  <MapPinIcon className="w-4 h-4" />
+                  <span>{club.region}</span>
+                </div>
+              )}
               <div className="flex items-center gap-2">
-                <span className="text-gray-600">{club.categoryName}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-600">멤버 {memberCount}명</span>
+                <UsersIcon className="w-4 h-4" />
+                <span>멤버 {memberCount}명</span>
               </div>
             </div>
             <button
-              className="w-full mt-4 py-3 rounded-lg font-medium text-white"
-              style={{ backgroundColor: '#4CA8FF' }}
+              className="w-full mt-4 py-2.5 rounded-lg bg-[#4CA8FF] text-white font-medium
+            hover:bg-sky-600 active:bg-sky-700"
             >
               가입하기
             </button>
           </div>
 
-          {/* 정보 일정 섹션 */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="font-bold mb-4">정보 일정</h3>
-            <div className="space-y-3">
-              {schedules.length > 0 ? (
-                schedules.map((schedule) => (
-                  <div
-                    key={schedule.scheduleId}
-                    className="flex items-start gap-3 p-3 bg-red-50 rounded-lg cursor-pointer hover:bg-red-100 transition"
-                  >
-                    <div className="w-12 h-12 bg-red-500 rounded flex flex-col items-center justify-center text-white flex-shrink-0">
-                      <span className="text-xs">
-                        {formatDate(schedule.scheduleStartDate).split('월')[0]}월
-                      </span>
-                      <span className="text-lg font-bold">
-                        {formatDate(schedule.scheduleStartDate).split(' ')[1].replace('일', '')}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-sm mb-1">{schedule.title}</h4>
-                      <div className="text-xs text-gray-600 space-y-1">
-                        <p>⏰ {formatTime(schedule.scheduleStartDate)}</p>
-                        <p>📍 {schedule.address}</p>
-                        <p>
-                          👥 {schedule.attendeeCount || 0}/{schedule.maxAttendees}명
-                        </p>
+          <div className="bg-white rounded-2xl border border-gray-200 p-5">
+            <div className="font-semibold mb-4">정보 일정</div>
+            {schedules.length === 0 ? (
+              <div className="text-sm text-gray-500 py-8 text-center">예정된 일정이 없습니다</div>
+            ) : (
+              <div className="space-y-3">
+                {schedules.map((s) => {
+                  const d = new Date(s.scheduleStartDate);
+                  const month = d.getMonth() + 1;
+                  const day = d.getDate();
+                  const hh = String(d.getHours()).padStart(2, '0');
+                  const mm = String(d.getMinutes()).padStart(2, '0');
+                  return (
+                    <div key={s.scheduleId} className="flex items-start gap-3 p-3 rounded-xl">
+                      <div className="w-12 h-12 rounded-lg bg-sky-500 text-white flex flex-col items-center justify-center shrink-0">
+                        <span className="text-[10px]">{month}월</span>
+                        <span className="text-lg leading-none font-bold">{day}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm truncate">{s.title}</div>
+                        <div className="mt-1 text-xs text-gray-600 space-y-0.5">
+                          <div className="flex items-center gap-1.5">
+                            <CalendarIcon className="w-4 h-4" /> {hh}:{mm}
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <MapPinIcon className="w-4 h-4" /> {s.address}
+                          </div>
+                          <div className="text-xs">
+                            👥 {s.attendeeCount || 0}/{s.maxAttendees}명
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-gray-500 text-center py-4">예정된 일정이 없습니다</p>
-              )}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        </div>
+        </aside>
       </div>
+
+      {/* ===== 모달 ===== */}
+      <ViewModal
+        open={isModalOpen}
+        onClose={closeModal}
+        title={modalType === 'admins' ? '운영진 소개' : '멤버 소개'}
+        width={500}
+        heightVh={60}
+      >
+        <div className="divide-y divide-gray-100">
+          {(modalType === 'admins' ? admins : members).map((m) => (
+            <div key={m.memberId} className="flex items-center justify-between gap-4 py-4 px-2">
+              {/* 왼쪽 프로필 */}
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="w-12 h-12 rounded-full overflow-hidden">
+                  <img
+                    src={m.fileLink || defaultProfile}
+                    alt={m.nickname || m.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1">
+                    <span className="font-semibold text-gray-900 truncate max-w-[160px]">
+                      {m.nickname || m.name}
+                    </span>
+                    {m.role === 'LEADER' && (
+                      <span className="text-xs bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded-md">
+                        모임장
+                      </span>
+                    )}
+                    {m.role === 'MANAGER' && (
+                      <span className="text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-md">
+                        운영진
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-500 truncate max-w-[400px]">
+                    {m.description || '아직 소개가 없습니다.'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ViewModal>
+      {/* ===== /모달 ===== */}
     </div>
   );
-};
-
-export default ClubDetailNew;
+}

@@ -449,7 +449,7 @@ export default function PostDetail() {
             <img
               src={getProfileSrc(post.profileUrl)}
               alt={post.authorNickname || '프로필'}
-              className="w-10 h-10 rounded-full object-cover bg-gray-100"
+              className="w-10 h-10 rounded-full object-cover bg-white"
             />
 
             <div>
@@ -547,7 +547,7 @@ export default function PostDetail() {
                 <img
                   src={getProfileSrc(comment.profileUrl)}
                   alt={comment.authorNickname || comment.authorName || '프로필'}
-                  className="w-8 h-8 rounded-full object-cover bg-gray-100 flex-shrink-0 mt-1"
+                  className="w-8 h-8 rounded-full object-cover bg-white flex-shrink-0 mt-1"
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
@@ -663,7 +663,7 @@ export default function PostDetail() {
                           <img
                             src={getProfileSrc(reply.profileUrl)}
                             alt={reply.authorNickname || reply.authorName || '프로필'}
-                            className="w-6 h-6 rounded-full object-cover bg-gray-100 flex-shrink-0 mt-1"
+                            className="w-6 h-6 rounded-full object-cover bg-white flex-shrink-0 mt-1"
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-1">

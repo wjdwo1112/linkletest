@@ -11,6 +11,7 @@ public class ClubMemberDto {
 	private Integer memberId;
 	private String name;
 	private String nickname;
+	private String description;
 	private String role;
 	private String status;
 	private String fileLink;

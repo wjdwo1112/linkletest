@@ -16,4 +16,14 @@ export const clubApi = {
   getClubDetail: async (clubId) => {
     return await get(`/clubs/${clubId}`);
   },
+
+  // 동호회 회원 수 조회
+  getClubMemberCount: async (clubId) => {
+    return await get(`/clubs/${clubId}/member-count`);
+  },
+
+  // 동호회 회원 목록 조회
+  getClubMembers: async (clubId) => {
+    return await get(`/clubs/${clubId}/members`);
+  },
 };

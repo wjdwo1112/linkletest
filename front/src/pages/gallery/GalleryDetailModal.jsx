@@ -140,7 +140,7 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
           {/* 동호회 정보 & 좋아요 & 메뉴 */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="w-11 h-11 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="relative w-11 h-11 rounded-full overflow-hidden bg-white ring-1 ring-transparent flex-shrink-0">
                 <img
                   src={gallery.clubProfileImage || defaultProfile}
                   alt={gallery.clubName}
@@ -231,7 +231,7 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
 
           {/* 작성자 & 날짜 정보 */}
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-            <div className="w-5 h-5 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+            <div className="relative w-11 h-11 rounded-full overflow-hidden bg-white ring-1 ring-transparent flex-shrink-0">
               <img
                 src={gallery.memberProfileImage || defaultProfile}
                 alt={gallery.nickname}
