@@ -3,7 +3,6 @@ package com.ggamakun.linkle.domain.post.dto;
 import lombok.Data;
 
 @Data
-
 public class PostDetail {
 	private Integer postId;
 	private Integer clubId;
@@ -20,7 +19,6 @@ public class PostDetail {
 	private Integer commentCount;
 	private String isPinned;
 	private String isDeleted;
-	
 	private String authorName;
 	private String authorNickname;
 	private Integer profileId;

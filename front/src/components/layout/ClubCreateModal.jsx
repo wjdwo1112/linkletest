@@ -1,4 +1,12 @@
 import { useState, useEffect } from 'react';
+import {
+  CameraIcon,
+  MapPinIcon,
+  HeartIcon,
+  DocumentTextIcon,
+  PencilSquareIcon,
+  UsersIcon,
+} from '@heroicons/react/24/outline';
 import { categoryApi } from '../../services/api';
 import axios from 'axios';
 
@@ -186,7 +194,7 @@ const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
           <div className="space-y-6">
             <div>
               <label className="flex items-center text-sm font-medium text-gray-900 mb-2">
-                <span className="mr-1">📷</span>
+                <CameraIcon className="w-5 h-5 mr-2 text-gray-600" />
                 프로필 사진
               </label>
               <div className="flex items-center gap-4">
@@ -194,7 +202,7 @@ const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
                   {imagePreview ? (
                     <img src={imagePreview} alt="미리보기" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-4xl text-gray-300">🖼</span>
+                    <CameraIcon className="w-12 h-12 text-gray-300" />
                   )}
                 </div>
                 <label className="px-4 py-2 bg-primary text-white text-sm rounded-lg cursor-pointer hover:brightness-110 transition-all">
@@ -213,7 +221,7 @@ const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
 
             <div>
               <label className="flex items-center text-sm font-medium text-gray-900 mb-2">
-                <span className="mr-1">📍</span>
+                <MapPinIcon className="w-5 h-5 mr-2 text-gray-600" />
                 지역 선택
               </label>
               <div className="relative">
@@ -242,7 +250,7 @@ const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
 
             <div>
               <label className="flex items-center text-sm font-medium text-gray-900 mb-2">
-                <span className="mr-1">💛</span>
+                <HeartIcon className="w-5 h-5 mr-2 text-gray-600" />
                 관심사
               </label>
               <div className="relative">
@@ -275,7 +283,7 @@ const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
 
             <div>
               <label className="flex items-center text-sm font-medium text-gray-900 mb-2">
-                <span className="mr-1">📋</span>
+                <DocumentTextIcon className="w-5 h-5 mr-2 text-gray-600" />
                 동호회 이름
               </label>
               <input
@@ -296,7 +304,7 @@ const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
 
             <div>
               <label className="flex items-center text-sm font-medium text-gray-900 mb-2">
-                <span className="mr-1">📝</span>
+                <PencilSquareIcon className="w-5 h-5 mr-2 text-gray-600" />
                 동호회 설명
               </label>
               <textarea
@@ -317,7 +325,7 @@ const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
 
             <div>
               <label className="flex items-center text-sm font-medium text-gray-900 mb-2">
-                <span className="mr-1">👥</span>
+                <UsersIcon className="w-5 h-5 mr-2 text-gray-600" />
                 모집 정원
               </label>
               <input

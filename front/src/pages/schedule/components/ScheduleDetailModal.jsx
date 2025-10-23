@@ -1,4 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
+import {
+  CalendarIcon,
+  ClockIcon,
+  MapPinIcon,
+  UsersIcon,
+  CheckIcon,
+  XMarkIcon,
+  QuestionMarkCircleIcon,
+} from '@heroicons/react/24/outline';
 import { scheduleApi } from '../../../services/api/scheduleApi';
 import ScheduleCancelModal from './ScheduleCancelModal';
 import AttendeeDetailModal from './AttendeeDetailModal';
@@ -92,11 +101,11 @@ const ScheduleDetailModal = ({ schedule, onClose, onSuccess }) => {
 
             <div className="space-y-2">
               <div className="flex items-center text-gray-700">
-                <span className="mr-2">📅</span>
+                <CalendarIcon className="w-5 h-5 mr-2" />
                 <span>{formatDate(detailData.scheduleStartDate)}</span>
               </div>
               <div className="flex items-center text-gray-700">
-                <span className="mr-2">🕐</span>
+                <ClockIcon className="w-5 h-5 mr-2" />
                 <span>
                   {formatTime(detailData.scheduleStartDate)} ~{' '}
                   {formatTime(detailData.scheduleEndDate)}
@@ -106,7 +115,7 @@ const ScheduleDetailModal = ({ schedule, onClose, onSuccess }) => {
 
             {detailData.address && (
               <div className="flex items-center text-gray-700">
-                <span className="mr-2">📍</span>
+                <MapPinIcon className="w-5 h-5 mr-2" />
                 <span>{detailData.address}</span>
                 {detailData.addressDetail && (
                   <span className="ml-1">({detailData.addressDetail})</span>
@@ -117,7 +126,7 @@ const ScheduleDetailModal = ({ schedule, onClose, onSuccess }) => {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center text-gray-900 font-semibold">
-                  <span className="mr-2">👥</span>
+                  <UsersIcon className="w-5 h-5 mr-2" />
                   <span>참석자</span>
                 </div>
                 <button
@@ -130,15 +139,15 @@ const ScheduleDetailModal = ({ schedule, onClose, onSuccess }) => {
 
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center">
-                  <span className="text-green-600 mr-1">✓</span>
+                  <CheckIcon className="w-4 h-4 text-green-600 mr-1" />
                   <span>참석 {attendCount}</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="text-red-600 mr-1">✗</span>
+                  <XMarkIcon className="w-4 h-4 text-red-600 mr-1" />
                   <span>불참 {absentCount}</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="text-gray-600 mr-1">?</span>
+                  <QuestionMarkCircleIcon className="w-4 h-4 text-gray-600 mr-1" />
                   <span>미정 {waitingCount}</span>
                 </div>
               </div>
@@ -149,21 +158,24 @@ const ScheduleDetailModal = ({ schedule, onClose, onSuccess }) => {
               <div className="flex gap-2">
                 <button
                   onClick={() => handleAttendanceChange('ATTEND')}
-                  className="flex-1 px-4 py-2 bg-white border border-green-300 text-green-700 rounded-lg hover:bg-green-50 transition-colors"
+                  className="flex-1 px-4 py-2 bg-white border border-green-300 text-green-700 rounded-lg hover:bg-green-50 transition-colors flex items-center justify-center gap-1"
                 >
-                  ✓ 참석
+                  <CheckIcon className="w-4 h-4" />
+                  참석
                 </button>
                 <button
                   onClick={() => handleAttendanceChange('ABSENT')}
-                  className="flex-1 px-4 py-2 bg-white border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors"
+                  className="flex-1 px-4 py-2 bg-white border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center gap-1"
                 >
-                  ✗ 불참
+                  <XMarkIcon className="w-4 h-4" />
+                  불참
                 </button>
                 <button
                   onClick={() => handleAttendanceChange('WAITING')}
-                  className="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
                 >
-                  ? 미정
+                  <QuestionMarkCircleIcon className="w-4 h-4" />
+                  미정
                 </button>
               </div>
             </div>

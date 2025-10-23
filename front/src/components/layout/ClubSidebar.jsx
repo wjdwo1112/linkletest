@@ -13,17 +13,26 @@ const ClubSidebar = () => {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
 
+  const fetchClubs = async () => {
+    try {
+      const data = await clubApi.getJoinedClubs();
+      setClubs(data || []);
+    } catch (error) {
+      console.error('동호회 목록 조회 실패:', error);
+    }
+  };
+
   useEffect(() => {
-    const fetchClubs = async () => {
-      try {
-        const data = await clubApi.getJoinedClubs();
-        setClubs(data || []);
-      } catch (error) {
-        console.error('동호회 목록 조회 실패:', error);
-      }
+    fetchClubs();
+  }, []);
+
+  useEffect(() => {
+    const handleClubUpdate = () => {
+      fetchClubs();
     };
 
-    fetchClubs();
+    window.addEventListener('clubUpdated', handleClubUpdate);
+    return () => window.removeEventListener('clubUpdated', handleClubUpdate);
   }, []);
 
   useEffect(() => {
@@ -53,8 +62,12 @@ const ClubSidebar = () => {
     { label: '공지사항', path: `/clubs/${clubId}/notice` },
     { label: '일정', path: `/clubs/${clubId}/schedule` },
     { label: '멤버', path: `/clubs/${clubId}/members` },
-    { label: '채팅', path: `/clubs/${clubId}/chat` },
+    // { label: '채팅', path: `/clubs/${clubId}/chat` },
   ];
+
+  const leaderMenuItems = [{ label: '동호회 관리', path: `/clubs/${clubId}/manage` }];
+
+  const isLeader = currentClub?.role === 'LEADER';
 
   const isActive = (path) => location.pathname.startsWith(path);
 
@@ -119,6 +132,28 @@ const ClubSidebar = () => {
               {item.label}
             </Link>
           ))}
+
+          {isLeader && (
+            <>
+              <div className="my-4 border-t border-gray-200"></div>
+              {leaderMenuItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`
+                    block px-4 py-3 mb-1 rounded-lg text-sm font-medium transition-all
+                    ${
+                      isActive(item.path)
+                        ? 'bg-primary text-white shadow-sm'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }
+                  `}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </>
+          )}
         </nav>
       </div>
     </aside>

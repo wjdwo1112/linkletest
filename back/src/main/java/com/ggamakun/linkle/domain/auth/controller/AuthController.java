@@ -25,11 +25,6 @@ import com.ggamakun.linkle.domain.auth.service.EmailService;
 import com.ggamakun.linkle.domain.member.entity.Member;
 import com.ggamakun.linkle.domain.member.service.MemberService;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -49,19 +44,6 @@ public class AuthController {
     private final EmailService emailService;
     
     @PostMapping("/login")
-    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200", 
-            description = "로그인 성공",
-            content = @Content(schema = @Schema(implementation = LoginResponseDto.class))
-        ),
-        @ApiResponse(
-            responseCode = "401", 
-            description = "인증 실패 - 이메일 또는 비밀번호가 올바르지 않습니다.",
-            content = @Content
-        )
-    })
     public ResponseEntity<LoginResponseDto> login(@RequestBody @Valid LoginRequestDto request,
     		HttpServletResponse response) {
     	log.info("로그인 요청: {}", request.getEmail());
@@ -91,7 +73,6 @@ public class AuthController {
     }
     
     @PostMapping("/logout")
-    @Operation(summary = "로그아웃", description = "쿠키를 삭제하여 로그아웃합니다.")
     public ResponseEntity<Void> logout(HttpServletResponse response) {
         // Access Token 쿠키 삭제
         Cookie accessTokenCookie = new Cookie("accessToken", null);
@@ -113,19 +94,6 @@ public class AuthController {
     }
     
     @PostMapping("/register/step1")
-    @Operation(summary = "회원가입 1단계", description = "이메일, 비밀번호, 이름을 등록합니다.")
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "201",
-            description = "회원가입 1단계 완료",
-            content = @Content(schema = @Schema(implementation = RegisterResponseDto.class))
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            description = "잘못된 요청 - 이메일 중복 또는 유효성 검사 실패",
-            content = @Content
-        )
-    })
     public ResponseEntity<RegisterResponseDto> registerStep1(@RequestBody @Valid RegisterStep1RequestDto request) {
         log.info("회원가입 1단계 요청: {}", request.getEmail());
         
@@ -147,19 +115,6 @@ public class AuthController {
     }
     
     @PostMapping("/register/step2")
-    @Operation(summary = "회원가입 2단계", description = "닉네임, 생년월일, 성별, 주소를 등록합니다.")
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "회원가입 2단계 완료",
-            content = @Content(schema = @Schema(implementation = RegisterResponseDto.class))
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            description = "잘못된 요청 - 닉네임 중복 또는 유효성 검사 실패",
-            content = @Content
-        )
-    })
     public ResponseEntity<RegisterResponseDto> registerStep2(@RequestBody @Valid RegisterStep2RequestDto request) {
         log.info("회원가입 2단계 요청 - Member ID: {}", request.getMemberId());
         
@@ -188,19 +143,6 @@ public class AuthController {
     }
     
     @PostMapping("/register/step3")
-    @Operation(summary = "회원가입 3단계", description = "관심사를 등록합니다.")
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "회원가입 3단계 완료",
-            content = @Content(schema = @Schema(implementation = RegisterResponseDto.class))
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            description = "잘못된 요청 - 유효성 검사 실패",
-            content = @Content
-        )
-    })
     public ResponseEntity<RegisterResponseDto> registerStep3(@RequestBody @Valid RegisterStep3RequestDto request) {
         log.info("회원가입 3단계 요청 - Member ID: {}", request.getMemberId());
         
@@ -229,19 +171,6 @@ public class AuthController {
     }
     
     @PostMapping("/find-id")
-    @Operation(summary = "아이디 찾기", description = "이메일로 가입 여부를 확인합니다.")
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200", 
-            description = "조회 성공",
-            content = @Content(schema = @Schema(implementation = FindIdResponseDto.class))
-        ),
-        @ApiResponse(
-            responseCode = "400", 
-            description = "등록된 이메일을 찾을 수 없습니다.",
-            content = @Content
-        )
-    })
     public ResponseEntity<FindIdResponseDto> findId(@RequestBody @Valid FindIdRequestDto request) {
         log.info("아이디 찾기 요청: {}", request.getEmail());
         
@@ -255,18 +184,6 @@ public class AuthController {
     }
     
     @PostMapping("/forgot-password")
-    @Operation(summary = "비밀번호 찾기", description = "이메일로 비밀번호 재설정 링크를 전송합니다.")
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200", 
-            description = "재설정 이메일 전송 성공",
-            content = @Content(schema = @Schema(implementation = PasswordResponseDto.class))
-        ),
-        @ApiResponse(
-            responseCode = "400", 
-            description = "요청 실패"
-        )
-    })
     public ResponseEntity<PasswordResponseDto> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequestDto request) {
         log.info("비밀번호 찾기 요청: {}", request.getEmail());
@@ -281,18 +198,6 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    @Operation(summary = "비밀번호 재설정", description = "새로운 비밀번호로 재설정합니다.")
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200", 
-            description = "비밀번호 재설정 성공",
-            content = @Content(schema = @Schema(implementation = PasswordResponseDto.class))
-        ),
-        @ApiResponse(
-            responseCode = "400", 
-            description = "재설정 실패"
-        )
-    })
     public ResponseEntity<PasswordResponseDto> resetPassword(
             @Valid @RequestBody ResetPasswordRequestDto request) {
         log.info("비밀번호 재설정 요청");

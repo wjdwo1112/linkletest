@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import { CalendarIcon, ClockIcon, MapPinIcon, UsersIcon } from '@heroicons/react/24/outline';
 import { scheduleApi } from '../../services/api/scheduleApi';
 import ScheduleCreateModal from '../schedule/components/ScheduleCreateModal';
 import ScheduleDetailModal from '../schedule/components/ScheduleDetailModal';
@@ -189,20 +190,24 @@ const Schedule = () => {
               >
                 <h3 className="font-semibold text-gray-900 mb-2">{schedule.title}</h3>
                 <div className="flex items-center text-sm text-gray-600 mb-1">
-                  <span className="mr-4">📅 {formatDate(schedule.scheduleStartDate)}</span>
+                  <CalendarIcon className="w-4 h-4 mr-2" />
+                  <span>{formatDate(schedule.scheduleStartDate)}</span>
                 </div>
                 <div className="flex items-center text-sm text-gray-600 mb-1">
-                  <span className="mr-4">
-                    🕐 {formatDateTime(schedule.scheduleStartDate, schedule.scheduleEndDate)}
+                  <ClockIcon className="w-4 h-4 mr-2" />
+                  <span>
+                    {formatDateTime(schedule.scheduleStartDate, schedule.scheduleEndDate)}
                   </span>
                 </div>
                 {schedule.address && (
                   <div className="flex items-center text-sm text-gray-600 mb-1">
-                    <span>📍 {schedule.address}</span>
+                    <MapPinIcon className="w-4 h-4 mr-2" />
+                    <span>{schedule.address}</span>
                   </div>
                 )}
                 <div className="flex items-center text-sm text-gray-600">
-                  <span>👥 참석자 {schedule.attendeeCount}명</span>
+                  <UsersIcon className="w-4 h-4 mr-2" />
+                  <span>참석자 {schedule.attendeeCount}명</span>
                 </div>
               </div>
             ))}

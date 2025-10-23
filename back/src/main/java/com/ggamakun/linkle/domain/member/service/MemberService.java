@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MemberService {
+public class MemberService implements IMemberService {
 
 	private final IMemberRepository memberRepository;
 	private final ICategoryRepository categoryRepository;

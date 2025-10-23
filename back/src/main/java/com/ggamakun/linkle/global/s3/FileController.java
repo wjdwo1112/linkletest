@@ -18,9 +18,7 @@ import com.ggamakun.linkle.domain.file.entity.FileStorage;
 import com.ggamakun.linkle.domain.file.service.IFileStorageService;
 import com.ggamakun.linkle.global.security.CustomUserDetails;
 
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,15 +34,9 @@ public class FileController {
     private final IFileStorageService fileStorageService;
 
     @PostMapping("/upload")
-    @Operation(
-            summary = "파일 업로드", 
-            description = "S3에 파일을 업로드하고 DB에 파일 정보를 저장합니다. fileId를 반환합니다.",
-            security = @SecurityRequirement(name = "JWT")
-        )
     public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file,
     										 @Parameter(hidden = true)@AuthenticationPrincipal CustomUserDetails userDetails) {
         try {
-        	
         	
         	//사용자 ID 가져오기
         	Integer uploaderId = userDetails != null ? userDetails.getMember().getMemberId() : null;
@@ -83,7 +75,6 @@ public class FileController {
     }
     
     @GetMapping("/{fileid}")
-    @Operation(summary = "파일 정보 조회", description = "파일 ID로 파일 정보를 조회합니다.")
     public ResponseEntity<FileStorage> getFile(@PathVariable("fileid") Integer fileId){
     	FileStorage file = fileStorageService.getFileById(fileId);
     	if(file == null) {
@@ -93,11 +84,6 @@ public class FileController {
     }
 
     @DeleteMapping("/{fileid}")
-    @Operation(
-            summary = "파일 삭제", 
-            description = "S3에서 파일을 삭제하고 DB에서도 소프트 삭제합니다.",
-            security = @SecurityRequirement(name = "JWT")
-        )
     public ResponseEntity<String> deleteFile(@PathVariable("fileid") Integer fileId) {
     	
         try {

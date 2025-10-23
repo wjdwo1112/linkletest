@@ -1,3 +1,5 @@
+import { ClockIcon, MapPinIcon, UsersIcon } from '@heroicons/react/24/outline';
+
 const ScheduleListModal = ({ date, schedules, onClose, onScheduleClick, onCreateClick }) => {
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -36,18 +38,20 @@ const ScheduleListModal = ({ date, schedules, onClose, onScheduleClick, onCreate
             >
               <h3 className="font-semibold text-gray-900 mb-2">{schedule.title}</h3>
               <div className="flex items-center text-sm text-gray-600 mb-1">
+                <ClockIcon className="w-4 h-4 mr-2" />
                 <span className="mr-4">
-                  🕐 {formatTime(schedule.scheduleStartDate)} ~{' '}
-                  {formatTime(schedule.scheduleEndDate)}
+                  {formatTime(schedule.scheduleStartDate)} ~ {formatTime(schedule.scheduleEndDate)}
                 </span>
               </div>
               {schedule.address && (
                 <div className="flex items-center text-sm text-gray-600 mb-1">
-                  <span>📍 {schedule.address}</span>
+                  <MapPinIcon className="w-4 h-4 mr-2" />
+                  <span>{schedule.address}</span>
                 </div>
               )}
               <div className="flex items-center text-sm text-gray-600">
-                <span>👥 참석자 {schedule.attendeeCount}명</span>
+                <UsersIcon className="w-4 h-4 mr-2" />
+                <span>참석자 {schedule.attendeeCount}명</span>
               </div>
             </div>
           ))}

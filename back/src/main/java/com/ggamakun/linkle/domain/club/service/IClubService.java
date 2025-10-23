@@ -6,6 +6,7 @@ import com.ggamakun.linkle.domain.club.dto.ClubDetailDto;
 import com.ggamakun.linkle.domain.club.dto.ClubMemberDto;
 import com.ggamakun.linkle.domain.club.dto.ClubSummary;
 import com.ggamakun.linkle.domain.club.dto.CreateClubRequestDto;
+import com.ggamakun.linkle.domain.club.dto.UpdateClubRequestDto;
 import com.ggamakun.linkle.domain.club.entity.Club;
 
 public interface IClubService {
@@ -21,6 +22,12 @@ public interface IClubService {
 	//동호회 상세 조회
 	ClubDetailDto getClubDetail(Integer clubId);
 
+	// 동호회 수정
+	void updateClub(Integer clubId, UpdateClubRequestDto request, Integer memberId);
+
+	// 동호회 삭제
+	void deleteClub(Integer clubId, Integer memberId);
+	
 	//동호회 회원 목록 조회
 	List<ClubMemberDto> getClubMembers(Integer clubId);
 

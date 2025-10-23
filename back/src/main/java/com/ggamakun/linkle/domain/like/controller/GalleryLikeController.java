@@ -1,7 +1,5 @@
 package com.ggamakun.linkle.domain.like.controller;
 
-
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,11 +12,7 @@ import com.ggamakun.linkle.domain.like.dto.LikeResponseDto;
 import com.ggamakun.linkle.domain.like.service.ILikeService;
 import com.ggamakun.linkle.global.security.CustomUserDetails;
 
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,38 +24,16 @@ public class GalleryLikeController {
 private final ILikeService likeService;
 	
 	@PostMapping("{galleryid}/likes")
-	@Operation(
-			summary = "좋아요 토글", 
-			description = "갤러리에 좋아요를 추가하거나 취소합니다. (로그인 필수)",
-			security = @SecurityRequirement(name = "JWT")
-		)
-		@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "좋아요 토글 성공"),
-			@ApiResponse(responseCode = "401", description = "인증 실패"),
-			@ApiResponse(responseCode = "404", description = "갤러리를 찾을 수 없음")
-		})
 	public ResponseEntity<LikeResponseDto> galleryLike(@PathVariable("galleryid") Integer galleryId, @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails){
 		Integer memberId = userDetails.getMember().getMemberId();
 		log.info("좋아요 토글 요청 - 갤러리 ID:{}, 회원 ID: {}", galleryId, memberId);
 		return ResponseEntity.ok(likeService.toggleGalleryLike(galleryId,memberId));
 	}
 	
-	
-	
 	@GetMapping("{galleryid}/likes/status")
-	@Operation(
-			summary = "좋아요 상태 조회", 
-			description = "현재 사용자의 갤러리 좋아요 상태를 조회합니다. (로그인 필수)",
-			security = @SecurityRequirement(name = "JWT")
-		)
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "조회 성공"),
-			@ApiResponse(responseCode = "401", description = "인증 실패"),
-			@ApiResponse(responseCode = "404", description = "갤러리를 찾을 수 없음")
-		})
 	public LikeResponseDto galleryStatus(@PathVariable("galleryid") Integer galleryId, @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails) {
 		Integer memberId = userDetails.getMember().getMemberId();
-	return likeService.getGalleryStatus(galleryId, memberId);
-	    }
+		return likeService.getGalleryStatus(galleryId, memberId);
+	}
 
 }

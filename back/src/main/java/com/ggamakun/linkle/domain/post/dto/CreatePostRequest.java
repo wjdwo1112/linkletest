@@ -12,5 +12,4 @@ public class CreatePostRequest {
 	private String postType;
 	private String scope;
 	private Integer createdBy;
-
 }

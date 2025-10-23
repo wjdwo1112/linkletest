@@ -15,11 +15,9 @@ public class PostSummary {
 	private Integer likeCount;
 	private Integer commentCount;
 	private Date createdAt;
-	
 	private Integer createdBy;
 	private String authorName;
 	private String authorNickname;
-	
 	private String categoryName;
 	private String parentCategoryName;
 }

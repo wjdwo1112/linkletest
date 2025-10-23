@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import useUserStore from '../../store/useUserStore';
-import { authApi, clubApi, fileApi } from '../../services/api';
+// import { authApi, clubApi, fileApi } from '../../services/api';
+import { authApi, clubApi } from '../../services/api';
 import logo from '../../assets/images/logo.png';
 
 export default function Login() {
@@ -69,11 +70,11 @@ export default function Login() {
       const data = await authApi.login(formData.email, formData.password);
 
       // fileId가 있으면 프로필 이미지 URL 조회
-      let profileImageUrl = '';
+      //let profileImageUrl = '';
       if (data.fileId) {
         try {
-          const fileData = await fileApi.getFile(data.fileId);
-          profileImageUrl = fileData.fileLink || '';
+          //const fileData = await fileApi.getFile(data.fileId);
+          //profileImageUrl = fileData.fileLink || '';
         } catch (error) {
           console.error('프로필 이미지 조회 실패:', error);
         }

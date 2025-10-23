@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CategoryService {
+public class CategoryService implements ICategoryService {
     
     private final ICategoryRepository categoryRepository;
     

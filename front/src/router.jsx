@@ -22,12 +22,14 @@ import Community from '@pages/community/Community';
 import CommunityDetail from './pages/community/CommunityDetail';
 import PostDetail from './pages/community/PostDetail';
 import PostWrite from './pages/community/PostWrite';
-import DashBoard from './pages/clubdashboard/Dashboard';
+import DashBoard from './pages/club/clubdashboard/Dashboard';
 import Schedule from './pages/schedule/Schedule';
+import ClubMembers from './pages/club/clubmember/ClubMembers';
 import Notice from './pages/notice/Notice';
 import NoticeDetail from './pages/notice/NoticeDetail';
 import NoticeWrite from './pages/notice/NoticeWrite';
 import NoticeEdit from './pages/notice/NoticeEdit';
+import ClubManagement from './pages/club/ClubManagement';
 import MyPageProfile from './pages/mypage/MyPageProfile';
 import ProfileEdit from './pages/mypage/ProfileEdit';
 import ChangePassword from './pages/mypage/ChangePassword';
@@ -131,6 +133,22 @@ const router = createBrowserRouter([
     element: (
       <SidebarLayout sidebar={<ClubSideBar />}>
         <Schedule />
+      </SidebarLayout>
+    ),
+  },
+  {
+    path: '/clubs/:clubId/members',
+    element: (
+      <SidebarLayout sidebar={<ClubSideBar />}>
+        <ClubMembers />
+      </SidebarLayout>
+    ),
+  },
+  {
+    path: 'clubs/:clubId/manage',
+    element: (
+      <SidebarLayout sidebar={<ClubSideBar />}>
+        <ClubManagement />
       </SidebarLayout>
     ),
   },

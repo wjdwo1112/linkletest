@@ -14,7 +14,6 @@ public class LoginResponseDto {
     private String email;
     private String name;
     private String nickname;
-    //fileId 추가
     private Integer fileId;
     private String accessToken;
     private String refreshToken;

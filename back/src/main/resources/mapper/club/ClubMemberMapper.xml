@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ggamakun.linkle.domain.club.repository.IClubMemberRepository">
+
+    <!-- 동호회 회원 목록 조회 (권한별 정렬: 동호회장 > 운영진 > 일반회원, 가입일순) -->
+    <select id="findMembersByClubId" resultType="com.ggamakun.linkle.domain.club.dto.ClubMemberDto">
+        SELECT 
+            cm.club_id AS clubId,
+            cm.member_id AS memberId,
+            m.nickname AS nickname,
+            f.file_link AS fileLink,
+            cm.role AS role,
+            cm.status AS status,
+            cm.joined_at AS joinedAt
+        FROM CLUB_MEMBER cm
+        JOIN MEMBER m ON cm.member_id = m.member_id
+        LEFT JOIN FILE_STORAGE f ON m.file_id = f.file_id AND f.is_deleted = 'N'
+        WHERE cm.club_id = #{clubId}
+            AND cm.status = 'APPROVED'
+            AND cm.is_deleted = 'N'
+        ORDER BY 
+            CASE cm.role
+                WHEN 'LEADER' THEN 1
+                WHEN 'MANAGER' THEN 2
+                WHEN 'MEMBER' THEN 3
+            END,
+            cm.joined_at ASC
+    </select>
+
+    <!-- 가입 신청 대기 목록 조회 -->
+    <select id="findWaitingMembersByClubId" resultType="com.ggamakun.linkle.domain.club.dto.ClubMemberDto">
+        SELECT 
+            cm.club_id AS clubId,
+            cm.member_id AS memberId,
+            m.nickname AS nickname,
+            f.file_link AS fileLink,
+            cm.role AS role,
+            cm.status AS status,
+            cm.created_at AS joinedAt
+        FROM CLUB_MEMBER cm
+        JOIN MEMBER m ON cm.member_id = m.member_id
+        LEFT JOIN FILE_STORAGE f ON m.file_id = f.file_id AND f.is_deleted = 'N'
+        WHERE cm.club_id = #{clubId}
+            AND cm.status = 'WAITING'
+            AND cm.is_deleted = 'N'
+        ORDER BY cm.created_at ASC
+    </select>
+
+    <!-- 회원 권한 변경 -->
+    <update id="updateMemberRole">
+        UPDATE CLUB_MEMBER
+        SET role = #{role},
+            updated_by = #{updatedBy},
+            updated_at = SYSDATE
+        WHERE club_id = #{clubId}
+            AND member_id = #{memberId}
+            AND status = 'APPROVED'
+            AND is_deleted = 'N'
+    </update>
+
+    <!-- 회원 강제 탈퇴 (재가입 가능) -->
+    <update id="expelMember">
+        UPDATE CLUB_MEMBER
+        SET status = 'EXPELLED',
+            rejection_reason = #{reason},
+            is_deleted = 'Y',
+            updated_by = #{updatedBy},
+            updated_at = SYSDATE
+        WHERE club_id = #{clubId}
+            AND member_id = #{memberId}
+            AND is_deleted = 'N'
+    </update>
+
+    <!-- 회원 강제 탈퇴 (재가입 차단) -->
+    <update id="blockMember">
+        UPDATE CLUB_MEMBER
+        SET status = 'BLOCKED',
+            rejection_reason = #{reason},
+            is_deleted = 'Y',
+            updated_by = #{updatedBy},
+            updated_at = SYSDATE
+        WHERE club_id = #{clubId}
+            AND member_id = #{memberId}
+            AND is_deleted = 'N'
+    </update>
+
+    <!-- 가입 신청 승인 -->
+    <update id="approveMember">
+        UPDATE CLUB_MEMBER
+        SET status = 'APPROVED',
+            joined_at = SYSDATE,
+            updated_by = #{updatedBy},
+            updated_at = SYSDATE
+        WHERE club_id = #{clubId}
+            AND member_id = #{memberId}
+            AND status = 'WAITING'
+            AND is_deleted = 'N'
+    </update>
+
+    <!-- 가입 신청 거절 -->
+    <update id="rejectMember">
+        UPDATE CLUB_MEMBER
+        SET status = 'REJECTED',
+            rejection_reason = #{rejectionReason},
+            is_deleted = 'Y',
+            updated_by = #{updatedBy},
+            updated_at = SYSDATE
+        WHERE club_id = #{clubId}
+            AND member_id = #{memberId}
+            AND status = 'WAITING'
+            AND is_deleted = 'N'
+    </update>
+
+    <!-- 재가입 차단 여부 확인 -->
+    <select id="checkMemberStatus" resultType="string">
+        SELECT status
+        FROM CLUB_MEMBER
+        WHERE club_id = #{clubId}
+            AND member_id = #{memberId}
+    </select>
+
+</mapper>

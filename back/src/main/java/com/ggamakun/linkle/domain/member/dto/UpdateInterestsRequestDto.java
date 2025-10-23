@@ -2,7 +2,6 @@ package com.ggamakun.linkle.domain.member.dto;
 
 import java.util.List;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -12,11 +11,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "관심사 수정 요청 DTO")
 public class UpdateInterestsRequestDto {
     
     @NotEmpty(message = "관심사를 최소 3개 선택해주세요.")
     @Size(min = 3, max = 5, message = "관심사는 최소 3개, 최대 5개까지 선택 가능합니다.")
-    @Schema(description = "관심사 카테고리 ID 목록", example = "[14, 15, 20]")
     private List<Integer> interests;
 }

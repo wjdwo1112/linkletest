@@ -11,6 +11,7 @@ public class ClubDetailDto {
 	private String description;
 	private Integer categoryId;
 	private String categoryName;
-	private String openedAt;
 	private String region;
+	private Integer maxMembers;
+	private String openedAt;
 }
