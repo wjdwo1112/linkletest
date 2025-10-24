@@ -48,4 +48,18 @@ public interface IClubMemberRepository {
     // 재가입 차단 여부 확인
     String checkMemberStatus(@Param("clubId") Integer clubId, 
                            @Param("memberId") Integer memberId);
+
+	List<Integer> findAdminIdsByClubId(Integer clubId);
+
+	int reactivateToWaiting(@Param("clubId")Integer clubId, @Param("applicantId")Integer applicantId);
+
+	int insertWaitingMember(@Param("clubId") Integer clubId, @Param("applicantId") Integer applicantId);
+    
+    
+    
+    
+    
+    
+    
+    
 }

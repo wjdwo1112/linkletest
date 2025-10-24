@@ -86,7 +86,7 @@ public class ClubController {
 		return ResponseEntity.ok().build();
 	}
 	
-	@GetMapping("/clubs/{clubid}/members")
+	@GetMapping("/clubs/{clubid}/members/summary")
 	public ResponseEntity<List<ClubMemberDto>> getClubMembers(@PathVariable("clubid") Integer clubId){
 		List<ClubMemberDto> members = clubService.getClubMembers(clubId);
 		return ResponseEntity.ok(members);

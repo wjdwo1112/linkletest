@@ -15,6 +15,7 @@ import {
 } from '@heroicons/react/24/outline';
 import defaultProfile from '../../assets/images/default-profile.png';
 import ViewModal from '../../components/common/ViewModal';
+import JoinSuccessModal from '../../components/common/JoinSuccessModal';
 
 export default function ClubDetailNew() {
   const { clubId } = useParams();
@@ -23,6 +24,37 @@ export default function ClubDetailNew() {
   const [members, setMembers] = useState([]);
   const [memberCount, setMemberCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [joinSubmitting, setJoinSubmitting] = useState(false);
+  const [resultModal, setResultModal] = useState({
+    open: false,
+    variant: 'success',
+    title: '',
+    desc: '',
+  });
+
+  const handleRequestJoin = async () => {
+    if (joinSubmitting) return;
+    try {
+      setJoinSubmitting(true);
+      await clubApi.requestJoin(clubId);
+      setResultModal({
+        open: true,
+        variant: 'success',
+        title: '신청이 완료되었습니다',
+        desc: `'${club?.clubName ?? '해당 동호회'}' 모임장이 확인하면 알림으로 알려드릴게요.`,
+      });
+    } catch (e) {
+      const msg = e?.response?.data?.message || '가입 신청 중 오류가 발생했습니다.';
+      setResultModal({
+        open: true,
+        variant: 'error',
+        title: '신청에 실패했습니다',
+        desc: msg,
+      });
+    } finally {
+      setJoinSubmitting(false);
+    }
+  };
 
   // modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -232,10 +264,13 @@ export default function ClubDetailNew() {
               </div>
             </div>
             <button
-              className="w-full mt-4 py-2.5 rounded-lg bg-[#4CA8FF] text-white font-medium
-            hover:bg-sky-600 active:bg-sky-700"
+              onClick={handleRequestJoin}
+              disabled={joinSubmitting}
+              className={`w-full mt-4 py-2.5 rounded-lg text-white font-medium
+                        ${joinSubmitting ? 'bg-sky-300' : 'bg-[#4CA8FF] hover:bg-sky-600 active:bg-sky-700'}
+                    `}
             >
-              가입하기
+              {joinSubmitting ? '신청 중' : '가입하기'}
             </button>
           </div>
 
@@ -325,6 +360,15 @@ export default function ClubDetailNew() {
           ))}
         </div>
       </ViewModal>
+      {/*  가입 신청 성공 모달 */}
+      <JoinSuccessModal
+        open={resultModal.open}
+        onClose={() => setResultModal((s) => ({ ...s, open: false }))}
+        variant={resultModal.variant}
+        title={resultModal.title}
+        desc={resultModal.desc}
+      />
+
       {/* ===== /모달 ===== */}
     </div>
   );

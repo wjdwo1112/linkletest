@@ -95,4 +95,19 @@ public class ClubMemberController {
                                       request.getRejectionReason(), currentMemberId);
         return ResponseEntity.ok().build();
     }
+    
+    
+    
+    
+    
+    @PostMapping("/clubs/{clubId}/members/join")
+    public ResponseEntity<Void> requestJoin(
+            @PathVariable("clubId") Integer clubId,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Integer applicantId = userDetails.getMember().getMemberId();
+        clubMemberService.requestJoin(clubId, applicantId);
+        return ResponseEntity.ok().build();
+    }
+    
 }

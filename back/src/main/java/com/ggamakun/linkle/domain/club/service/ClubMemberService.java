@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ggamakun.linkle.domain.club.dto.ClubMemberDto;
 import com.ggamakun.linkle.domain.club.repository.IClubMemberRepository;
 import com.ggamakun.linkle.domain.club.repository.IClubRepository;
+import com.ggamakun.linkle.domain.notification.dto.CreateNotificationRequestDto;
+import com.ggamakun.linkle.domain.notification.service.NotificationService;
 import com.ggamakun.linkle.global.exception.BadRequestException;
 import com.ggamakun.linkle.global.exception.ForbiddenException;
 
@@ -21,7 +23,7 @@ public class ClubMemberService implements IClubMemberService {
 
     private final IClubMemberRepository clubMemberRepository;
     private final IClubRepository clubRepository;
-
+    private final NotificationService notificationService;
     @Override
     public List<ClubMemberDto> getClubMembers(Integer clubId, Integer currentMemberId) {
         // 동호회 회원인지 확인
@@ -141,5 +143,58 @@ public class ClubMemberService implements IClubMemberService {
         }
 
         log.info("가입 거절 완료 - clubId: {}, targetMemberId: {}", clubId, targetMemberId);
+    }
+    
+    
+    
+    
+    
+    
+    @Override
+    @Transactional
+    public void requestJoin(Integer clubId, Integer applicantId) {
+        // 1) 이미 가입/대기/차단 상태 체크
+        String status = clubMemberRepository.checkMemberStatus(clubId, applicantId); // null 가능
+
+        if ("APPROVED".equals(status)) {
+            throw new BadRequestException("이미 가입된 회원입니다.");
+        }
+        if ("WAITING".equals(status)) {
+            throw new BadRequestException("이미 가입 승인 대기 중입니다.");
+        }
+        if ("BLOCKED".equals(status)) {
+            throw new ForbiddenException("재가입이 차단된 회원입니다.");
+        }
+
+        int affected = 0;
+
+        if (status == null) {
+            // 2-a) 신규 신청
+            affected = clubMemberRepository.insertWaitingMember(clubId, applicantId);
+        } else {
+            // 2-b) 기존 레코드가 REJECTED/EXPELLED 등으로 is_deleted='Y'인 경우 재신청 처리
+            affected = clubMemberRepository.reactivateToWaiting(clubId, applicantId);
+        }
+
+        if (affected == 0) {
+            throw new BadRequestException("가입 신청 처리에 실패했습니다.");
+        }
+
+        // 3) 운영진(LEADER/MANAGER) 조회
+        List<Integer> adminIds = clubMemberRepository.findAdminIdsByClubId(clubId);
+        if (adminIds == null || adminIds.isEmpty()) return;
+
+        // 4) 운영진들에게 알림 발송
+        for (Integer receiverId : adminIds) {
+            notificationService.sendNotification(
+                CreateNotificationRequestDto.builder()
+                    .receiverId(receiverId)
+                    .title("가입신청이 도착했어요")
+                    .content("새로운 회원의 가입신청이 있습니다. 승인/거절을 진행해주세요.")
+                    .linkUrl("/club/" + clubId + "/manage/requests") // 네 프론트 경로에 맞게
+                    .createdBy(applicantId)
+                    .build()
+            );
+        }
     }
 }

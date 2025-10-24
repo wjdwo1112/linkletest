@@ -34,6 +34,10 @@ export const clubApi = {
 
   // 동호회 회원 목록 조회
   getClubMembers: async (clubId) => {
-    return await get(`/clubs/${clubId}/members`);
+    return await get(`/clubs/${clubId}/members/summary`);
+  },
+  // 가입 신청
+  requestJoin: async (clubId) => {
+    return await post(`/clubs/${clubId}/members/join`);
   },
 };

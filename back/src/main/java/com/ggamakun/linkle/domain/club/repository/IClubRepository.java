@@ -47,4 +47,6 @@ public interface IClubRepository {
 
 	//동호회 회원 목록 조회
 	List<ClubMemberDto> findMembersByClubId(Integer clubId);
+	
+	
 }

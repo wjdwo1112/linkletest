@@ -2,6 +2,8 @@ package com.ggamakun.linkle.domain.club.service;
 
 import java.util.List;
 
+
+
 import com.ggamakun.linkle.domain.club.dto.ClubMemberDto;
 
 public interface IClubMemberService {
@@ -23,4 +25,10 @@ public interface IClubMemberService {
 
     // 가입 신청 거절
     void rejectMember(Integer clubId, Integer targetMemberId, String rejectionReason, Integer currentMemberId);
+
+	void requestJoin(Integer clubId, Integer applicantId);
+    
+    
+
+	
 }

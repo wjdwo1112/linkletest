@@ -118,5 +118,45 @@
         WHERE club_id = #{clubId}
             AND member_id = #{memberId}
     </select>
+    
+    
+    
+    <!-- 운영진(모임장/운영진) ID 조회: APPROVED 만 -->
+<select id="findAdminIdsByClubId" resultType="int">
+  SELECT member_id
+  FROM CLUB_MEMBER
+  WHERE club_id = #{clubId}
+    AND status = 'APPROVED'
+    AND role IN ('LEADER','MANAGER')
+    AND is_deleted = 'N'
+</select>
+
+<!-- 신규 신청: WAITING으로 인서트 -->
+<insert id="insertWaitingMember">
+  INSERT INTO CLUB_MEMBER (
+      club_id, member_id, role, status,
+      created_by, created_at, is_deleted
+  ) VALUES (
+      #{clubId}, #{memberId}, 'MEMBER', 'WAITING',
+      #{memberId}, SYSDATE, 'N'
+  )
+</insert>
+
+<!-- 기존 레코드 재활성화: REJECTED/EXPELLED 등 과거 이력에서 다시 WAITING으로 -->
+<update id="reactivateToWaiting">
+  UPDATE CLUB_MEMBER
+  SET status = 'WAITING',
+      role = NVL(role, 'MEMBER'),
+      is_deleted = 'N',
+      rejection_reason = NULL,
+      updated_by = #{memberId},
+      updated_at = SYSDATE
+  WHERE club_id = #{clubId}
+    AND member_id = #{memberId}
+</update>
+    
+  
+
+
 
 </mapper>
