@@ -26,7 +26,9 @@ public interface IClubMemberService {
     // 가입 신청 거절
     void rejectMember(Integer clubId, Integer targetMemberId, String rejectionReason, Integer currentMemberId);
 
-	void requestJoin(Integer clubId, Integer applicantId);
+	void requestJoin(Integer clubId, Integer memberId);
+
+	String getMemberStatus(Integer clubId, Integer memberId);
     
     
 

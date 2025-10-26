@@ -1,4 +1,3 @@
-// src/pages/club/ClubDetailNew.jsx
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { clubApi } from '../../services/api/clubApi';
@@ -16,7 +15,7 @@ import {
 import defaultProfile from '../../assets/images/default-profile.png';
 import ViewModal from '../../components/common/ViewModal';
 import JoinSuccessModal from '../../components/common/JoinSuccessModal';
-
+import defaultClubProfile from '../../assets/images/default-club-profile.png';
 export default function ClubDetailNew() {
   const { clubId } = useParams();
   const [club, setClub] = useState(null);
@@ -25,31 +24,35 @@ export default function ClubDetailNew() {
   const [memberCount, setMemberCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [joinSubmitting, setJoinSubmitting] = useState(false);
+  const [myStatus, setMyStatus] = useState(null); // null, 'APPROVED', 'WAITING', 'BLOCKED'
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [resultModal, setResultModal] = useState({
     open: false,
     variant: 'success',
-    title: '',
-    desc: '',
+    message: '',
   });
 
   const handleRequestJoin = async () => {
-    if (joinSubmitting) return;
+    if (joinSubmitting || myStatus) return;
+
     try {
       setJoinSubmitting(true);
       await clubApi.requestJoin(clubId);
+
+      // 성공 시 상태 업데이트
+      setMyStatus('WAITING');
+
       setResultModal({
         open: true,
         variant: 'success',
-        title: '신청이 완료되었습니다',
-        desc: `'${club?.clubName ?? '해당 동호회'}' 모임장이 확인하면 알림으로 알려드릴게요.`,
+        message: '신청이 완료되었습니다',
       });
     } catch (e) {
       const msg = e?.response?.data?.message || '가입 신청 중 오류가 발생했습니다.';
       setResultModal({
         open: true,
         variant: 'error',
-        title: '신청에 실패했습니다',
-        desc: msg,
+        message: msg,
       });
     } finally {
       setJoinSubmitting(false);
@@ -58,7 +61,7 @@ export default function ClubDetailNew() {
 
   // modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState(null); // 'admins' | 'members'
+  const [modalType, setModalType] = useState(null);
   const openModal = (type) => {
     setModalType(type);
     setIsModalOpen(true);
@@ -71,27 +74,78 @@ export default function ClubDetailNew() {
   useEffect(() => {
     (async () => {
       try {
+        // 기본 데이터 로딩
         const [clubDetail, count, mems, sch] = await Promise.all([
           clubApi.getClubDetail(clubId),
           clubApi.getClubMemberCount(clubId),
           clubApi.getClubMembers(clubId),
-          // 공개 GET이면 필요 시 { withCredentials:false } 옵션 추가 가능
           scheduleApi.getSchedulesByClubId(clubId),
         ]);
+
         setClub(clubDetail);
         setMemberCount(count);
         setMembers(mems);
         setSchedules(sch);
+
+        // 로그인 상태 확인: API 호출 시도
+        try {
+          const status = await clubApi.getMyMemberStatus(clubId);
+          // 성공하면 로그인됨
+          setIsLoggedIn(true);
+          setMyStatus(status);
+        } catch {
+          // 401 에러 = 로그인 안 함
+          setIsLoggedIn(false);
+          setMyStatus(null);
+        }
       } finally {
         setLoading(false);
       }
     })();
   }, [clubId]);
 
-  // derived lists
   const admins = members.filter((m) => m.role === 'LEADER' || m.role === 'MANAGER');
   const visibleAdmins = admins.slice(0, 6);
   const visibleMembers = members.slice(0, 6);
+
+  // 버튼 표시 여부 결정
+  const shouldShowButton = () => {
+    // 로그인 안 함 → 버튼 숨김
+    if (!isLoggedIn) return false;
+
+    // 회원인 경우 → 버튼 숨김
+    if (myStatus === 'APPROVED') return false;
+
+    // 승인 대기중, 차단됨, 미가입 → 버튼 표시
+    return true;
+  };
+
+  // 버튼 텍스트 및 상태 결정
+  const getButtonConfig = () => {
+    if (myStatus === 'WAITING') {
+      return {
+        text: '승인대기중',
+        disabled: true,
+        className: 'bg-orange-400 cursor-not-allowed',
+      };
+    }
+    if (myStatus === 'BLOCKED') {
+      return {
+        text: '가입불가',
+        disabled: true,
+        className: 'bg-red-400 cursor-not-allowed',
+      };
+    }
+
+    // 미가입 (myStatus === null)
+    return {
+      text: '가입하기',
+      disabled: false,
+      className: 'bg-[#4CA8FF] hover:bg-sky-600 active:bg-sky-700',
+    };
+  };
+
+  const buttonConfig = getButtonConfig();
 
   if (loading) {
     return (
@@ -111,7 +165,7 @@ export default function ClubDetailNew() {
       {/* 커버 */}
       <div className="mb-6 rounded-2xl overflow-hidden border border-blue-200 shadow-sm">
         <img
-          src={club.fileLink || defaultProfile}
+          src={club.fileLink || defaultClubProfile}
           alt="cover"
           className="w-full h-48 object-cover"
         />
@@ -123,7 +177,7 @@ export default function ClubDetailNew() {
           {/* 제목 & 태그 */}
           <div className="flex items-start gap-4 mb-4">
             <img
-              src={club.fileLink || defaultProfile}
+              src={club.fileLink || defaultClubProfile}
               alt="logo"
               className="w-16 h-16 rounded-lg object-cover"
             />
@@ -263,15 +317,18 @@ export default function ClubDetailNew() {
                 <span>멤버 {memberCount}명</span>
               </div>
             </div>
-            <button
-              onClick={handleRequestJoin}
-              disabled={joinSubmitting}
-              className={`w-full mt-4 py-2.5 rounded-lg text-white font-medium
-                        ${joinSubmitting ? 'bg-sky-300' : 'bg-[#4CA8FF] hover:bg-sky-600 active:bg-sky-700'}
-                    `}
-            >
-              {joinSubmitting ? '신청 중' : '가입하기'}
-            </button>
+
+            {/* 조건부 버튼 표시 */}
+            {shouldShowButton() && (
+              <button
+                onClick={handleRequestJoin}
+                disabled={buttonConfig.disabled}
+                className={`w-full mt-4 py-2.5 rounded-lg text-white font-medium transition-colors
+                          ${buttonConfig.className}`}
+              >
+                {buttonConfig.text}
+              </button>
+            )}
           </div>
 
           <div className="bg-white rounded-2xl border border-gray-200 p-5">
@@ -326,7 +383,6 @@ export default function ClubDetailNew() {
         <div className="divide-y divide-gray-100">
           {(modalType === 'admins' ? admins : members).map((m) => (
             <div key={m.memberId} className="flex items-center justify-between gap-4 py-4 px-2">
-              {/* 왼쪽 프로필 */}
               <div className="flex items-center gap-4 min-w-0">
                 <div className="w-12 h-12 rounded-full overflow-hidden">
                   <img
@@ -360,16 +416,14 @@ export default function ClubDetailNew() {
           ))}
         </div>
       </ViewModal>
-      {/*  가입 신청 성공 모달 */}
+
+      {/* 가입 신청 결과 모달 */}
       <JoinSuccessModal
         open={resultModal.open}
         onClose={() => setResultModal((s) => ({ ...s, open: false }))}
         variant={resultModal.variant}
-        title={resultModal.title}
-        desc={resultModal.desc}
+        message={resultModal.message}
       />
-
-      {/* ===== /모달 ===== */}
     </div>
   );
 }

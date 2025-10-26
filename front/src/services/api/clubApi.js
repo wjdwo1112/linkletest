@@ -1,4 +1,4 @@
-import { get, put, del } from '../apiClient';
+import { get, put, del, post } from '../apiClient';
 
 export const clubApi = {
   // 내가 가입한 동호회 목록 조회
@@ -39,5 +39,10 @@ export const clubApi = {
   // 가입 신청
   requestJoin: async (clubId) => {
     return await post(`/clubs/${clubId}/members/join`);
+  },
+
+  // 회원 상태 조회
+  getMyMemberStatus: async (clubId) => {
+    return await get(`/clubs/${clubId}/members/my-status`);
   },
 };

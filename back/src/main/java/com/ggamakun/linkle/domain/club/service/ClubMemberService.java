@@ -152,9 +152,9 @@ public class ClubMemberService implements IClubMemberService {
     
     @Override
     @Transactional
-    public void requestJoin(Integer clubId, Integer applicantId) {
+    public void requestJoin(Integer clubId, Integer memberId) {
         // 1) 이미 가입/대기/차단 상태 체크
-        String status = clubMemberRepository.checkMemberStatus(clubId, applicantId); // null 가능
+        String status = clubMemberRepository.checkMemberStatus(clubId, memberId);
 
         if ("APPROVED".equals(status)) {
             throw new BadRequestException("이미 가입된 회원입니다.");
@@ -170,10 +170,10 @@ public class ClubMemberService implements IClubMemberService {
 
         if (status == null) {
             // 2-a) 신규 신청
-            affected = clubMemberRepository.insertWaitingMember(clubId, applicantId);
+            affected = clubMemberRepository.insertWaitingMember(clubId, memberId);
         } else {
             // 2-b) 기존 레코드가 REJECTED/EXPELLED 등으로 is_deleted='Y'인 경우 재신청 처리
-            affected = clubMemberRepository.reactivateToWaiting(clubId, applicantId);
+            affected = clubMemberRepository.reactivateToWaiting(clubId, memberId);
         }
 
         if (affected == 0) {
@@ -191,10 +191,15 @@ public class ClubMemberService implements IClubMemberService {
                     .receiverId(receiverId)
                     .title("가입신청이 도착했어요")
                     .content("새로운 회원의 가입신청이 있습니다. 승인/거절을 진행해주세요.")
-                    .linkUrl("/club/" + clubId + "/manage/requests") // 네 프론트 경로에 맞게
-                    .createdBy(applicantId)
+                    .linkUrl("/clubs/" + clubId + "/members") // 네 프론트 경로에 맞게
+                    .createdBy(memberId)
                     .build()
             );
         }
+    }
+    
+    @Override
+    public String getMemberStatus(Integer clubId, Integer memberId) {
+        return clubMemberRepository.checkMemberStatus(clubId, memberId);
     }
 }

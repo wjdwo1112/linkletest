@@ -71,7 +71,7 @@ public class FileStorageService implements IFileStorageService{
 				log.info("중복 파일 발견 - File_ID: {}, Hash: {]", existingFile.getFileId(), fileHash);
 				return FileUploadResponse.builder()
 						.fileId(existingFile.getFileId())
-						.fileUrl(existingFile.getFileHash())
+						.fileUrl(existingFile.getFileLink())
 						.originalFileName(existingFile.getOriginalFileName())
 						.build();
 			}

@@ -53,7 +53,7 @@ public interface IClubMemberRepository {
 
 	int reactivateToWaiting(@Param("clubId")Integer clubId, @Param("applicantId")Integer applicantId);
 
-	int insertWaitingMember(@Param("clubId") Integer clubId, @Param("applicantId") Integer applicantId);
+	int insertWaitingMember(@Param("clubId") Integer clubId, @Param("memberId") Integer memberId);
     
     
     

@@ -233,16 +233,25 @@ export default function NoticeEdit() {
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">내용</label>
           <div className="border border-gray-300 rounded">
-            <ReactQuill
-              ref={editorRef}
-              theme="snow"
-              value={html}
-              onChange={handleEditorChange}
-              modules={modules}
-              formats={formats}
-              placeholder="내용을 입력하세요."
-              style={{ minHeight: '400px' }}
-            />
+            <style>{`
+      .notice-editor-wrapper .ql-container {
+        height: 458px !important;
+      }
+      .notice-editor-wrapper .ql-editor {
+        min-height: 100%;
+      }
+    `}</style>
+            <div className="notice-editor-wrapper">
+              <ReactQuill
+                ref={editorRef}
+                theme="snow"
+                value={html}
+                onChange={handleEditorChange}
+                modules={modules}
+                formats={formats}
+                placeholder="내용을 입력하세요."
+              />
+            </div>
           </div>
         </div>
 

@@ -105,9 +105,26 @@ public class ClubMemberController {
             @PathVariable("clubId") Integer clubId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        Integer applicantId = userDetails.getMember().getMemberId();
-        clubMemberService.requestJoin(clubId, applicantId);
+        Integer memberId = userDetails.getMember().getMemberId();
+        clubMemberService.requestJoin(clubId, memberId);
         return ResponseEntity.ok().build();
+    }
+    
+    
+    @GetMapping("/clubs/{clubId}/members/my-status")
+    public ResponseEntity<String> getMyMemberStatus(
+            @PathVariable("clubId") Integer clubId,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails) {
+        
+        Integer memberId = userDetails.getMember().getMemberId();
+        String status = clubMemberService.getMemberStatus(clubId, memberId);
+        
+        // status가 null이면 빈 응답 (204 No Content)
+        if (status == null) {
+            return ResponseEntity.noContent().build();
+        }
+        
+        return ResponseEntity.ok(status);
     }
     
 }

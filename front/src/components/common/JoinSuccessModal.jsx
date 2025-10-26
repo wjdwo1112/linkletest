@@ -1,4 +1,4 @@
-// src/components/modal/JoinSuccessModal.jsx
+// src/components/common/JoinSuccessModal.jsx
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CheckCircleIcon, ExclamationTriangleIcon, XMarkIcon } from '@heroicons/react/24/outline';
@@ -6,9 +6,8 @@ import { CheckCircleIcon, ExclamationTriangleIcon, XMarkIcon } from '@heroicons/
 export default function JoinSuccessModal({
   open,
   onClose,
-  variant = 'success', // 'success' | 'error' | 'info'
-  title = '신청이 완료되었습니다',
-  desc = '모임장이 확인하면 알림으로 알려드릴게요.',
+  variant = 'success', // 'success' | 'error'
+  message = '신청이 완료되었습니다',
 }) {
   const backdropRef = useRef(null);
   const closeRef = useRef(null);
@@ -23,10 +22,9 @@ export default function JoinSuccessModal({
 
   if (!open) return null;
 
-  // ✔ 아이콘/색 규칙: success=초록 체크, 그 외(에러/정보)=빨간 주의
   const isSuccess = variant === 'success';
   const Icon = isSuccess ? CheckCircleIcon : ExclamationTriangleIcon;
-  const color = isSuccess ? 'text-green-500' : 'text-red-500';
+  const iconColor = isSuccess ? 'text-green-500' : 'text-red-500';
 
   return createPortal(
     <div
@@ -36,27 +34,32 @@ export default function JoinSuccessModal({
       role="dialog"
       onClick={(e) => e.target === backdropRef.current && onClose?.()}
     >
+      {/* 배경 */}
       <div className="absolute inset-0 bg-black/30" />
-      <div className="relative bg-white w-[360px] rounded-xl shadow-xl p-6">
+
+      {/* 모달 */}
+      <div className="relative bg-white w-[400px] rounded-2xl shadow-xl p-8">
+        {/* 닫기 버튼 */}
         <button
-          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
           onClick={onClose}
           aria-label="닫기"
         >
-          <XMarkIcon className="w-5 h-5" />
+          <XMarkIcon className="w-6 h-6" />
         </button>
 
-        <div className="flex items-center gap-2 mb-4">
-          <Icon className={`w-6 h-6 ${color}`} />
-          <span className="font-semibold">{title}</span>
+        {/* 아이콘 + 메시지 */}
+        <div className="flex flex-col items-center text-center pt-4">
+          <Icon className={`w-16 h-16 ${iconColor} mb-4`} />
+          <p className="text-lg font-medium text-gray-900">{message}</p>
         </div>
 
-        <div className="text-sm text-gray-600 mb-6">{desc}</div>
-
-        <div className="text-right">
+        {/* 확인 버튼 */}
+        <div className="mt-8 flex justify-center">
           <button
             ref={closeRef}
-            className="px-4 py-2 rounded-lg bg-sky-500 text-white hover:bg-sky-600"
+            className="px-8 py-2.5 rounded-lg bg-[#4CA8FF] text-white font-medium 
+                     hover:bg-sky-600 active:bg-sky-700 transition-colors"
             onClick={onClose}
           >
             확인
