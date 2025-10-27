@@ -31,6 +31,7 @@ SELECT
 
 SELECT
 	p.post_id AS postId,
+	c.club_id AS clubId,
 	c.name AS clubName,
 	p.images AS images,
 	p.title AS title,
@@ -40,7 +41,7 @@ SELECT
 	p.created_at AS createdAt,
 	p.created_by AS createdBy,
 	m.name AS authorName,
-	m.nickname AS authorNickName,
+	m.nickname AS authorNickname,
 	cat.name AS categoryName,
 	parent_cat.name AS parentCategoryName
 FROM

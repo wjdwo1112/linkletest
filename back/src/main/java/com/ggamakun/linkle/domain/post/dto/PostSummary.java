@@ -8,6 +8,7 @@ import lombok.Data;
 public class PostSummary {
 	
 	private Integer postId;
+	private Integer clubId;
 	private String clubName;
 	private String images;
 	private String title;
