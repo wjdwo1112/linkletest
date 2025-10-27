@@ -115,7 +115,7 @@ AND p.post_type = 'N'
 INSERT INTO POST
 	(POST_ID, CLUB_ID, TITLE, CONTENT, IMAGES, POST_TYPE, SCOPE, IS_PINNED, CREATED_BY, CREATED_AT)
 VALUES
-	(SEQ_POST.NEXTVAL, #{clubId}, #{title}, #{content}, #{images, jdbcType=VARCHAR}, 'N', '회원', #{isPinned}, #{createdBy}, SYSDATE)
+	(SEQ_POST.NEXTVAL, #{clubId}, #{title}, #{content}, #{images, jdbcType=VARCHAR}, 'N', 'MEMBER', #{isPinned}, #{createdBy}, SYSDATE)
 </insert>
 
 <!-- 공지사항 수정 -->
@@ -148,6 +148,7 @@ AND is_deleted = 'N'
 <update id="deleteNotice">
 UPDATE POST
 SET IS_DELETED = 'Y',
+	UPDATED_BY = #{updatedBy},
     UPDATED_AT = SYSDATE
 WHERE POST_ID = #{postId}
 AND IS_DELETED = 'N'

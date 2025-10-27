@@ -25,7 +25,7 @@ public interface INoticeRepository {
 	
 	int updateNotice(@Param("postId") Integer postId, @Param("request") UpdateNoticeRequest request, @Param("updatedBy") Integer updatedBy);
 
-	int deleteNotice(Integer postId);
+	int deleteNotice(@Param("postId") Integer postId, @Param("updatedBy") Integer updatedBy);
 
 	List<NoticeSummary> getNoticesByClubId(@Param("clubId") Integer clubId);
 

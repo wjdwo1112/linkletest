@@ -6,6 +6,7 @@ import GalleryDetailModal from './GalleryDetailModal';
 import GalleryUploadModal from './GalleryUploadModal';
 import AlertModal from '../../components/common/AlertModal';
 import { useAlert } from '../../hooks/useAlert';
+import { Bars3Icon } from '@heroicons/react/24/outline';
 
 const BATCH_SIZE = 9;
 
@@ -178,25 +179,14 @@ export default function Gallery() {
 
   const handleFilterClick = (clubId) => {
     if (clubId === null) {
-      // 전체 보기 클릭
+      // 전체 보기
       setSelectedClubIds([]);
       setShowFilterDropdown(false);
-    } else {
-      // 동호회 선택/해제
-      setSelectedClubIds((prev) => {
-        if (prev.includes(clubId)) {
-          // 이미 선택되어 있으면 제거
-          return prev.filter((id) => id !== clubId);
-        } else {
-          // 최대 3개까지만 선택 가능
-          if (prev.length >= 3) {
-            showAlert('최대 3개까지만 선택할 수 있습니다.');
-            return prev;
-          }
-          return [...prev, clubId];
-        }
-      });
+      return;
     }
+    setSelectedClubIds((prev) =>
+      prev.includes(clubId) ? prev.filter((id) => id !== clubId) : [...prev, clubId],
+    );
   };
 
   const visibleGalleries = galleries.slice(0, visibleCount);
@@ -225,23 +215,10 @@ export default function Gallery() {
           {isLoggedIn && joinedClubs.length > 0 && (
             <div className="relative" ref={filterDropdownRef}>
               <button
-                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 flex items-center gap-2"
+                onClick={() => setShowFilterDropdown((v) => !v)}
+                className="bg-white border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 flex items-center gap-2"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                  />
-                </svg>
-                필터
-                {selectedClubIds.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 bg-blue-500 text-white text-xs rounded-full">
-                    {selectedClubIds.length}
-                  </span>
-                )}
+                <Bars3Icon className="w-8 h-8" />
               </button>
 
               {showFilterDropdown && (
@@ -257,7 +234,7 @@ export default function Gallery() {
                     전체 보기
                   </button>
                   <div className="h-px bg-gray-100" />
-                  <div className="px-3 py-2 text-xs text-gray-500">최대 3개까지 선택 가능</div>
+
                   {joinedClubs.map((club) => (
                     <button
                       key={club.clubId}

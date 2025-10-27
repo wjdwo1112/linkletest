@@ -312,8 +312,8 @@ const MyActivities = () => {
             onChange={(e) => setFilterType(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#4CA8FF]"
           >
-            <option value="all">내가 쓴 글</option>
-            <option value="comments">내가 쓴 댓글</option>
+            <option value="all">전체 글</option>
+            <option value="comments">댓글</option>
             <option value="likes">좋아요한 글</option>
           </select>
         </div>

@@ -157,7 +157,7 @@ public class NoticeService implements INoticeService {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN,"운영진만 수정할 수 있다");
 		}
 		
-		int deleted = noticeRepository.deleteNotice(postId);
+		int deleted = noticeRepository.deleteNotice(postId, memberId);
 		if(deleted == 0) {
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"공지사항 삭제에 실패");
 		}

@@ -74,7 +74,7 @@ const Community = () => {
     CATEGORY_META.forEach((c) => {
       const filtered = latestAll.filter((p) => matchCategory(p, c.dbName));
       console.log(`${c.title} (DB: ${c.dbName}) 카테고리 게시글:`, filtered);
-      map[c.title] = filtered.slice(0, 3);
+      map[c.title] = filtered.slice(0, 5);
     });
     return map;
   }, [latestAll]);
@@ -171,9 +171,33 @@ const Community = () => {
                     <li key={post.postId}>
                       <Link
                         to={`/community/posts/${post.postId}`}
-                        className="text-sm text-gray-700 hover:text-gray-900 hover:underline block"
+                        className="flex items-center justify-between py-1 px-1 hover:bg-gray-50 transition"
                       >
-                        {post.title}
+                        <span className="text-sm text-gray-700 hover:text-gray-900 flex-1">
+                          {post.title}
+                        </span>
+                        <div className="flex items-center space-x-1 text-xs text-gray-400 ml-2">
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
+                          <span>{post.viewCount || 0}</span>
+                        </div>
                       </Link>
                     </li>
                   ))}

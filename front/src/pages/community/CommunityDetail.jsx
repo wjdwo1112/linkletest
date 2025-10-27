@@ -5,6 +5,7 @@ import {
   ChatBubbleOvalLeftIcon,
   EyeIcon,
   PencilSquareIcon,
+  Bars3Icon,
 } from '@heroicons/react/24/outline';
 import { postApi } from '../../services/api/postApi';
 import { fileApi } from '../../services/api/fileApi';
@@ -39,7 +40,7 @@ const BATCH_SIZE = 10;
 /** 이미지 컨테이너 (썸네일 있을 때만 사용) */
 function ThumbBox({ children }) {
   return (
-    <div className="relative w-[120px] h-[80px] rounded-md overflow-hidden border border-gray-200 bg-gray-100">
+    <div className="relative w-[132px] h-[96px] rounded-md overflow-hidden border border-gray-200 bg-gray-100">
       {children}
     </div>
   );
@@ -380,7 +381,7 @@ export default function CommunityDetail() {
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                     selected
                       ? 'bg-black text-white'
-                      : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                      : 'bg-white text-gray-600 border border-gray-600 hover:bg-gray-50'
                   }`}
                   aria-pressed={selected}
                 >
@@ -396,22 +397,9 @@ export default function CommunityDetail() {
           <div className="relative" ref={filterDropdownRef}>
             <button
               onClick={() => setShowFilterDropdown((v) => !v)}
-              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 flex items-center gap-2"
+              className="bg-white border border-gray-600 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 flex items-center gap-2"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                />
-              </svg>
-              필터
-              {selectedClubIds.length > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 bg-blue-500 text-white text-xs rounded-full">
-                  {selectedClubIds.length}
-                </span>
-              )}
+              <Bars3Icon className="w-8 h-8" />
             </button>
 
             {showFilterDropdown && (
@@ -484,7 +472,7 @@ export default function CommunityDetail() {
                           className={`grid ${leftUrl ? 'grid-cols-[1fr_auto] gap-6' : 'grid-cols-1'}`}
                         >
                           <div>
-                            <div className="text-sm text-gray-500 mb-1">{left.clubName}</div>
+                            <div className="text-sm text-gray-500 mb-2">{left.clubName}</div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-2 break-words">
                               <Link
                                 to={`/community/posts/${left.postId}`}

@@ -194,7 +194,7 @@ export default function PostDetail() {
             try {
               const status = await commentApi.getCommentLikeStatus(comment.commentId);
               return { commentId: comment.commentId, ...status };
-            } catch (error) {
+            } catch {
               return {
                 commentId: comment.commentId,
                 isLiked: false,
