@@ -11,7 +11,10 @@
  * @param {string} confirmText - 확인 버튼 텍스트 (기본값: '확인')
  * @param {string} cancelText - 취소 버튼 텍스트 (기본값: '취소')
  * @param {string} confirmButtonStyle - 확인 버튼 스타일 (기본값: 'danger' - 빨간색)
+ *
  */
+
+import { XMarkIcon } from '@heroicons/react/24/outline';
 export default function ConfirmModal({
   isOpen,
   onClose,
@@ -44,8 +47,15 @@ export default function ConfirmModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* 헤더 */}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          {title && <h3 className="text-lg font-semibold text-gray-900">{title}</h3>}
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors ml-auto"
+            aria-label="닫기"
+          >
+            <XMarkIcon className="w-6 h-6" />
+          </button>
         </div>
 
         {/* 본문 */}

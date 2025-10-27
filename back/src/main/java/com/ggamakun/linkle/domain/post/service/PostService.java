@@ -103,7 +103,7 @@ public class PostService implements IPostService {
 		}
 		
 		//게시글 수정
-		int updated = postRepository.updatePost(postId, request);
+		int updated = postRepository.updatePost(postId, request,memberId);
 		if(updated == 0) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND,"post not found");
 		}

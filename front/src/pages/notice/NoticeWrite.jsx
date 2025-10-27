@@ -7,6 +7,8 @@ import { fileApi } from '../../services/api/fileApi';
 import useUserStore from '../../store/useUserStore';
 import SidebarLayout from '../../components/layout/SidebarLayout';
 import ClubSidebar from '../../components/layout/ClubSidebar';
+import ConfirmModal from '../../components/common/ConfirmModal';
+import AlertModal from '../../components/common/AlertModal';
 
 export default function NoticeWrite() {
   const { clubId } = useParams();
@@ -18,6 +20,20 @@ export default function NoticeWrite() {
   const [html, setHtml] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]); // { fileId, fileUrl, originalFileName }
   const [isPinned, setIsPinned] = useState('N');
+
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+  });
+
+  const [alertModal, setAlertModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onCloseCallback: null,
+  });
 
   // 이미지 핸들러 - S3 업로드 후 DB에 저장하고 fileId 받기
   const handleImageClick = () => {
@@ -38,7 +54,11 @@ export default function NoticeWrite() {
           console.log('이미지 업로드 성공:', uploadResponse);
         } catch (error) {
           console.error('이미지 업로드 실패:', error);
-          alert('이미지 업로드에 실패했습니다.');
+          setAlertModal({
+            isOpen: true,
+            title: '오류',
+            message: '이미지 업로드에 실패했습니다.',
+          });
         }
       }
     };
@@ -91,9 +111,22 @@ export default function NoticeWrite() {
   };
 
   const handleSubmit = async () => {
-    if (!title.trim()) return window.alert('제목을 입력해 주세요.');
-    if (!html.trim()) return window.alert('내용을 입력해 주세요.');
-
+    if (!title.trim()) {
+      setAlertModal({
+        isOpen: true,
+        title: '입력 오류',
+        message: '제목을 입력해 주세요.',
+      });
+      return;
+    }
+    if (!html.trim()) {
+      setAlertModal({
+        isOpen: true,
+        title: '입력 오류',
+        message: '내용을 입력해 주세요.',
+      });
+      return;
+    }
     try {
       // fileId들을 '/'로 구분하여 문자열로 만듦
       const images = uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.fileId).join('/') : null;
@@ -111,18 +144,32 @@ export default function NoticeWrite() {
 
       await noticeApi.createNotice(noticeData);
 
-      alert('공지사항이 등록되었습니다.');
-      navigate(`/clubs/${clubId}/notice`);
+      setAlertModal({
+        isOpen: true,
+        title: '등록 완료',
+        message: '공지사항이 등록되었습니다.',
+        onCloseCallback: () => {
+          navigate(`/clubs/${clubId}/notice`);
+        },
+      });
     } catch (error) {
       console.error('공지사항 등록 실패:', error);
-      alert('공지사항 등록에 실패했습니다.\n' + (error.message || '다시 시도해주세요.'));
+      setAlertModal({
+        isOpen: true,
+        title: '오류',
+        message: '공지사항 등록에 실패했습니다.\n' + (error.message || '다시 시도해주세요.'),
+      });
     }
   };
 
   const handleCancel = () => {
-    if (window.confirm('작성을 취소하시겠습니까?')) {
-      navigate(`/clubs/${clubId}/notice`);
-    }
+    setConfirmModal({
+      isOpen: true,
+      message: '작성을 취소하시겠습니까?',
+      onConfirm: () => {
+        navigate(`/clubs/${clubId}/notice`);
+      },
+    });
   };
 
   return (
@@ -247,6 +294,32 @@ export default function NoticeWrite() {
           </button>
         </div>
       </div>
+
+      {/* ConfirmModal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText="확인"
+        cancelText="취소"
+        confirmButtonStyle="primary"
+      />
+
+      {/* AlertModal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => {
+          setAlertModal({ ...alertModal, isOpen: false });
+          // 특정 경우에만 navigate 실행
+          if (alertModal.onCloseCallback) {
+            alertModal.onCloseCallback();
+          }
+        }}
+        title={alertModal.title}
+        message={alertModal.message}
+      />
     </SidebarLayout>
   );
 }

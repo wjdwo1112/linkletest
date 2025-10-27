@@ -6,6 +6,8 @@ import 'quill/dist/quill.snow.css';
 import { clubApi } from '../../services/api/clubApi';
 import { postApi } from '../../services/api/postApi';
 import { fileApi } from '../../services/api/fileApi';
+import ConfirmModal from '../../components/common/ConfirmModal';
+import AlertModal from '../../components/common/AlertModal';
 
 export default function PostWrite() {
   const navigate = useNavigate();
@@ -21,6 +23,20 @@ export default function PostWrite() {
   const [html, setHtml] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]); // { fileId, fileUrl, originalFileName }
   const [isEditMode, setIsEditMode] = useState(false);
+
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+  });
+
+  const [alertModal, setAlertModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onCloseCallback: null,
+  });
 
   // 수정 모드일 때 기존 게시글 데이터 불러오기
   useEffect(() => {
@@ -56,8 +72,14 @@ export default function PostWrite() {
         setLoading(false);
       } catch (error) {
         console.error('게시글 조회 실패:', error);
-        alert('게시글을 불러오는데 실패했습니다.');
-        navigate('/community');
+        setAlertModal({
+          isOpen: true,
+          title: '오류',
+          message: '게시글을 불러오는데 실패했습니다.',
+        });
+        setTimeout(() => {
+          navigate('/community');
+        }, 1000);
       }
     };
 
@@ -86,7 +108,11 @@ export default function PostWrite() {
       } catch (err) {
         console.error('동호회 목록 조회 실패:', err);
         console.error('에러 상세:', err.response || err.message);
-        alert('동호회 목록을 불러오는데 실패했습니다.\n콘솔을 확인해주세요.');
+        setAlertModal({
+          isOpen: true,
+          title: '오류',
+          message: '동호회 목록을 불러오는데 실패했습니다.',
+        });
         setClubs([]);
       } finally {
         if (!editPostId) {
@@ -117,7 +143,11 @@ export default function PostWrite() {
           console.log('이미지 업로드 성공:', uploadResponse);
         } catch (error) {
           console.error('이미지 업로드 실패:', error);
-          alert('이미지 업로드에 실패했습니다.');
+          setAlertModal({
+            isOpen: true,
+            title: '오류',
+            message: '이미지 업로드에 실패했습니다.',
+          });
         }
       }
     };
@@ -170,9 +200,30 @@ export default function PostWrite() {
   };
 
   const handleSubmit = async () => {
-    if (!title.trim()) return window.alert('제목을 입력해 주세요.');
-    if (!html.trim()) return window.alert('내용을 입력해 주세요.');
-    if (!club) return window.alert('동호회를 선택해 주세요.');
+    if (!title.trim()) {
+      setAlertModal({
+        isOpen: true,
+        title: '입력 오류',
+        message: '제목을 입력해 주세요.',
+      });
+      return;
+    }
+    if (!html.trim()) {
+      setAlertModal({
+        isOpen: true,
+        title: '입력 오류',
+        message: '내용을 입력해 주세요.',
+      });
+      return;
+    }
+    if (!club) {
+      setAlertModal({
+        isOpen: true,
+        title: '입력 오류',
+        message: '동호회를 선택해 주세요.',
+      });
+      return;
+    }
 
     try {
       const scope = visibility;
@@ -194,32 +245,50 @@ export default function PostWrite() {
       if (isEditMode) {
         // 수정 모드
         await postApi.updatePost(editPostId, postData);
-        alert('게시글이 수정되었습니다.');
-        navigate(`/community/posts/${editPostId}`);
+        setAlertModal({
+          isOpen: true,
+          title: '수정 완료',
+          message: '게시글이 수정되었습니다.',
+          onCloseCallback: () => {
+            navigate(`/community/posts/${editPostId}`);
+          },
+        });
       } else {
-        // 등록 모드
         await postApi.createPost(postData);
-        alert('게시글이 등록되었습니다.');
-        navigate('/community');
+        setAlertModal({
+          isOpen: true,
+          title: '등록 완료',
+          message: '게시글이 등록되었습니다.',
+          onCloseCallback: () => {
+            navigate(`/community`);
+          },
+        });
       }
     } catch (error) {
       console.error(isEditMode ? '게시글 수정 실패:' : '게시글 등록 실패:', error);
-      alert(
-        isEditMode
+      setAlertModal({
+        isOpen: true,
+        title: '오류',
+        message: isEditMode
           ? '게시글 수정에 실패했습니다.\n' + (error.message || '다시 시도해주세요.')
           : '게시글 등록에 실패했습니다.\n' + (error.message || '다시 시도해주세요.'),
-      );
+      });
     }
   };
 
   const handleCancel = () => {
-    if (window.confirm(isEditMode ? '수정을 취소하시겠습니까?' : '작성을 취소하시겠습니까?')) {
-      if (isEditMode) {
-        navigate(`/community/posts/${editPostId}`);
-      } else {
-        navigate('/community');
-      }
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: '취소 확인',
+      message: isEditMode ? '수정을 취소하시겠습니까?' : '작성을 취소하시겠습니까?',
+      onConfirm: () => {
+        if (isEditMode) {
+          navigate(`/community/posts/${editPostId}`);
+        } else {
+          navigate('/community');
+        }
+      },
+    });
   };
 
   if (loading) {
@@ -371,6 +440,32 @@ export default function PostWrite() {
           {isEditMode ? '수정' : '등록'}
         </button>
       </div>
+
+      {/* ConfirmModal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText="확인"
+        cancelText="취소"
+        confirmButtonStyle="primary"
+      />
+
+      {/* AlertModal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => {
+          setAlertModal({ ...alertModal, isOpen: false });
+          // 특정 경우에만 navigate 실행
+          if (alertModal.onCloseCallback) {
+            alertModal.onCloseCallback();
+          }
+        }}
+        title={alertModal.title}
+        message={alertModal.message}
+      />
     </div>
   );
 }

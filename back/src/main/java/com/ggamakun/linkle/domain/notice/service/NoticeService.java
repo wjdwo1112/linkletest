@@ -104,7 +104,7 @@ public class NoticeService implements INoticeService {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN,"운영진만 수정할 수 있다");
 		}
 		
-		int updated = noticeRepository.updateNotice(postId, request);
+		int updated = noticeRepository.updateNotice(postId, request, memberId);
 		if(updated == 0) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND,"notice not found");
 		}

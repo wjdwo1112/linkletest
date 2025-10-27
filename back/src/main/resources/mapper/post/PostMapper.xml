@@ -114,6 +114,7 @@ VALUES
     <if test="request.content != null">     CONTENT   = #{request.content},</if>
     <if test="request.images != null">      IMAGES    = #{request.images},</if>
     <if test="request.scope != null">       SCOPE     = #{request.scope},</if>
+    UPDATED_BY = #{updatedBy},
     UPDATED_AT = SYSDATE
   </set>
   WHERE POST_ID = #{postId}
