@@ -38,4 +38,24 @@ export const commentApi = {
       throw new Error('댓글 삭제에 실패했습니다.');
     }
   },
+  // 댓글 좋아요 토글
+  toggleCommentLike: async (commentId) => {
+    try {
+      const response = await post(`/comments/${commentId}/likes`, {});
+      return response.data;
+    } catch (error) {
+      console.error('댓글 좋아요 실패:', error);
+      throw new Error('댓글 좋아요 처리에 실패했습니다.');
+    }
+  },
+
+  // 댓글 좋아요 상태 조회
+  getCommentLikeStatus: async (commentId) => {
+    try {
+      return await get(`/comments/${commentId}/likes/status`);
+    } catch (error) {
+      console.error('댓글 좋아요 상태 조회 실패:', error);
+      throw new Error('댓글 좋아요 상태 조회에 실패했습니다.');
+    }
+  },
 };

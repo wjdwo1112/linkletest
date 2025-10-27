@@ -96,7 +96,7 @@ public class CommentService implements ICommentService {
 		}
 		
 		//댓글 수정
-		int updated = commentRepository.updateComment(commentId, content);
+		int updated = commentRepository.updateComment(commentId, content, memberId);
 		if(updated == 0) {
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 수정 실패");
 		}
@@ -126,7 +126,7 @@ public class CommentService implements ICommentService {
 	        // [케이스 A] 부모 댓글에 자식이 남아있는 상태에서 부모 삭제
 	        // - 부모를 soft-delete(내용 NULL, is_deleted='Y')로 처리
 	        // - 집계에서 부모는 제외되므로 게시글 총 댓글 수 -1
-	        int n = commentRepository.deleteComments(commentId); // content=null, is_deleted='Y'
+	        int n = commentRepository.deleteComments(commentId, memberId); // content=null, is_deleted='Y'
 	        if (n == 0) {
 	            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다");
 	        }
@@ -135,7 +135,7 @@ public class CommentService implements ICommentService {
 	    }
 
 	    // [케이스 B] 자식이 없는 경우 → 본인만 soft-delete
-	    int n = commentRepository.deleteComment(commentId); // is_deleted='Y'
+	    int n = commentRepository.deleteComment(commentId, memberId); // is_deleted='Y'
 	    if (n == 0) {
 	        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다");
 	    }

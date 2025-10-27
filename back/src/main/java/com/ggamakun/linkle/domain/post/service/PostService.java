@@ -125,7 +125,7 @@ public class PostService implements IPostService {
 		}
 		
 		//게시글 삭제
-		int deleted = postRepository.deletePost(postId);
+		int deleted = postRepository.deletePost(postId, memberId);
 		if(deleted == 0) {
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"게시글 삭제에 실패했다.");
 		}

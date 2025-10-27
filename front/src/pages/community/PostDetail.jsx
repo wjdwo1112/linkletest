@@ -111,6 +111,8 @@ export default function PostDetail() {
   const [imageUrls, setImageUrls] = useState([]);
   const [imagesLoading, setImagesLoading] = useState(false);
 
+  const [commentLikes, setCommentLikes] = useState({});
+
   const getProfileSrc = (url) => {
     if (!url || url.trim() === '' || url === 'null') {
       return DEFAULT_PROFILE;
@@ -185,6 +187,52 @@ export default function PostDetail() {
         setCommentsLoading(true);
         const data = await commentApi.getComments(postId);
         setComments(data);
+
+        // ✅ 로그인한 경우 각 댓글의 좋아요 상태 조회
+        if (isAuthenticated) {
+          const likeStatusPromises = data.map(async (comment) => {
+            try {
+              const status = await commentApi.getCommentLikeStatus(comment.commentId);
+              return { commentId: comment.commentId, ...status };
+            } catch (error) {
+              return {
+                commentId: comment.commentId,
+                isLiked: false,
+                likeCount: comment.likeCount || 0,
+              };
+            }
+          });
+
+          const likeStatuses = await Promise.all(likeStatusPromises);
+          const likeStatusMap = {};
+          likeStatuses.forEach((status) => {
+            likeStatusMap[status.commentId] = {
+              isLiked: status.isLiked,
+              likeCount: status.likeCount,
+            };
+          });
+          setCommentLikes(likeStatusMap);
+        } else {
+          // 비로그인 시 기본 좋아요 수만 표시
+          const likeStatusMap = {};
+          data.forEach((comment) => {
+            likeStatusMap[comment.commentId] = {
+              isLiked: false,
+              likeCount: comment.likeCount || 0,
+            };
+
+            // 대댓글도 처리
+            if (comment.replies && comment.replies.length > 0) {
+              comment.replies.forEach((reply) => {
+                likeStatusMap[reply.commentId] = {
+                  isLiked: false,
+                  likeCount: reply.likeCount || 0,
+                };
+              });
+            }
+          });
+          setCommentLikes(likeStatusMap);
+        }
       } catch (err) {
         console.error('댓글 목록 조회 실패:', err);
       } finally {
@@ -335,6 +383,30 @@ export default function PostDetail() {
     } catch (err) {
       console.error('댓글 수정 실패:', err);
       alert('댓글 수정에 실패했습니다.');
+    }
+  };
+
+  const handleCommentLikeToggle = async (commentId) => {
+    if (!isAuthenticated) {
+      alert('로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const result = await commentApi.toggleCommentLike(commentId);
+
+      // 상태 업데이트
+      setCommentLikes((prev) => ({
+        ...prev,
+        [commentId]: {
+          isLiked: result.isLiked,
+          likeCount: result.likeCount,
+        },
+      }));
+    } catch (err) {
+      console.error('댓글 좋아요 처리 실패:', err);
+      alert('좋아요 처리에 실패했습니다.');
     }
   };
 
@@ -609,9 +681,20 @@ export default function PostDetail() {
 
                       {comment.isDeleted !== 'Y' && (
                         <div className="mt-1 flex items-center gap-4 text-xs text-gray-500">
-                          <button className="flex items-center gap-1 hover:text-red-500">
-                            <HeartIcon className="w-4 h-4" />
-                            {comment.likeCount || 0}
+                          <button
+                            onClick={() => handleCommentLikeToggle(comment.commentId)}
+                            className={`flex items-center gap-1 transition-colors ${
+                              commentLikes[comment.commentId]?.isLiked
+                                ? 'text-red-500'
+                                : 'hover:text-red-500'
+                            }`}
+                          >
+                            {commentLikes[comment.commentId]?.isLiked ? (
+                              <HeartSolid className="w-4 h-4" />
+                            ) : (
+                              <HeartIcon className="w-4 h-4" />
+                            )}
+                            {commentLikes[comment.commentId]?.likeCount || 0}
                           </button>
                           <button
                             onClick={() => setReplyingTo(comment.commentId)}
@@ -727,9 +810,20 @@ export default function PostDetail() {
 
                                 {reply.isDeleted !== 'Y' && (
                                   <div className="mt-1 flex items-center gap-4 text-xs text-gray-500">
-                                    <button className="flex items-center gap-1 hover:text-red-500">
-                                      <HeartIcon className="w-4 h-4" />
-                                      {reply.likeCount || 0}
+                                    <button
+                                      onClick={() => handleCommentLikeToggle(reply.commentId)}
+                                      className={`flex items-center gap-1 transition-colors ${
+                                        commentLikes[reply.commentId]?.isLiked
+                                          ? 'text-red-500'
+                                          : 'hover:text-red-500'
+                                      }`}
+                                    >
+                                      {commentLikes[reply.commentId]?.isLiked ? (
+                                        <HeartSolid className="w-4 h-4" />
+                                      ) : (
+                                        <HeartIcon className="w-4 h-4" />
+                                      )}
+                                      {commentLikes[reply.commentId]?.likeCount || 0}
                                     </button>
                                   </div>
                                 )}

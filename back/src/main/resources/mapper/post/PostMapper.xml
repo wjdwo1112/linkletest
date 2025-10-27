@@ -126,6 +126,7 @@ VALUES
 <update id="deletePost">
   UPDATE POST
   SET IS_DELETED = 'Y',
+  UPDATED_BY = #{updatedBy},
   UPDATED_AT = SYSDATE
   
   WHERE POST_ID = #{postId}

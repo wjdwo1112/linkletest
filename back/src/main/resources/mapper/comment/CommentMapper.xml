@@ -69,6 +69,7 @@ VALUES
 <update id="updateComment">
 UPDATE COMMENTS
 SET CONTENT = #{content},
+	UPDATED_BY = #{memberId},
 	UPDATED_AT = SYSDATE
 WHERE COMMENT_ID = #{commentId}
 AND IS_DELETED = 'N' 
@@ -78,6 +79,7 @@ AND IS_DELETED = 'N'
 <update id="deleteComment">
 UPDATE COMMENTS
 SET IS_DELETED = 'Y',
+	UPDATED_BY = #{updatedBy},
 	UPDATED_AT = SYSDATE
 WHERE COMMENT_ID = #{commentId}
 AND IS_DELETED = 'N'
@@ -88,6 +90,7 @@ AND IS_DELETED = 'N'
 UPDATE COMMENTS
 SET CONTENT = NULL,
 	IS_DELETED = 'Y',
+	UPDATED_BY = #{updatedBy},
 	UPDATED_AT = SYSDATE
 WHERE COMMENT_ID = #{commentId}
 AND IS_DELETED = 'N'

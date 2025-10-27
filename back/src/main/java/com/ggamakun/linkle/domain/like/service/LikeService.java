@@ -91,7 +91,7 @@ public class LikeService implements ILikeService {
 
 	@Override
 	public LikeResponseDto getCommentStatus(Integer commentId, Integer memberId) {
-		boolean liked = likeRepository.existsPostLike(commentId, memberId) > 0;
+		boolean liked = likeRepository.existsCommentLike(commentId, memberId) > 0;
         Integer cnt = commentRepository.getLikeCount(commentId);
         int count = (cnt == null ? 0: cnt);
         return new LikeResponseDto(liked, count);

@@ -20,13 +20,13 @@ public interface ICommentRepository {
 	void insertComment(CreateCommentRequest request);
 	
 	//댓글 수정
-	int updateComment(@Param("commentId") Integer commentId, @Param("content") String content);
+	int updateComment(@Param("commentId") Integer commentId, @Param("content") String content, @Param("memberId") Integer memberId);
 	
 	//댓글 삭제
-	int deleteComment(Integer commentId);
+	int deleteComment(@Param("commentId")Integer commentId, @Param("updatedBy") Integer updatedBy);
 	
 	//댓글 삭제(대댓글 있을때)
-	int deleteComments(Integer commentId);
+	int deleteComments(@Param("commentId")Integer commentId, @Param("updatedBy") Integer updatedBy);
 	
 	//부모댓글의 대댓글 갯수 증가
 	int increaseCommentCount(Integer parentCommentId);
