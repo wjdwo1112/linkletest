@@ -8,3 +8,4 @@ export { noticeApi } from './noticeApi';
 export { galleryApi } from './galleryApi';
 export { fileApi } from './fileApi';
 export { clubMemberApi } from './clubMemberApi';
+export { commentApi } from './commentApi';

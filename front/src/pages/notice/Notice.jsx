@@ -11,6 +11,8 @@ import {
 import { noticeApi, clubApi } from '../../services/api';
 import SidebarLayout from '../../components/layout/SidebarLayout';
 import ClubSidebar from '../../components/layout/ClubSidebar';
+import ConfirmModal from '../../components/common/ConfirmModal';
+import AlertModal from '../../components/common/AlertModal';
 
 // 케밥 메뉴 컴포넌트
 function KebabMenu({ notice, onEdit, onDelete, onTogglePin }) {
@@ -102,6 +104,18 @@ const Notice = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [userRole, setUserRole] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+  });
+
+  const [alertModal, setAlertModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+  });
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -157,23 +171,44 @@ const Notice = () => {
     return `${year}.${month}.${day}`;
   };
 
+  const closeAlert = () => {
+    setAlertModal({
+      isOpen: false,
+      title: '',
+      message: '',
+    });
+  };
+
   // 수정 핸들러
   const handleEdit = (noticeId) => {
     navigate(`/clubs/${clubId}/notice/edit/${noticeId}`);
   };
 
   // 삭제 핸들러
-  const handleDelete = async (noticeId) => {
-    if (!window.confirm('이 공지사항을 삭제하시겠습니까?')) return;
-
-    try {
-      await noticeApi.deleteNotice(noticeId);
-      alert('공지사항이 삭제되었습니다.');
-      await fetchNotices();
-    } catch (error) {
-      console.error('공지사항 삭제 실패:', error);
-      alert('공지사항 삭제에 실패했습니다.');
-    }
+  const handleDelete = (noticeId) => {
+    setConfirmModal({
+      isOpen: true,
+      title: '공지사항 삭제',
+      message: '이 공지사항을 삭제하시겠습니까?',
+      onConfirm: async () => {
+        try {
+          await noticeApi.deleteNotice(noticeId);
+          await fetchNotices();
+          setAlertModal({
+            isOpen: true,
+            title: '삭제 완료',
+            message: '공지사항이 삭제되었습니다.',
+          });
+        } catch (error) {
+          console.error('공지사항 삭제 실패:', error);
+          setAlertModal({
+            isOpen: true,
+            title: '오류',
+            message: '공지사항 삭제에 실패했습니다.',
+          });
+        }
+      },
+    });
   };
 
   // 고정/해제 핸들러 - await 추가
@@ -184,7 +219,11 @@ const Notice = () => {
       await fetchNotices();
     } catch (error) {
       console.error('고정 상태 변경 실패:', error);
-      alert('고정 상태 변경에 실패했습니다.');
+      setAlertModal({
+        isOpen: true,
+        title: '오류',
+        message: '고정 상태 변경에 실패했습니다.',
+      });
     }
   };
 
@@ -358,6 +397,23 @@ const Notice = () => {
           )}
         </div>
       </div>
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText="확인"
+        cancelText="취소"
+      />
+
+      {/* AlertModal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={closeAlert}
+        title={alertModal.title}
+        message={alertModal.message}
+      />
     </SidebarLayout>
   );
 };

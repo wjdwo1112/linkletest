@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { galleryApi } from '../../services/api/galleryApi';
 import { fileApi } from '../../services/api/fileApi';
+import AlertModal from '../../components/common/AlertModal';
 
 export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, preSelectedClubId }) {
   const [selectedClubId, setSelectedClubId] = useState('');
@@ -8,6 +9,26 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, pr
   const [uploadedFile, setUploadedFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  const [alertModal, setAlertModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onCloseCallback: null,
+  });
+
+  const closeAlert = () => {
+    const callback = alertModal.onCloseCallback;
+    setAlertModal({
+      isOpen: false,
+      title: '',
+      message: '',
+      onCloseCallback: null,
+    });
+    if (callback) {
+      callback();
+    }
+  };
 
   useEffect(() => {
     if (preSelectedClubId) {
@@ -20,7 +41,12 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, pr
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('JPG, PNG 파일만 업로드 가능합니다.');
+      setAlertModal({
+        isOpen: true,
+        title: '알림',
+        message: 'JPG, PNG 파일만 업로드 가능합니다.',
+        isError: false,
+      });
       return;
     }
 
@@ -31,7 +57,11 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, pr
       setImagePreview(uploadResponse.fileUrl);
     } catch (error) {
       console.error('이미지 업로드 실패:', error);
-      alert('이미지 업로드에 실패했습니다.');
+      setAlertModal({
+        isOpen: true,
+        title: '오류',
+        message: '이미지 업로드에 실패했습니다.',
+      });
     } finally {
       setIsUploading(false);
     }
@@ -39,12 +69,21 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, pr
 
   const handleSubmit = async () => {
     if (!selectedClubId) {
-      alert('게시할 동호회를 선택해주세요.');
+      setAlertModal({
+        isOpen: true,
+        title: '알림',
+        message: '게시할 동호회를 선택해주세요.',
+      });
       return;
     }
 
     if (!uploadedFile) {
-      alert('사진을 선택해주세요.');
+      setAlertModal({
+        isOpen: true,
+        title: '알림',
+        message: '사진을 선택해주세요.',
+        isError: false,
+      });
       return;
     }
 
@@ -56,11 +95,22 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, pr
       };
 
       await galleryApi.createGallery(galleryData);
-      alert('갤러리가 등록되었습니다.');
-      onSuccess();
+      setAlertModal({
+        isOpen: true,
+        title: '완료',
+        message: '갤러리가 등록되었습니다.',
+        onCloseCallback: () => {
+          onSuccess();
+          onClose();
+        },
+      });
     } catch (error) {
       console.error('갤러리 등록 실패:', error);
-      alert('갤러리 등록에 실패했습니다.');
+      setAlertModal({
+        isOpen: true,
+        title: '오류',
+        message: '갤러리 등록에 실패했습니다.',
+      });
     }
   };
 
@@ -215,6 +265,12 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, pr
           </button>
         </div>
       </div>
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={closeAlert}
+        title={alertModal.title}
+        message={alertModal.message}
+      />
     </div>
   );
 }
