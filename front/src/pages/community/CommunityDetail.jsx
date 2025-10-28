@@ -1,3 +1,4 @@
+// src/pages/community/CommunityDetail.jsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
@@ -7,6 +8,7 @@ import {
   PencilSquareIcon,
   Bars3Icon,
 } from '@heroicons/react/24/outline';
+import DOMPurify from 'dompurify';
 import { postApi } from '../../services/api/postApi';
 import { fileApi } from '../../services/api/fileApi';
 import { clubApi } from '../../services/api/clubApi';
@@ -37,29 +39,54 @@ const CATEGORY_DB_MAP = {
 
 const BATCH_SIZE = 10;
 
-/** 이미지 컨테이너 (썸네일 있을 때만 사용) */
-function ThumbBox({ children }) {
+/* ── utils ───────────────────────────────────────────────────────── */
+function parseFirstFileId(imagesString) {
+  if (!imagesString) return null;
+  const m = String(imagesString).match(/\d+/g);
+  if (!m || !m.length) return null;
+  const id = parseInt(m[0], 10);
+  return Number.isInteger(id) ? id : null;
+}
+
+/** 미리보기 텍스트: DOMPurify로 XSS 제거 + 모든 태그 제거 */
+function sanitizePreview(html) {
+  if (!html) return '';
+  // 모든 태그/속성 차단 → 순수 텍스트만 남김
+  const cleaned = DOMPurify.sanitize(String(html), { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+  // DOMPurify 결과에 남을 수 있는 공백 정리
+  return cleaned.replace(/\s+/g, ' ').trim();
+}
+
+/* ── small components ────────────────────────────────────────────── */
+function Thumb({ src, alt }) {
+  if (!src) return null;
   return (
-    <div className="relative w-[132px] h-[96px] rounded-md overflow-hidden border border-gray-200 bg-gray-100">
-      {children}
-    </div>
+    <img
+      src={src}
+      alt={alt || ''}
+      className="absolute inset-0 w-full h-full object-cover"
+      onError={(e) => (e.currentTarget.style.display = 'none')}
+      loading="lazy"
+    />
   );
 }
 
-/** 실제 이미지만 렌더. 실패/없음 => 렌더 X */
-function Thumb({ src, alt }) {
-  const [imgSrc, setImgSrc] = useState(src);
-  useEffect(() => setImgSrc(src), [src]);
-
-  if (!imgSrc) return null;
+function ThumbBox({ src, alt, className = '' }) {
+  // 오른쪽 칸 너비는 항상 유지 (이미지 없으면 투명 스페이서)
   return (
-    <img
-      src={imgSrc}
-      alt={alt || ''}
-      className="absolute inset-0 w-full h-full object-cover"
-      onError={() => setImgSrc(null)}
-      loading="lazy"
-    />
+    <div
+      className={`relative w-[120px] h-[84px] rounded-md overflow-hidden ${src ? 'border border-gray-200 bg-gray-100' : ''} ${className}`}
+    >
+      {src ? (
+        <img
+          src={src}
+          alt={alt || ''}
+          className="absolute inset-0 w-full h-full object-cover"
+          onError={(e) => (e.currentTarget.style.display = 'none')}
+          loading="lazy"
+        />
+      ) : null}
+    </div>
   );
 }
 
@@ -84,50 +111,35 @@ function WriteFab() {
   );
 }
 
-/** images("1/2/3" 등)에서 첫 숫자만 안전하게 추출 */
-function parseFirstFileId(imagesString) {
-  if (!imagesString) return null;
-  const matches = String(imagesString).match(/\d+/g);
-  if (!matches || matches.length === 0) return null;
-  const id = parseInt(matches[0], 10);
-  return Number.isInteger(id) ? id : null;
-}
-
+/* ── main ────────────────────────────────────────────────────────── */
 export default function CommunityDetail() {
   const navigate = useNavigate();
   const { tab } = useParams();
   const decodedTab = useMemo(() => (tab ? decodeURIComponent(tab) : '전체'), [tab]);
-
   const { isAuthenticated: isLoggedIn } = useUserStore();
 
-  // 가입 동호회 필터용
+  // state
   const [joinedClubs, setJoinedClubs] = useState([]);
-  const [selectedClubIds, setSelectedClubIds] = useState([]); // 다중 선택
+  const [selectedClubIds, setSelectedClubIds] = useState([]);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const filterDropdownRef = useRef(null);
 
   const [selectedCategory, setSelectedCategory] = useState('전체');
-
-  // 전체 원본 / 필터링 결과 분리
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 썸네일
   const [thumbnailMap, setThumbnailMap] = useState(new Map());
-
-  // 무한스크롤
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
   const [isAppending, setIsAppending] = useState(false);
   const [noMore, setNoMore] = useState(false);
   const sentinelRef = useRef(null);
   const observerRef = useRef(null);
 
-  // ===== 데이터 로딩 (게시글 + 가입동호회) =====
+  // load
   useEffect(() => {
     let cancelled = false;
-
-    const fetchBase = async () => {
+    (async () => {
       try {
         setLoading(true);
         setError(null);
@@ -142,92 +154,67 @@ export default function CommunityDetail() {
         ]);
 
         if (cancelled) return;
-
         if (all.status === 'fulfilled') {
-          const posts = all.value || [];
-          // 최신순 정렬
-          posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          const posts = (all.value || [])
+            .slice()
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
           setAllPosts(posts);
         } else {
           throw all.reason;
         }
 
-        if (clubs.status === 'fulfilled') {
-          setJoinedClubs(clubs.value || []);
-        } else {
-          setJoinedClubs([]);
-        }
+        if (clubs.status === 'fulfilled') setJoinedClubs(clubs.value || []);
 
-        // 카테고리 탭 반영
-        if (CATEGORY_LIST.includes(decodedTab)) {
-          setSelectedCategory(decodedTab);
-        } else {
-          setSelectedCategory('전체');
-        }
-
+        setSelectedCategory(CATEGORY_LIST.includes(decodedTab) ? decodedTab : '전체');
         window.scrollTo({ top: 0, behavior: 'instant' });
       } catch (err) {
         if (!cancelled) {
-          console.error('게시글 목록 조회 실패:', err);
+          console.error(err);
           setError('게시글을 불러올 수 없습니다.');
         }
       } finally {
         if (!cancelled) setLoading(false);
       }
-    };
-
-    fetchBase();
+    })();
     return () => {
       cancelled = true;
     };
-    // decodedTab이 바뀔 때마다 목록 리셋 느낌 유지
   }, [decodedTab, isLoggedIn]);
 
-  // ===== 외부 클릭 시 필터 드롭다운 닫기 =====
+  // outside click close
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (filterDropdownRef.current && !filterDropdownRef.current.contains(e.target)) {
+    const handler = (e) => {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(e.target))
         setShowFilterDropdown(false);
-      }
     };
     if (showFilterDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener('mousedown', handler);
+      return () => document.removeEventListener('mousedown', handler);
     }
   }, [showFilterDropdown]);
 
-  // ===== 필터링 (카테고리 + 선택 동호회) =====
+  // filter
   const filteredPosts = useMemo(() => {
     let base = allPosts;
-
-    // 1) 카테고리
-    if (selectedCategory && selectedCategory !== '전체') {
-      const dbCategoryName = CATEGORY_DB_MAP[selectedCategory];
-      base = base.filter((p) => {
-        const target = p.parentCategoryName || p.categoryName;
-        return target === dbCategoryName;
-      });
+    if (selectedCategory !== '전체') {
+      const db = CATEGORY_DB_MAP[selectedCategory];
+      base = base.filter((p) => (p.parentCategoryName || p.categoryName) === db);
     }
-
-    // 2) 가입 동호회
     if (selectedClubIds.length > 0) {
       const set = new Set(selectedClubIds);
       base = base.filter((p) => set.has(p.clubId));
     }
-
     return base;
   }, [allPosts, selectedCategory, selectedClubIds]);
 
-  // ===== 썸네일 병렬 로딩 (필터링 결과 기준) =====
+  // thumbs
   useEffect(() => {
     let cancelled = false;
-
-    const fetchThumbs = async () => {
-      if (!filteredPosts || filteredPosts.length === 0) {
+    (async () => {
+      if (!filteredPosts.length) {
         setThumbnailMap(new Map());
         return;
       }
-
       const pairs = filteredPosts
         .map((p) => ({ postId: p.postId, fileId: parseFirstFileId(p.images) }))
         .filter((x) => Number.isInteger(x.fileId) && x.fileId > 0);
@@ -237,33 +224,23 @@ export default function CommunityDetail() {
           fileApi.getFile(fileId).then((res) => ({ postId, link: res?.fileLink || null })),
         ),
       );
-
       if (cancelled) return;
-
       const map = new Map();
       results.forEach((r) => {
-        if (r.status === 'fulfilled' && r.value?.link) {
-          map.set(r.value.postId, r.value.link);
-        }
+        if (r.status === 'fulfilled' && r.value?.link) map.set(r.value.postId, r.value.link);
       });
       setThumbnailMap(map);
-    };
-
-    // 썸네일 로딩 이전에 페이징 상태 리셋
+    })();
     setVisibleCount(BATCH_SIZE);
     setNoMore(false);
-    fetchThumbs();
-
     return () => {
       cancelled = true;
     };
   }, [filteredPosts]);
 
-  // ===== 무한스크롤 설정 (filteredPosts 기준) =====
+  // infinite
   useEffect(() => {
-    if (!sentinelRef.current) return;
-    if (noMore || loading) return;
-
+    if (!sentinelRef.current || noMore || loading) return;
     if (observerRef.current) {
       observerRef.current.disconnect();
       observerRef.current = null;
@@ -281,14 +258,11 @@ export default function CommunityDetail() {
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        const first = entries[0];
-        if (first.isIntersecting) appendMore();
+        if (entries[0].isIntersecting) appendMore();
       },
       { root: null, rootMargin: '400px', threshold: 0 },
     );
-
     observerRef.current.observe(sentinelRef.current);
-
     return () => {
       if (observerRef.current) {
         observerRef.current.disconnect();
@@ -310,13 +284,9 @@ export default function CommunityDetail() {
     }, 250);
   };
 
-  const handleSelectCategory = (category) => {
-    navigate(`/community/${encodeURIComponent(category)}`);
-  };
-
+  const handleSelectCategory = (category) => navigate(`/community/${encodeURIComponent(category)}`);
   const handleFilterClick = (clubId) => {
     if (clubId === null) {
-      // 전체 보기
       setSelectedClubIds([]);
       setShowFilterDropdown(false);
       return;
@@ -326,32 +296,17 @@ export default function CommunityDetail() {
     );
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = Math.floor((now - date) / 1000);
-    if (diff < 60) return '방금 전';
-    if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
-    if (diff < 604800) return `${Math.floor(diff / 86400)}일 전`;
-    return date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
-  };
-
-  const getThumbnailUrl = (postId) => thumbnailMap.get(postId) || null;
-
+  const getThumb = (id) => thumbnailMap.get(id) || null;
   const visiblePosts = filteredPosts.slice(0, visibleCount);
   const rows = toRows(visiblePosts);
 
-  if (loading) {
+  if (loading)
     return (
       <div className="max-w-5xl mx-auto px-6 py-8 text-center">
         <div className="text-gray-500">게시글을 불러오는 중...</div>
       </div>
     );
-  }
-
-  if (error) {
+  if (error)
     return (
       <div className="max-w-5xl mx-auto px-6 py-8 text-center">
         <div className="text-red-500">{error}</div>
@@ -363,13 +318,11 @@ export default function CommunityDetail() {
         </button>
       </div>
     );
-  }
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-6">
-      {/* 상단: 카테고리 탭 + 가입동호회 필터 버튼 */}
+      {/* 상단: 카테고리 탭 + 가입동호회 필터 */}
       <div className="mb-6 flex items-center justify-between gap-4">
-        {/* 카테고리 탭 */}
         <div className="flex-1">
           <div className="flex gap-2 justify-center flex-wrap">
             {CATEGORY_LIST.map((cat) => {
@@ -392,12 +345,13 @@ export default function CommunityDetail() {
           </div>
         </div>
 
-        {/* 가입동호회 필터 (로그인 + 가입 동호회 있을 때만) */}
         {isLoggedIn && joinedClubs.length > 0 && (
           <div className="relative" ref={filterDropdownRef}>
             <button
               onClick={() => setShowFilterDropdown((v) => !v)}
               className="bg-white border border-gray-600 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 flex items-center gap-2"
+              aria-haspopup="menu"
+              aria-expanded={showFilterDropdown}
             >
               <Bars3Icon className="w-8 h-8" />
             </button>
@@ -415,7 +369,6 @@ export default function CommunityDetail() {
                   전체 보기
                 </button>
                 <div className="h-px bg-gray-100" />
-
                 {joinedClubs.map((club) => (
                   <button
                     key={club.clubId}
@@ -455,8 +408,105 @@ export default function CommunityDetail() {
             <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-200 pointer-events-none" />
             <div>
               {rows.map(([left, right], idx) => {
-                const leftUrl = left ? getThumbnailUrl(left.postId) : null;
-                const rightUrl = right ? getThumbnailUrl(right.postId) : null;
+                const leftUrl = left ? getThumb(left.postId) : null;
+                const rightUrl = right ? getThumb(right.postId) : null;
+
+                const Footer = ({ post }) => (
+                  <div className="col-span-2 mt-2 flex items-center justify-between text-sm">
+                    {/* 왼쪽: 동호회명 · 작성자 */}
+                    <div className="text-gray-500 truncate">
+                      {post.clubName || '동호회명'} ·{' '}
+                      {post.authorNickname || post.authorName || post.creatorName || '작성자'}
+                    </div>
+                    {/* 오른쪽: 메타 */}
+                    <div className="flex items-center gap-4 text-gray-500 pr-1">
+                      <span className="flex items-center gap-1">
+                        <EyeIcon className="w-[18px] h-[18px] shrink-0" />
+                        <span className="text-[15px] leading-none font-medium">
+                          {post.viewCount ?? 0}
+                        </span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <HeartIcon className="w-[18px] h-[18px] shrink-0" />
+                        <span className="text-[15px] leading-none font-medium">
+                          {post.likeCount ?? 0}
+                        </span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <ChatBubbleOvalLeftIcon className="w-[18px] h-[18px] shrink-0" />
+                        <span className="text-[15px] leading-none font-medium">
+                          {post.commentCount ?? 0}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                );
+
+                const Card = ({ post, url }) => {
+                  const previewHtml = sanitizePreview(post.content); // DOMPurify + preview
+                  const hasImg = !!url;
+
+                  return (
+                    <article className="grid grid-cols-[1fr_auto] gap-4">
+                      {/* LEFT: 텍스트 영역 */}
+                      <div className="flex flex-col h-[150px] min-h-[150px]">
+                        <div className="text-xs text-gray-500 mb-1">
+                          {post.parentCategoryName || post.categoryName || '카테고리'}
+                        </div>
+
+                        <h3 className="text-base font-semibold text-gray-900 mb-4 break-words line-clamp-1">
+                          <Link to={`/community/posts/${post.postId}`} className="hover:underline">
+                            {post.title || '제목 없음'}
+                          </Link>
+                        </h3>
+
+                        <div
+                          className="text-sm text-gray-600 line-clamp-2"
+                          dangerouslySetInnerHTML={{ __html: previewHtml }}
+                        />
+
+                        {/* 푸터 */}
+                        <div className="mt-auto pt-1 flex items-center justify-between text-[13px]">
+                          <div className="text-gray-500 truncate">
+                            {post.clubName || '동호회명'} ·{' '}
+                            {post.authorNickname || post.authorName || post.creatorName || '작성자'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* RIGHT: 이미지 + 메타 */}
+                      <div className="flex flex-col justify-end items-end h-[150px]">
+                        {/* 이미지 (하단 배치) */}
+                        {hasImg && (
+                          <Link to={`/community/posts/${post.postId}`} className="block mb-2">
+                            <div className="relative w-[132px] h-[96px] rounded-md overflow-hidden border border-gray-200 bg-gray-100">
+                              <img
+                                src={url}
+                                alt={post.title}
+                                className="absolute inset-0 w-full h-full object-cover"
+                                onError={(e) => (e.currentTarget.style.display = 'none')}
+                                loading="lazy"
+                              />
+                            </div>
+                          </Link>
+                        )}
+
+                        {/* 메타 아이콘 한 줄 정렬 */}
+                        <div className="flex items-center gap-3 text-gray-500 pr-1">
+                          <span className="flex items-center gap-1">
+                            <EyeIcon className="w-4 h-4" /> {post.viewCount ?? 0}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <HeartIcon className="w-4 h-4" /> {post.likeCount ?? 0}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <ChatBubbleOvalLeftIcon className="w-4 h-4" /> {post.commentCount ?? 0}
+                          </span>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                };
 
                 return (
                   <div
@@ -465,104 +515,14 @@ export default function CommunityDetail() {
                       idx !== rows.length - 1 ? 'border-b border-gray-200' : ''
                     }`}
                   >
-                    {/* LEFT */}
-                    <div className="pr-8">
-                      {left && (
-                        <article
-                          className={`grid ${leftUrl ? 'grid-cols-[1fr_auto] gap-6' : 'grid-cols-1'}`}
-                        >
-                          <div>
-                            <div className="text-sm text-gray-500 mb-2">{left.clubName}</div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2 break-words">
-                              <Link
-                                to={`/community/posts/${left.postId}`}
-                                className="hover:underline"
-                              >
-                                {left.title}
-                              </Link>
-                            </h3>
-                            <div className="text-sm text-gray-500 flex items-center gap-4 flex-wrap">
-                              <span className="font-medium text-gray-800 flex-shrink-0">
-                                {left.authorNickname || left.authorName || '익명'}
-                              </span>
-                              <span>{formatDate(left.createdAt)}</span>
-                              <div className="flex items-center gap-3 flex-shrink-0">
-                                <span className="flex items-center gap-1">
-                                  <EyeIcon className="w-4 h-4" />
-                                  {left.viewCount || 0}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <HeartIcon className="w-4 h-4" />
-                                  {left.likeCount || 0}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <ChatBubbleOvalLeftIcon className="w-4 h-4" />
-                                  {left.commentCount || 0}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          {leftUrl && (
-                            <ThumbBox>
-                              <Thumb src={leftUrl} alt={left.title} />
-                            </ThumbBox>
-                          )}
-                        </article>
-                      )}
-                    </div>
-
-                    {/* RIGHT */}
-                    <div className="pl-8">
-                      {right && (
-                        <article
-                          className={`grid ${rightUrl ? 'grid-cols-[1fr_auto] gap-6' : 'grid-cols-1'}`}
-                        >
-                          <div>
-                            <div className="text-sm text-gray-500 mb-1">{right.clubName}</div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2 break-words">
-                              <Link
-                                to={`/community/posts/${right.postId}`}
-                                className="hover:underline"
-                              >
-                                {right.title}
-                              </Link>
-                            </h3>
-                            <div className="text-sm text-gray-500 flex items-center gap-4 flex-wrap">
-                              <span className="font-medium text-gray-800 flex-shrink-0">
-                                {right.authorNickname || right.authorName || '익명'}
-                              </span>
-                              <span>{formatDate(right.createdAt)}</span>
-                              <div className="flex items-center gap-3 flex-shrink-0">
-                                <span className="flex items-center gap-1">
-                                  <EyeIcon className="w-4 h-4" />
-                                  {right.viewCount || 0}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <HeartIcon className="w-4 h-4" />
-                                  {right.likeCount || 0}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <ChatBubbleOvalLeftIcon className="w-4 h-4" />
-                                  {right.commentCount || 0}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          {rightUrl && (
-                            <ThumbBox>
-                              <Thumb src={rightUrl} alt={right.title} />
-                            </ThumbBox>
-                          )}
-                        </article>
-                      )}
-                    </div>
+                    <div className="pr-8">{left && <Card post={left} url={leftUrl} />}</div>
+                    <div className="pl-8">{right && <Card post={right} url={rightUrl} />}</div>
                   </div>
                 );
               })}
             </div>
           </div>
 
-          {/* 무한스크롤 센티넬 & 상태 표시 */}
           <div ref={sentinelRef} className="h-10" />
           <div className="flex items-center justify-center py-6">
             {isAppending && (
@@ -577,7 +537,7 @@ export default function CommunityDetail() {
         <div className="text-center py-12 text-gray-500">게시글이 없습니다.</div>
       )}
 
-      <WriteFab />
+      {isLoggedIn && <WriteFab />}
     </div>
   );
 }
