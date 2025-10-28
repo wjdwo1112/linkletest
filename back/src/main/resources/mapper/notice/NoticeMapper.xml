@@ -57,6 +57,7 @@ SELECT
   p.club_id AS clubId,
   p.title AS title,	
   p.content AS content,
+  m.nickname AS nickname,
   p.post_type AS postType,
   p.scope AS scope,
   p.created_by AS createdBy,
@@ -67,6 +68,7 @@ SELECT
 FROM
   POST p
   JOIN CLUB c ON c.club_id = p.club_id
+  LEFT JOIN MEMBER m ON m.member_id = p.created_by
 WHERE p.post_type='N'
   AND p.is_deleted='N'
   AND p.club_id =#{clubId}

@@ -10,6 +10,7 @@ public class NoticeSummary {
 	private Integer clubId;
 	private String title;
 	private String content;
+	private String nickname;
 	private String postType;
 	private String scope;
 	private Integer createdBy;
