@@ -134,6 +134,7 @@
     <update id="updateMember" parameterType="com.ggamakun.linkle.domain.member.entity.Member">
         UPDATE member
         SET
+        	<if test="fileId != null">file_id = #{fileId},</if>
         	<if test="password != null">password = #{password},</if>
             <if test="nickname != null">nickname = #{nickname},</if>
             <if test="birthDate != null">birth_date = #{birthDate},</if>

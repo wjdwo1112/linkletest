@@ -16,7 +16,7 @@ public interface IMemberService {
      * 기본 정보 업데이트 (닉네임, 생년월일, 성별, 주소, 소개)
      */
     void updateBasicInfo(Integer memberId, String nickname, Timestamp birthDate, 
-            String gender, String sido, String sigungu, String description);
+            String gender, String sido, String sigungu, String description, Integer fileId);
     
     /**
      * 기본 정보 업데이트 (닉네임, 생년월일, 성별, 주소)

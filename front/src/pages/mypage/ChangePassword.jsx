@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AlertModal from '../../components/common/AlertModal';
 import { memberApi } from '../../services/api';
 
 export default function ChangePassword() {
@@ -11,6 +12,27 @@ export default function ChangePassword() {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+
+  const [alertModal, setAlertModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onCloseCallback: null,
+  });
+
+  const closeAlert = () => {
+    const callback = alertModal.onCloseCallback;
+    setAlertModal({
+      isOpen: false,
+      title: '',
+      message: '',
+      onCloseCallback: null,
+    });
+
+    if (callback) {
+      callback();
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -58,8 +80,14 @@ export default function ChangePassword() {
 
     try {
       await memberApi.updatePassword(formData.currentPassword, formData.newPassword);
-      alert('비밀번호가 성공적으로 변경되었습니다.');
-      navigate('/mypage/profile');
+      setAlertModal({
+        isOpen: true,
+        title: '완료',
+        message: '비밀번호가 변경되었습니다.',
+        onCloseCallback: () => {
+          navigate('/mypage/profile');
+        },
+      });
     } catch (error) {
       console.error('비밀번호 변경 실패:', error);
       if (error.response?.data?.message) {
@@ -159,6 +187,12 @@ export default function ChangePassword() {
           </button>
         </div>
       </form>
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={closeAlert}
+        title={alertModal.title}
+        message={alertModal.message}
+      />
     </div>
   );
 }

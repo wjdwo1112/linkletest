@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { memberApi } from '../../services/api';
+import { memberApi, fileApi } from '../../services/api';
+import useUserStore from '../../store/useUserStore';
 import InterestsModal from './InterestsModal';
+import defaultProfile from '../../assets/images/default-profile.png';
 
 export default function MyPageProfile() {
   const navigate = useNavigate();
+  const { user, setUser } = useUserStore();
   const [profile, setProfile] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [imagePreview, setImagePreview] = useState(defaultProfile);
 
   useEffect(() => {
     fetchProfile();
@@ -18,6 +22,28 @@ export default function MyPageProfile() {
       setIsLoading(true);
       const data = await memberApi.getProfile();
       setProfile(data);
+
+      // 프로필 이미지 로드
+      if (data.fileId) {
+        try {
+          const fileData = await fileApi.getFile(data.fileId);
+          setImagePreview(fileData.fileLink);
+
+          // useUserStore 업데이트
+          if (user) {
+            setUser({
+              ...user,
+              fileId: data.fileId,
+              profileImageUrl: fileData.fileLink,
+            });
+          }
+        } catch (error) {
+          console.error('프로필 이미지 조회 실패:', error);
+          setImagePreview(defaultProfile);
+        }
+      } else {
+        setImagePreview(defaultProfile);
+      }
     } catch (error) {
       console.error('프로필 조회 실패:', error);
       alert('프로필을 불러올 수 없습니다.');
@@ -47,12 +73,18 @@ export default function MyPageProfile() {
     );
   }
 
-  // const address = profile.sido && profile.sigungu ? `${profile.sido} ${profile.sigungu}` : '';
-
   return (
     <div className="flex-1 bg-white rounded-lg shadow-sm p-8">
       <div className="flex flex-col items-center">
-        <div className="w-32 h-32 rounded-full bg-gray-300 mb-6"></div>
+        {imagePreview !== defaultProfile ? (
+          <img
+            src={imagePreview}
+            alt="프로필 이미지"
+            className="w-32 h-32 rounded-full object-cover bg-gray-300 mb-6"
+          />
+        ) : (
+          <div className="w-32 h-32 rounded-full bg-gray-300 mb-6"></div>
+        )}
 
         <h2 className="text-2xl font-bold text-gray-900 mb-3">{profile.nickname}</h2>
 

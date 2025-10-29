@@ -18,4 +18,5 @@ public class UpdateBasicInfoRequestDto {
     @NotBlank(message = "주소는 필수입니다.")
     private String sigungu;
     private String description;
+    private Integer fileId;
 }

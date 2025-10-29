@@ -7,7 +7,7 @@ import {
   PencilSquareIcon,
   UsersIcon,
 } from '@heroicons/react/24/outline';
-import { categoryApi } from '../../services/api';
+import { categoryApi, fileApi } from '../../services/api';
 import axios from 'axios';
 
 const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
@@ -50,23 +50,15 @@ const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
     }
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      // fileApi 사용으로 변경
+      const uploadResponse = await fileApi.uploadImage(file);
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/file/upload`,
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          withCredentials: true,
-        },
-      );
-
-      const imageUrl = response.data;
-      setImagePreview(imageUrl);
-
-      setFormData((prev) => ({ ...prev, fileId: null }));
+      // uploadResponse = { fileId, fileUrl, originalFileName }
+      setFormData((prev) => ({ ...prev, fileId: uploadResponse.fileId }));
+      setImagePreview(uploadResponse.fileUrl);
       setErrors((prev) => ({ ...prev, image: '' }));
+
+      console.log('이미지 업로드 성공:', uploadResponse);
     } catch (error) {
       console.error('이미지 업로드 실패:', error);
       setErrors((prev) => ({ ...prev, image: '이미지 업로드에 실패했습니다.' }));

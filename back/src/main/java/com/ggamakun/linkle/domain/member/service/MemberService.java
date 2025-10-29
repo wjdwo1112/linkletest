@@ -81,7 +81,7 @@ public class MemberService implements IMemberService {
 	 */
 	@Transactional
 	public void updateBasicInfo(Integer memberId, String nickname, Timestamp birthDate, 
-			String gender, String sido, String sigungu, String description) {
+			String gender, String sido, String sigungu, String description, Integer fileId) {
 		log.info("회원 기본 정보 업데이트 시작 - Member ID: {}", memberId);
 
 		Member member = memberRepository.findById(memberId);
@@ -101,6 +101,9 @@ public class MemberService implements IMemberService {
 		member.setSido(sido);
 		member.setSigungu(sigungu);
 		member.setDescription(description);
+		if(fileId != null) {
+			member.setFileId(fileId);		
+			}
 		member.setUpdatedBy(memberId);
 
 		int result = memberRepository.updateMember(member);
@@ -118,7 +121,7 @@ public class MemberService implements IMemberService {
 	@Transactional
 	public void updateBasicInfo(Integer memberId, String nickname, Timestamp birthDate, 
 			String gender, String sido, String sigungu) {
-		updateBasicInfo(memberId, nickname, birthDate, gender, sido, sigungu, null);
+		updateBasicInfo(memberId, nickname, birthDate, gender, sido, sigungu, null,null);
 	}
 
 	/**

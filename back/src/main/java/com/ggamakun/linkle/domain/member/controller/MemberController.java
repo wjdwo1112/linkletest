@@ -59,7 +59,8 @@ public class MemberController {
             null,
             request.getSido(), 
             request.getSigungu(),
-            request.getDescription()
+            request.getDescription(),
+            request.getFileId()
         );
         return ResponseEntity.ok().build();
     }

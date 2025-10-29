@@ -1,16 +1,31 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { memberApi } from '../../services/api';
+import { memberApi, fileApi } from '../../services/api';
+import useUserStore from '../../store/useUserStore';
+import ProfileImageModal from './ProfileImageModal';
+import AlertModal from '../../components/common/AlertModal';
+import defaultProfile from '../../assets/images/default-profile.png';
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
+  const { user, setUser } = useUserStore();
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(defaultProfile);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     nickname: '',
     sido: '',
     sigungu: '',
     description: '',
+    fileId: null,
+  });
+
+  const [alertModal, setAlertModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onCloseCallback: null,
   });
 
   useEffect(() => {
@@ -27,12 +42,43 @@ const ProfileEdit = () => {
         sido: data.sido || '',
         sigungu: data.sigungu || '',
         description: data.description || '',
+        fileId: data.fileId || null,
       });
+
+      // 프로필 이미지가 있으면 표시
+      if (data.fileId) {
+        try {
+          const fileData = await fileApi.getFile(data.fileId);
+          setImagePreview(fileData.fileLink);
+        } catch (error) {
+          console.error('프로필 이미지 조회 실패:', error);
+          setImagePreview(defaultProfile);
+        }
+      }
     } catch (error) {
       console.error('프로필 조회 실패:', error);
-      alert('프로필을 불러올 수 없습니다.');
+      setAlertModal({
+        isOpen: true,
+        title: '오류',
+        message: '프로필을 불러올 수 없습니다.',
+        onCloseCallback: null,
+      });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const closeAlert = () => {
+    const callback = alertModal.onCloseCallback;
+    setAlertModal({
+      isOpen: false,
+      title: '',
+      message: '',
+      onCloseCallback: null,
+    });
+
+    if (callback) {
+      callback();
     }
   };
 
@@ -56,26 +102,66 @@ const ProfileEdit = () => {
     }).open();
   };
 
+  const handleImageConfirm = (fileId, fileUrl) => {
+    setFormData((prev) => ({
+      ...prev,
+      fileId: fileId,
+    }));
+    setImagePreview(fileUrl);
+    setIsImageModalOpen(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.nickname.trim()) {
-      alert('닉네임을 입력해주세요.');
+      setAlertModal({
+        isOpen: true,
+        title: '입력 오류',
+        message: '닉네임을 입력해주세요.',
+        onCloseCallback: null,
+      });
       return;
     }
 
     if (!formData.sido.trim() || !formData.sigungu.trim()) {
-      alert('주소를 입력해주세요.');
+      setAlertModal({
+        isOpen: true,
+        title: '입력 오류',
+        message: '주소를 입력해주세요.',
+        onCloseCallback: null,
+      });
       return;
     }
 
     try {
       await memberApi.updateProfile(formData);
-      alert('프로필이 수정되었습니다.');
-      navigate('/mypage/profile');
+
+      // useUserStore 업데이트
+      if (user) {
+        setUser({
+          ...user,
+          fileId: formData.fileId,
+          profileImageUrl: imagePreview !== defaultProfile ? imagePreview : null,
+        });
+      }
+
+      setAlertModal({
+        isOpen: true,
+        title: '완료',
+        message: '프로필이 수정되었습니다.',
+        onCloseCallback: () => {
+          navigate('/mypage/profile');
+        },
+      });
     } catch (error) {
       console.error('프로필 수정 실패:', error);
-      alert(error.message || '프로필 수정에 실패했습니다.');
+      setAlertModal({
+        isOpen: true,
+        title: '오류',
+        message: error.message || '프로필 수정에 실패했습니다.',
+        onCloseCallback: null,
+      });
     }
   };
 
@@ -107,7 +193,24 @@ const ProfileEdit = () => {
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">이미지</label>
-            <div className="w-32 h-32 rounded-full bg-gray-300"></div>
+            <div className="flex items-center gap-4">
+              {imagePreview !== defaultProfile ? (
+                <img
+                  src={imagePreview}
+                  alt="프로필 이미지"
+                  className="w-32 h-32 rounded-full object-cover bg-gray-300"
+                />
+              ) : (
+                <div className="w-32 h-32 rounded-full bg-gray-300"></div>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsImageModalOpen(true)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                이미지 변경
+              </button>
+            </div>
           </div>
 
           <div>
@@ -127,8 +230,8 @@ const ProfileEdit = () => {
               name="nickname"
               value={formData.nickname}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="회원1"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CA8FF]"
+              placeholder="닉네임"
             />
           </div>
 
@@ -146,14 +249,13 @@ const ProfileEdit = () => {
                   formData.sido && formData.sigungu ? `${formData.sido} ${formData.sigungu}` : ''
                 }
                 readOnly
-                placeholder="주소를 검색해주세요"
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-pointer"
-                onClick={openAddressSearch}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                placeholder="주소를 선택해주세요"
               />
               <button
                 type="button"
                 onClick={openAddressSearch}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-6 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 주소 검색
               </button>
@@ -166,29 +268,44 @@ const ProfileEdit = () => {
               name="description"
               value={formData.description}
               onChange={handleChange}
-              rows="5"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-              placeholder="소개입니다."
+              rows={4}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CA8FF] resize-none"
+              placeholder="소개글을 입력해주세요"
             />
           </div>
         </div>
 
-        <div className="flex gap-4 mt-8">
+        <div className="flex gap-3 mt-8">
           <button
             type="button"
             onClick={handleCancel}
-            className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
           >
             취소
           </button>
           <button
             type="submit"
-            className="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90"
+            className="flex-1 px-6 py-3 bg-[#4CA8FF] text-white rounded-lg hover:bg-[#4CA8FF]/90 transition-colors"
           >
             수정
           </button>
         </div>
       </form>
+
+      {isImageModalOpen && (
+        <ProfileImageModal
+          currentImage={imagePreview}
+          onClose={() => setIsImageModalOpen(false)}
+          onConfirm={handleImageConfirm}
+        />
+      )}
+
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={closeAlert}
+        title={alertModal.title}
+        message={alertModal.message}
+      />
     </div>
   );
 };
