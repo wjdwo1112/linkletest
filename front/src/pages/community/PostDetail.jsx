@@ -184,10 +184,29 @@ export default function PostDetail() {
 
         if (err.status === 401) {
           setErrorType('UNAUTHORIZED');
-          setError('로그인이 필요합니다.');
+          setAlertModal({
+            isOpen: true,
+            title: '알림',
+            message: '로그인 후 이용 가능합니다.',
+            redirectTo: '/community',
+          });
         } else if (err.status === 403) {
           setErrorType('FORBIDDEN');
-          setError('동호회 회원만 볼 수 있습니다.');
+          setAlertModal({
+            isOpen: true,
+            title: '알림',
+            message: '동호회 회원만 볼 수 있습니다.',
+            redirectTo: '/community',
+          });
+        } else if (err.status === 500 && err.message.includes('동호회')) {
+          // 🔹 500 에러지만 동호회 권한 관련 에러인 경우
+          setErrorType('FORBIDDEN');
+          setAlertModal({
+            isOpen: true,
+            title: '알림',
+            message: '동호회 회원만 볼 수 있습니다.',
+            redirectTo: '/community',
+          });
         } else if (err.status === 404) {
           setErrorType('NOT_FOUND');
           setError('게시글을 찾을 수 없습니다.');
@@ -615,46 +634,45 @@ export default function PostDetail() {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-6 py-8 text-center">
+        <AlertModal
+          isOpen={alertModal.isOpen}
+          onClose={closeAlert}
+          title={alertModal.title}
+          message={alertModal.message}
+        />
         <div className="text-gray-500">게시글을 불러오는 중...</div>
       </div>
     );
   }
 
-  if (error || !post) {
+  // 401, 403 에러는 모달만 표시
+  if (errorType === 'UNAUTHORIZED' || errorType === 'FORBIDDEN') {
     return (
       <div className="max-w-4xl mx-auto px-6 py-8 text-center">
-        <div className="text-red-500 mb-4">{error || '게시글을 찾을 수 없습니다.'}</div>
-
-        {errorType === 'UNAUTHORIZED' && (
-          <button
-            onClick={() => navigate('/login')}
-            className="px-6 py-2 bg-[#4FA3FF] text-white rounded hover:bg-[#3d8edb]"
-          >
-            로그인하기
-          </button>
-        )}
-
-        {errorType === 'FORBIDDEN' && (
-          <button
-            onClick={() => navigate('/community')}
-            className="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-          >
-            목록으로 돌아가기
-          </button>
-        )}
-
-        {(errorType === 'NOT_FOUND' || !errorType) && (
-          <button
-            onClick={() => navigate('/community')}
-            className="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-          >
-            목록으로 돌아가기
-          </button>
-        )}
+        <AlertModal
+          isOpen={alertModal.isOpen}
+          onClose={closeAlert}
+          title={alertModal.title}
+          message={alertModal.message}
+        />
       </div>
     );
   }
 
+  // 404나 기타 에러는 에러 화면 표시
+  if (error || !post) {
+    return (
+      <div className="max-w-4xl mx-auto px-6 py-8 text-center">
+        <div className="text-red-500 mb-4">{error || '게시글을 찾을 수 없습니다.'}</div>
+        <button
+          onClick={() => navigate('/community')}
+          className="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+        >
+          목록으로 돌아가기
+        </button>
+      </div>
+    );
+  }
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">

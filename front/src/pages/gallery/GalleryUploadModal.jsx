@@ -5,7 +5,7 @@ import AlertModal from '../../components/common/AlertModal';
 
 export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, preSelectedClubId }) {
   const [selectedClubId, setSelectedClubId] = useState('');
-  const [scope, setScope] = useState('PUBLIC');
+  const [scope, setScope] = useState('ALL');
   const [uploadedFile, setUploadedFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -91,7 +91,7 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, pr
       const galleryData = {
         clubId: parseInt(selectedClubId),
         fileId: uploadedFile.fileId,
-        scope: scope === 'PUBLIC' ? 'ALL' : 'ALL',
+        scope: scope,
       };
 
       await galleryApi.createGallery(galleryData);
@@ -173,8 +173,8 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, pr
                 <input
                   type="radio"
                   name="scope"
-                  value="PUBLIC"
-                  checked={scope === 'PUBLIC'}
+                  value="ALL"
+                  checked={scope === 'ALL'}
                   onChange={(e) => setScope(e.target.value)}
                   className="w-4 h-4 text-blue-500 border-gray-300 focus:ring-blue-500"
                 />

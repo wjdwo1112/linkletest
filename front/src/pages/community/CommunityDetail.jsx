@@ -13,6 +13,7 @@ import { postApi } from '../../services/api/postApi';
 import { fileApi } from '../../services/api/fileApi';
 import { clubApi } from '../../services/api/clubApi';
 import useUserStore from '../../store/useUserStore';
+import AlertModal from '../../components/common/AlertModal';
 
 const CATEGORY_LIST = [
   '전체',
@@ -135,6 +136,38 @@ export default function CommunityDetail() {
   const [noMore, setNoMore] = useState(false);
   const sentinelRef = useRef(null);
   const observerRef = useRef(null);
+
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showMemberOnlyModal, setShowMemberOnlyModal] = useState(false);
+  const [selectedClubName, setSelectedClubName] = useState('');
+
+  const handlePostClick = async (e, post) => {
+    e.preventDefault();
+
+    // 비로그인 사용자 체크
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    // SCOPE가 'MEMBER'인 경우 동호회 회원 체크
+    if (post.scope === 'MEMBER') {
+      const isMember = joinedClubs.some((club) => club.clubId === post.clubId);
+      if (!isMember) {
+        setSelectedClubName(post.clubName || '동호회');
+        setShowMemberOnlyModal(true);
+        return;
+      }
+    }
+
+    // 정상적으로 상세 페이지로 이동
+    navigate(`/community/posts/${post.postId}`);
+  };
+
+  const handleLoginRedirect = () => {
+    setShowLoginModal(false);
+    navigate('/login');
+  };
 
   // load
   useEffect(() => {
@@ -455,9 +488,13 @@ export default function CommunityDetail() {
                         </div>
 
                         <h3 className="text-base font-semibold text-gray-900 mb-4 break-words line-clamp-1">
-                          <Link to={`/community/posts/${post.postId}`} className="hover:underline">
+                          <a
+                            href={`/community/posts/${post.postId}`}
+                            onClick={(e) => handlePostClick(e, post)}
+                            className="hover:underline cursor-pointer"
+                          >
                             {post.title || '제목 없음'}
-                          </Link>
+                          </a>
                         </h3>
 
                         <div
@@ -478,7 +515,11 @@ export default function CommunityDetail() {
                       <div className="flex flex-col justify-end items-end h-[150px]">
                         {/* 이미지 (하단 배치) */}
                         {hasImg && (
-                          <Link to={`/community/posts/${post.postId}`} className="block mb-2">
+                          <a
+                            href={`/community/posts/${post.postId}`}
+                            onClick={(e) => handlePostClick(e, post)}
+                            className="block mb-2 cursor-pointer"
+                          >
                             <div className="relative w-[132px] h-[96px] rounded-md overflow-hidden border border-gray-200 bg-gray-100">
                               <img
                                 src={url}
@@ -488,7 +529,7 @@ export default function CommunityDetail() {
                                 loading="lazy"
                               />
                             </div>
-                          </Link>
+                          </a>
                         )}
 
                         {/* 메타 아이콘 한 줄 정렬 */}
@@ -538,6 +579,23 @@ export default function CommunityDetail() {
       )}
 
       {isLoggedIn && <WriteFab />}
+
+      <AlertModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        title="알림"
+        message="로그인 후 이용 가능합니다."
+        confirmText="로그인"
+        onConfirm={handleLoginRedirect}
+      />
+
+      <AlertModal
+        isOpen={showMemberOnlyModal}
+        onClose={() => setShowMemberOnlyModal(false)}
+        title="알림"
+        message={`동호회 회원만 볼 수 있습니다.`}
+        confirmText="확인"
+      />
     </div>
   );
 }

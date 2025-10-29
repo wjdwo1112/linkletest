@@ -38,6 +38,7 @@ import Gallery from './pages/gallery/Gallery';
 import ClubProfile from './pages/club/ClubProfile';
 import MyActivities from './pages/myactivity/MyActivities';
 import ClubDetailNew from './pages/club/ClubDetailNew';
+import ClubSearch from './pages/club/ClubSearch';
 
 const router = createBrowserRouter([
   {
@@ -118,6 +119,14 @@ const router = createBrowserRouter([
       <AuthLayout>
         <ResetPassword />
       </AuthLayout>
+    ),
+  },
+  {
+    path: '/clubs/search',
+    element: (
+      <MainLayout>
+        <ClubSearch />
+      </MainLayout>
     ),
   },
   {

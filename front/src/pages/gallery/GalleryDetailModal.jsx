@@ -67,6 +67,7 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
       console.error('역할 조회 실패:', error);
     }
   };
+
   const closeAlert = () => {
     const redirectPath = alertModal.redirectTo;
     setAlertModal({
@@ -268,22 +269,22 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
             </div>
           </div>
 
-          {/* 작성자 & 날짜 정보 */}
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-            <div className="relative w-11 h-11 rounded-full overflow-hidden bg-white ring-1 ring-transparent flex-shrink-0">
-              <img
-                src={gallery.memberProfileImage || defaultProfile}
-                alt={gallery.nickname}
-                className="w-full h-full object-cover"
-              />
+          {/* 작성자 & 날짜 정보 & 닫기 버튼 */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="relative w-11 h-11 rounded-full overflow-hidden bg-white ring-1 ring-transparent flex-shrink-0">
+                <img
+                  src={gallery.memberProfileImage || defaultProfile}
+                  alt={gallery.nickname}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <span className="text-gray-700">{gallery.nickname || '익명'}</span>
+              <span className="text-gray-400">•</span>
+              <span className="text-gray-500">{gallery.createdAt}</span>
             </div>
-            <span className="text-gray-700">{gallery.nickname || '익명'}</span>
-            <span className="text-gray-400">•</span>
-            <span className="text-gray-500">{gallery.createdAt}</span>
-          </div>
 
-          {/* 닫기 버튼 */}
-          <div className="flex justify-end">
+            {/* 닫기 버튼 */}
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"

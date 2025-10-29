@@ -1,19 +1,23 @@
 // front/src/pages/community/Community.jsx
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PencilSquareIcon } from '@heroicons/react/24/outline';
 import {
   HeartIcon as Heart,
   ChatBubbleOvalLeftIcon as ChatIcon,
 } from '@heroicons/react/24/outline';
 import { postApi } from '../../services/api/postApi';
+import useUserStore from '../../store/useUserStore';
+import { clubApi } from '../../services/api/clubApi';
+import AlertModal from '../../components/common/AlertModal';
+import { useAlert } from '../../hooks/useAlert';
 
 const CATEGORY_META = [
   { icon: '⚽', title: '운동/스포츠', dbName: '운동·스포츠' },
   { icon: '🎨', title: '문화/예술', dbName: '문화·예술' },
   { icon: '🎮', title: '취미', dbName: '취미' },
   { icon: '📚', title: '자기계발', dbName: '자기계발' },
-  { icon: '🍴', title: '푸드 드링크', dbName: '푸드·드링크' },
+  { icon: '🍴', title: '푸드/드링크', dbName: '푸드·드링크' },
   { icon: '✈️', title: '여행/아웃도어', dbName: '여행·아웃도어' },
   { icon: '🕹️', title: '게임/오락', dbName: '게임·오락' },
   { icon: '🌍', title: '외국어', dbName: '외국어' },
@@ -41,9 +45,17 @@ function WriteFab() {
 }
 
 const Community = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated: isLoggedIn } = useUserStore();
+  const { alertState, showAlert, closeAlert } = useAlert();
+
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [joinedClubs, setJoinedClubs] = useState([]);
+
+  const isMemberOf = (clubId) =>
+    joinedClubs.some((c) => Number(c.clubId) === Number(clubId) && c.status === 'APPROVED');
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -53,6 +65,17 @@ const Community = () => {
         const data = await postApi.getPostList();
         console.log('전체 게시글:', data);
         setPosts(data);
+
+        // 로그인한 경우 가입한 동호회 목록 조회
+        if (isLoggedIn) {
+          try {
+            const clubsData = await clubApi.getJoinedClubs();
+            setJoinedClubs(clubsData || []);
+          } catch (clubError) {
+            console.log('동호회 목록 조회 불가:', clubError);
+            setJoinedClubs([]);
+          }
+        }
       } catch (err) {
         console.error('게시글 목록 조회 실패:', err);
         setError('게시글을 불러올 수 없습니다.');
@@ -62,7 +85,25 @@ const Community = () => {
     };
 
     fetchPosts();
-  }, []);
+  }, [isLoggedIn]); // 의존성 배열에 isLoggedIn 추가
+
+  const handlePostClick = (e, post) => {
+    e.preventDefault(); // Link 기본 동작 방지
+
+    // 로그인 안했으면 모든 게시글 차단
+    if (!isLoggedIn) {
+      showAlert('로그인 후 이용 가능합니다.');
+      return;
+    }
+    // MEMBER 공개범위면 회원 여부
+    if (post.scope === 'MEMBER' && !isMemberOf(post.clubId)) {
+      showAlert('동호회 회원만 볼 수 있습니다.');
+      return;
+    }
+    navigate(`/community/posts/${post.postId}`, {
+      state: { scope: post.scope, clubId: post.clubId },
+    });
+  };
 
   const latestAll = useMemo(
     () => [...posts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
@@ -103,6 +144,13 @@ const Community = () => {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
+      <AlertModal
+        isOpen={alertState.isOpen}
+        onClose={closeAlert}
+        title={alertState.title}
+        message={alertState.message}
+        confirmText={alertState.confirmText}
+      />
       <div className="mb-12">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-gray-800">전체 동호회 글</h2>
@@ -119,6 +167,7 @@ const Community = () => {
             <li key={post.postId}>
               <Link
                 to={`/community/posts/${post.postId}`}
+                onClick={(e) => handlePostClick(e, post)}
                 className={`flex items-center justify-between py-2 px-1 hover:bg-gray-50 transition ${
                   index !== 4 ? 'border-b border-gray-100' : ''
                 }`}
@@ -171,6 +220,7 @@ const Community = () => {
                     <li key={post.postId}>
                       <Link
                         to={`/community/posts/${post.postId}`}
+                        onClick={(e) => handlePostClick(e, post)}
                         className="flex items-center justify-between py-1 px-1 hover:bg-gray-50 transition"
                       >
                         <span className="text-sm text-gray-700 hover:text-gray-900 flex-1">

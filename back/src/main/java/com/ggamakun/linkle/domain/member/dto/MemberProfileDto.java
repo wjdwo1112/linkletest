@@ -16,7 +16,6 @@ public class MemberProfileDto {
     
     private Integer memberId;
     private Integer fileId;
-//    private String profileImageUrl;
     private String email;
     private String name;
     private String nickname;

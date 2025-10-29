@@ -4,27 +4,26 @@
 
 <!-- 특정 게시글의 모든 댓글(댓글+대댓글) 조회 -->
 <select id="findByPostId" resultType="com.ggamakun.linkle.domain.comment.dto.CommentDto">
-SELECT 
- c.comment_id AS commentId,
- c.post_id AS postId,
- c.parent_comment_id AS parentCommentId,
- c.content AS content,
- c.created_by AS createdBy,
- c.is_deleted AS isDeleted,
- TO_CHAR(c.created_at, 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
- c.like_count AS likeCount,
- c.comment_count AS commentCount,
- m.name AS authorName,
- m.nickname AS authorNickname,
- m.file_id AS profileId,
- f.file_link AS profileUrl
- FROM COMMENTS c
- LEFT JOIN MEMBER m ON c.created_by = m.member_id
- LEFT JOIN FILE_STORAGE f ON f.file_id = m.file_id
- AND f.is_deleted = 'N'
- WHERE c.post_id = #{postId}
- AND (c.is_deleted = 'N' or(c.is_deleted = 'Y' AND c.comment_count > 0))
- ORDER BY NVL(c.parent_comment_id, c.comment_id),c.created_at
+	SELECT c.comment_id AS commentId,
+	 	   c.post_id AS postId,
+	 	   c.parent_comment_id AS parentCommentId,
+	 	   c.content AS content,
+	 	   c.created_by AS createdBy,
+		   c.is_deleted AS isDeleted,
+		   TO_CHAR(c.created_at, 'YYYY-MM-DD HH24:MI:SS') AS createdAt,
+		   c.like_count AS likeCount,
+		   c.comment_count AS commentCount,
+		   m.name AS authorName,
+		   m.nickname AS authorNickname,
+	       m.file_id AS profileId,
+	       f.file_link AS profileUrl
+	  FROM COMMENTS c
+	  LEFT JOIN MEMBER m ON c.created_by = m.member_id
+	  LEFT JOIN FILE_STORAGE f ON f.file_id = m.file_id
+	   AND f.is_deleted = 'N'
+	 WHERE c.post_id = #{postId}
+	   AND (c.is_deleted = 'N' or(c.is_deleted = 'Y' AND c.comment_count > 0))
+	 ORDER BY NVL(c.parent_comment_id, c.comment_id),c.created_at
 </select>
 
 <!-- 댓글 상세 조회 -->
@@ -53,15 +52,16 @@ SELECT
 </select>
 
 <!--  댓글 등록 -->
+
 <insert id="insertComment" parameterType="com.ggamakun.linkle.domain.comment.dto.CreateCommentRequest">
-INSERT INTO COMMENTS
-(
-comment_id, post_id, parent_comment_id, content, created_by, created_at, like_count, comment_count, is_deleted
-)
-VALUES
-(
- SEQ_COMMENTS.NEXTVAL, #{postId}, #{parentCommentId, jdbcType=NUMERIC}, #{content}, #{createdBy}, SYSDATE, 0 , 0 , 'N'
-)
+	INSERT INTO COMMENTS
+	(
+		comment_id, post_id, parent_comment_id, content, created_by, created_at, like_count, comment_count, is_deleted
+	)
+	VALUES
+	(
+	 	SEQ_COMMENTS.NEXTVAL, #{postId}, #{parentCommentId, jdbcType=NUMERIC}, #{content}, #{createdBy}, SYSDATE, 0 , 0 , 'N'
+	)
 
 </insert>
 

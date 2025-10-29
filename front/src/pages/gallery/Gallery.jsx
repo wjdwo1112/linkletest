@@ -150,20 +150,40 @@ export default function Gallery() {
 
   const handleImageClick = async (g) => {
     try {
+      // MEMBER 공개 범위인 경우 권한 체크
+      if (g.scope === 'MEMBER') {
+        // 로그인 안했으면 차단
+        if (!isLoggedIn) {
+          showAlert('로그인 후 이용 가능합니다.', '');
+          return;
+        }
+
+        // 해당 동호회의 회원인지 확인
+        const isMember = joinedClubs.some(
+          (club) => club.clubId === g.clubId && club.status === 'APPROVED',
+        );
+
+        if (!isMember) {
+          showAlert('동호회 회원만 볼 수 있습니다.');
+          return;
+        }
+      }
+
       const [detail, clubDetail] = await Promise.all([
-        galleryApi.getGallery(g.galleryId), // memberProfileImage, nickname, createdAt 등
-        clubApi.getClubDetail(g.clubId), // fileLink(클럽 아바타)
+        galleryApi.getGallery(g.galleryId),
+        clubApi.getClubDetail(g.clubId),
       ]);
 
       setSelectedGallery({
-        ...g, // 기존 목록 데이터(파일 링크 등)
-        ...detail, // 작성자 프로필/닉네임 등
+        ...g,
+        ...detail,
         clubName: clubDetail.clubName,
         clubProfileImage: clubDetail.fileLink,
       });
       setIsDetailOpen(true);
     } catch (e) {
       console.error(e);
+      showAlert('상세 정보를 불러오는데 실패했습니다.');
     }
   };
 

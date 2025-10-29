@@ -13,6 +13,7 @@ public class PostSummary {
 	private String images;
 	private String title;
 	private String content;
+	private String scope;
 	private Integer viewCount;
 	private Integer likeCount;
 	private Integer commentCount;

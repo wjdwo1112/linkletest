@@ -30,7 +30,7 @@ public class ClubMemberController {
 
     private final IClubMemberService clubMemberService;
 
-    @GetMapping("/clubs/{clubId}/members")
+    @GetMapping("/clubs/{clubId:\\d+}/members")
     public ResponseEntity<List<ClubMemberDto>> getClubMembers(
             @PathVariable("clubId") Integer clubId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -40,7 +40,7 @@ public class ClubMemberController {
         return ResponseEntity.ok(members);
     }
 
-    @GetMapping("/clubs/{clubId}/members/waiting")
+    @GetMapping("/clubs/{clubId:\\d+}/members/waiting")
     public ResponseEntity<List<ClubMemberDto>> getWaitingMembers(
             @PathVariable("clubId") Integer clubId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -50,7 +50,7 @@ public class ClubMemberController {
         return ResponseEntity.ok(members);
     }
 
-    @PutMapping("/clubs/{clubId}/members/role")
+    @PutMapping("/clubs/{clubId:\\d+}/members/role")
     public ResponseEntity<Void> updateMemberRole(
             @PathVariable("clubId") Integer clubId,
             @Valid @RequestBody UpdateMemberRoleRequest request,
@@ -61,7 +61,7 @@ public class ClubMemberController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/clubs/{clubId}/members/remove")
+    @PutMapping("/clubs/{clubId:\\d+}/members/remove")
     public ResponseEntity<Void> removeMember(
             @PathVariable("clubId") Integer clubId,
             @Valid @RequestBody RemoveMemberRequest request,
@@ -73,7 +73,7 @@ public class ClubMemberController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/clubs/{clubId}/members/approve")
+    @PostMapping("/clubs/{clubId:\\d+}/members/approve")
     public ResponseEntity<Void> approveMember(
             @PathVariable("clubId") Integer clubId,
             @Valid @RequestBody ApproveRejectRequest request,
@@ -84,7 +84,7 @@ public class ClubMemberController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/clubs/{clubId}/members/reject")
+    @PostMapping("/clubs/{clubId:\\d+}/members/reject")
     public ResponseEntity<Void> rejectMember(
             @PathVariable("clubId") Integer clubId,
             @Valid @RequestBody ApproveRejectRequest request,

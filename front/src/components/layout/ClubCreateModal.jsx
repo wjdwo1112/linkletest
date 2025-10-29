@@ -139,6 +139,7 @@ const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
       );
 
       onSuccess(response.data);
+      window.dispatchEvent(new CustomEvent('clubUpdated'));
       handleClose();
     } catch (error) {
       console.error('동호회 생성 실패:', error);

@@ -36,6 +36,7 @@ SELECT
 	p.images AS images,
 	p.title AS title,
 	p.content AS content,
+	p.scope AS scope,
 	p.view_count AS viewCount,
 	p.like_count AS likeCount,
 	p.comment_count AS commentCount,
