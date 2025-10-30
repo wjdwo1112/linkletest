@@ -11,19 +11,61 @@ import ClubMembers from './components/ClubMembers';
 import ClubWithdrawModal from './components/ClubWithdrawModal';
 import AlertModal from '../../../components/common/AlertModal';
 import { clubApi } from '../../../services/api/clubApi';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 const Dashboard = () => {
   const { clubId } = useParams();
   const navigate = useNavigate();
   const { currentClubRole, setCurrentClub } = useUserStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
-  const [alertModal, setAlertModal] = useState({ isOpen: false, message: '' });
+  const [alertModal, setAlertModal] = useState({
+    isOpen: false,
+    message: '',
+    redirectOnClose: false,
+    nextUrl: null,
+  });
+  const [hasAccess, setHasAccess] = useState(true);
   const isManager = currentClubRole === 'LEADER' || currentClubRole === 'MANAGER';
   const [clubName, setClubName] = useState('');
 
   // 리더가 아닐 경우만 오버플로우 메뉴 표시
   const showMenu = currentClubRole !== 'LEADER';
+
+  // 동호회 접근 권한 확인
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        // 회원 상태 확인
+        const status = await clubApi.getMyMemberStatus(clubId);
+
+        // APPROVED 상태가 아닌 경우에만 접근 차단
+        if (status !== 'APPROVED') {
+          setHasAccess(false);
+          setAlertModal({
+            isOpen: true,
+            message: '동호회 회원이 아니거나 접근 권한이 없습니다.',
+            redirectOnclose: true,
+            nextUrl: `/clubs/${clubId}/detail`,
+          });
+
+          return;
+        }
+      } catch {
+        // 에러 발생 시 (로그인 안됨, 회원 아님 등)
+        setHasAccess(false);
+        setAlertModal({
+          isOpen: true,
+          message: '동호회 접근 권한이 없습니다.',
+          redirectOnClose: true,
+          nextUrl: `/clubs/${clubId}/detail`,
+        });
+      }
+    };
+
+    if (clubId) {
+      checkAccess();
+    }
+  }, [clubId, navigate]);
 
   // 탈퇴 버튼 클릭 핸들러
   const handleWithdrawClick = () => {
@@ -43,16 +85,18 @@ const Dashboard = () => {
       setAlertModal({
         isOpen: true,
         message: '동호회에서 탈퇴되었습니다.',
+        redirectOnClose: true,
+        nextUrl: `/`,
       });
-      setTimeout(() => {
-        navigate('/');
-      }, 1500);
+      return;
     } catch (error) {
       setIsWithdrawModalOpen(false);
       const errorMessage = error.response?.data?.message || '탈퇴 처리 중 오류가 발생했습니다.';
       setAlertModal({
         isOpen: true,
         message: errorMessage,
+        redirectOnClose: true,
+        nextUrl: null,
       });
     }
   };
@@ -62,6 +106,27 @@ const Dashboard = () => {
       setClubName(data.clubName);
     }
   };
+
+  const handleAlertClose = () => {
+    const { redirectOnClose, nextUrl } = alertModal;
+    setAlertModal({ isOpen: false, message: '', redirectOnClose: false, nextUrl: null });
+    if (redirectOnClose && nextUrl) {
+      navigate(nextUrl);
+    }
+  };
+
+  // 접근 권한 없음
+  if (!hasAccess) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <AlertModal
+          isOpen={alertModal.isOpen}
+          message={alertModal.message}
+          onClose={handleAlertClose}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -139,7 +204,7 @@ const Dashboard = () => {
       <AlertModal
         isOpen={alertModal.isOpen}
         message={alertModal.message}
-        onClose={() => setAlertModal({ isOpen: false, message: '' })}
+        onClose={handleAlertClose}
       />
     </div>
   );

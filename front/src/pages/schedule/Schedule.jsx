@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -8,9 +8,12 @@ import { scheduleApi } from '../../services/api/scheduleApi';
 import ScheduleCreateModal from '../schedule/components/ScheduleCreateModal';
 import ScheduleDetailModal from '../schedule/components/ScheduleDetailModal';
 import ScheduleListModal from '../schedule/components/ScheduleListModal';
+import { clubApi } from '../../services/api/clubApi';
+import AlertModal from '../../components/common/AlertModal';
 
 const Schedule = () => {
   const { clubId } = useParams();
+  const navigate = useNavigate();
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -19,6 +22,44 @@ const Schedule = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showListModal, setShowListModal] = useState(false);
   const [upcomingSchedules, setUpcomingSchedules] = useState([]);
+  const [hasAccess, setHasAccess] = useState(true);
+  const [alertModal, setAlertModal] = useState({
+    isOpen: false,
+    message: '',
+    redirectOnClose: false,
+    nextUrl: null,
+  });
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const status = await clubApi.getMyMemberStatus(clubId);
+
+        if (status !== 'APPROVED') {
+          setHasAccess(false);
+          setAlertModal({
+            isOpen: true,
+            message: '동호회 회원이 아닙니다.',
+            redirectOnClose: true,
+            nextUrl: `/clubs/${clubId}/detail`,
+          });
+          return;
+        }
+      } catch {
+        setHasAccess(false);
+        setAlertModal({
+          isOpen: true,
+          message: '동호회 회원이 아닙니다.',
+          redirectOnClose: true,
+          nextUrl: `/clubs/${clubId}/detail`,
+        });
+      }
+    };
+
+    if (clubId) {
+      checkAccess();
+    }
+  }, [clubId, navigate]);
 
   const fetchSchedules = useCallback(async () => {
     try {
@@ -137,6 +178,26 @@ const Schedule = () => {
   const formatDateTime = (startDate, endDate) => {
     return `${formatTime(startDate)} ~ ${formatTime(endDate)}`;
   };
+
+  const handleAlertClose = () => {
+    const { redirectOnClose, nextUrl } = alertModal;
+    setAlertModal({ isOpen: false, message: '', redirectOnClose: false, nextUrl: null });
+    if (redirectOnClose && nextUrl) {
+      navigate(nextUrl);
+    }
+  };
+
+  if (!hasAccess) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <AlertModal
+          isOpen={alertModal.isOpen}
+          message={alertModal.message}
+          onClose={handleAlertClose}
+        />
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -275,6 +336,11 @@ const Schedule = () => {
           }}
         />
       )}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        message={alertModal.message}
+        onClose={handleAlertClose}
+      />
     </div>
   );
 };

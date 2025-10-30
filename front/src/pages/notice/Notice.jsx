@@ -14,7 +14,7 @@ import ClubSidebar from '../../components/layout/ClubSidebar';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import AlertModal from '../../components/common/AlertModal';
 
-// 케밥 메뉴 컴포넌트
+// 오버플로우
 function KebabMenu({ notice, onEdit, onDelete, onTogglePin }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
@@ -104,6 +104,7 @@ const Notice = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [userRole, setUserRole] = useState(null);
+  const [hasAccess, setHasAccess] = useState(true);
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     title: '',
@@ -115,15 +116,46 @@ const Notice = () => {
     isOpen: false,
     title: '',
     message: '',
+    onClose: false,
   });
   const itemsPerPage = 10;
 
   useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const status = await clubApi.getMyMemberStatus(clubId);
+
+        if (status !== 'APPROVED') {
+          setHasAccess(false);
+          setAlertModal({
+            isOpen: true,
+            message: '동호회 회원이 아니거나 접근 권한이 없습니다.',
+            onClose: true,
+          });
+
+          return;
+        }
+      } catch {
+        setHasAccess(false);
+        setAlertModal({
+          isOpen: true,
+          message: '동호회 접근 권한이 없습니다.',
+          onClose: true,
+        });
+      }
+    };
+
     if (clubId) {
+      checkAccess();
+    }
+  }, [clubId, navigate]);
+
+  useEffect(() => {
+    if (clubId && hasAccess) {
       fetchNotices();
       fetchUserRole();
     }
-  }, [clubId]);
+  }, [clubId, hasAccess]);
 
   const fetchNotices = async () => {
     try {
@@ -172,11 +204,16 @@ const Notice = () => {
   };
 
   const closeAlert = () => {
+    const redirect = alertModal.onClose;
     setAlertModal({
       isOpen: false,
       title: '',
       message: '',
+      onClose: false,
     });
+    if (redirect) {
+      navigate(`/clubs/${clubId}/detail`);
+    }
   };
 
   // 수정 핸들러
