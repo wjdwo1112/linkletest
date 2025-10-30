@@ -112,4 +112,9 @@ export const clubApi = {
   recommendByCombined: async () => {
     return await get('/clubs/recommend/combined');
   },
+
+  //동호회 탈퇴
+  withdrawFromClub: async (clubId) => {
+    return await del(`/clubs/${clubId}/members/withdraw`);
+  },
 };

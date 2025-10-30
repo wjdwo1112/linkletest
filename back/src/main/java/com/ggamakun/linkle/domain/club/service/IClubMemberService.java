@@ -30,7 +30,7 @@ public interface IClubMemberService {
 
 	String getMemberStatus(Integer clubId, Integer memberId);
     
-    
+    void withdrawFromClub(Integer clubId, Integer memberId);
 
 	
 }

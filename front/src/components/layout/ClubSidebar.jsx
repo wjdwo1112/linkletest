@@ -17,6 +17,17 @@ const ClubSidebar = () => {
     try {
       const data = await clubApi.getJoinedClubs();
       setClubs(data || []);
+
+      if (data && data.length > 0) {
+        const { currentClubId } = useUserStore.getState();
+        const clubExists = data.find((c) => c.clubId === currentClubId);
+
+        if (!currentClubId || !clubExists) {
+          setCurrentClub(data[0].clubId, data[0].role);
+        }
+      } else {
+        setCurrentClub(null, null);
+      }
     } catch (error) {
       console.error('동호회 목록 조회 실패:', error);
     }

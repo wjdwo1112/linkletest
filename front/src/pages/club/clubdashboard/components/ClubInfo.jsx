@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { clubApi } from '../../../../services/api/clubApi';
 
-const ClubInfo = ({ clubId }) => {
+const ClubInfo = ({ clubId, onDataLoad }) => {
   const [club, setClub] = useState(null);
   const [memberCount, setMemberCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -15,6 +15,10 @@ const ClubInfo = ({ clubId }) => {
         ]);
         setClub(clubData);
         setMemberCount(count);
+
+        if (onDataLoad) {
+          onDataLoad(clubData);
+        }
       } catch (error) {
         console.error('동호회 정보 조회 실패:', error);
       } finally {
@@ -23,7 +27,7 @@ const ClubInfo = ({ clubId }) => {
     };
 
     fetchData();
-  }, [clubId]);
+  }, [clubId, onDataLoad]);
 
   if (loading) {
     return (

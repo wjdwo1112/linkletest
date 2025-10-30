@@ -55,6 +55,8 @@ public interface IClubMemberRepository {
 
 	int insertWaitingMember(@Param("clubId") Integer clubId, @Param("memberId") Integer memberId);
     
+	//동호회 탈퇴
+	int withdrawFromClub(@Param("clubId") Integer clubId, @Param("memberId") Integer memberId);
     
     
     

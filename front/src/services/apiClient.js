@@ -14,7 +14,7 @@ const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401) {ㅞ
       window.location.href = '/login';
       return Promise.reject(new Error('인증이 만료되었습니다.'));
     }

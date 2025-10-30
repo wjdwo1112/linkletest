@@ -13,6 +13,7 @@ import com.ggamakun.linkle.domain.notification.dto.CreateNotificationRequestDto;
 import com.ggamakun.linkle.domain.notification.service.NotificationService;
 import com.ggamakun.linkle.global.exception.BadRequestException;
 import com.ggamakun.linkle.global.exception.ForbiddenException;
+import com.ggamakun.linkle.global.exception.NotFoundException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -263,4 +264,73 @@ public class ClubMemberService implements IClubMemberService {
     public String getMemberStatus(Integer clubId, Integer memberId) {
         return clubMemberRepository.checkMemberStatus(clubId, memberId);
     }
+
+	@Override
+	@Transactional
+	public void withdrawFromClub(Integer clubId, Integer memberId) {
+		//동호회 회원 목록 조회
+		List<ClubMemberDto> members = clubMemberRepository.findMembersByClubId(clubId);
+		
+		//회원 여부와 역할 확인
+		boolean isMember = false;
+		boolean isLeader = false;
+		Integer leaderId = null;
+		String memberNickname = null;
+		
+		for(ClubMemberDto member : members) {
+			if(member.getMemberId().equals(memberId)) {
+				if("APPROVED".equals(member.getStatus())) {
+					isMember = true;
+				}
+				if("LEADER".equals(member.getRole())) {
+					isLeader = true;
+				}
+				memberNickname = member.getNickname();
+			}
+			
+			//동호회장 ID 찾기
+			if("LEADER".equals(member.getRole())) {
+				leaderId = member.getMemberId();
+			}
+		}
+		
+		// 회원 여부 확인
+	    if (!isMember) {
+	        throw new NotFoundException("해당 동호회의 회원이 아닙니다.");
+	    }
+	    
+	    // 리더 여부 확인
+	    if (isLeader) {
+	        throw new BadRequestException("동호회 리더는 탈퇴할 수 없습니다. 리더 권한을 먼저 위임해주세요.");
+	    }
+	    
+	    // 동호회 탈퇴 처리 (소프트 삭제)
+	    int result = clubMemberRepository.withdrawFromClub(clubId, memberId);
+	    
+	    if (result == 0) {
+	        throw new BadRequestException("동호회 탈퇴에 실패했습니다.");
+	    }
+	    
+	    // 동호회장에게 알림 발송
+	    if (leaderId != null && !leaderId.equals(memberId)) {
+	        Club club = clubRepository.findById(clubId);
+	        String clubName = (club != null) ? club.getName() : "동호회";
+	        String nickname = (memberNickname != null) ? memberNickname : "회원";
+	        
+	        notificationService.sendNotification(
+	            CreateNotificationRequestDto.builder()
+	                .receiverId(leaderId)
+	                .title("회원이 탈퇴했습니다")
+	                .content(clubName + " - " + nickname + "님이 동호회를 탈퇴했습니다.")
+	                .linkUrl("/clubs/" + clubId + "/detail")
+	                .createdBy(memberId)
+	                .build()
+	        );
+	        
+	        log.info("동호회장에게 탈퇴 알림 발송 완료 - 동호회장 ID: {}", leaderId);
+	    }
+	    
+	    log.info("동호회 탈퇴 완료 - 동호회 ID: {}, 회원 ID: {}", clubId, memberId);
+		
+	}
 }
