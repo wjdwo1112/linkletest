@@ -11,15 +11,21 @@ import org.springframework.web.server.ResponseStatusException;
 import com.ggamakun.linkle.domain.comment.dto.CommentDto;
 import com.ggamakun.linkle.domain.comment.dto.CreateCommentRequest;
 import com.ggamakun.linkle.domain.comment.repository.ICommentRepository;
+import com.ggamakun.linkle.domain.notification.dto.CreateNotificationRequestDto;
+import com.ggamakun.linkle.domain.notification.service.NotificationService;
+import com.ggamakun.linkle.domain.post.dto.PostDetail;
 import com.ggamakun.linkle.domain.post.repository.IPostRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CommentService implements ICommentService {
 	private final ICommentRepository commentRepository;
 	private final IPostRepository postRepository;
+	private final NotificationService notificationService;
 	
 	//해당 게시글의 모든 댓글 행(부모+자식)을 조회
 	//최상위 댓글만 먼저 뽑고 -> 각 최상위 댓글에 자기 자식(대댓글)을 붙인다.
@@ -68,10 +74,46 @@ public class CommentService implements ICommentService {
 		if(request.getParentCommentId() != null) {
 			commentRepository.increaseCommentCount(request.getParentCommentId());
 			
+			//대댓글 작성시 부모 댓글 작성자에게 알림
+			CommentDto parentComment = commentRepository.findById(request.getParentCommentId());
+			if(parentComment != null && !parentComment.getCreatedBy().equals(request.getCreatedBy())) {
+				PostDetail post = postRepository.findPostDetail(request.getPostId());
+				
+				log.info("대댓글 알림 발송 - receiverId: {}, postId: {}", 
+				         parentComment.getCreatedBy(), request.getPostId());
+				
+				notificationService.sendNotification(
+						CreateNotificationRequestDto.builder()
+							.receiverId(parentComment.getCreatedBy())
+							.title("댓글에 답글이 달렸습니다")
+							.content(post.getTitle() + " 게시글의 댓글에 답글이 달렸습니다.")
+							.linkUrl("/community/posts/" + request.getPostId())
+							.createdBy(request.getCreatedBy())
+							.build()
+				);
+			}
+		}	else {
+			// 일반 댓글 작성 시 게시글 작성자에게 알림
+				PostDetail post = postRepository.findPostDetail(request.getPostId());
+				if (post != null && !post.getCreatedBy().equals(request.getCreatedBy())) {
+					log.info("댓글 알림 발송 - receiverId: {}, postId: {}", 
+					         post.getCreatedBy(), request.getPostId());
+					
+					notificationService.sendNotification(
+						CreateNotificationRequestDto.builder()
+							.receiverId(post.getCreatedBy())
+							.title("새 댓글이 달렸습니다")
+							.content(post.getTitle() + " 게시글에 댓글이 달렸습니다.")
+							.linkUrl("/community/posts/" + request.getPostId())
+							.createdBy(request.getCreatedBy())
+							.build()
+					);
+				}
 		}
 		
 		//게시글의 댓글 수 증가
 		postRepository.increaseCommentCount(request.getPostId());
+		log.info("작성 완료 - postId: {}", request.getPostId());
 	}
 
 	
@@ -100,6 +142,8 @@ public class CommentService implements ICommentService {
 		if(updated == 0) {
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 수정 실패");
 		}
+		
+		log.info("댓글 수정 완료 - commentId: {}, postId: {}", commentId, comment.getPostId());
 	}
 
 	@Transactional
@@ -116,6 +160,7 @@ public class CommentService implements ICommentService {
 	    }
 	    // 3) 이미 삭제된 경우 → 멱등 처리
 	    if ("Y".equals(comment.getIsDeleted())) {
+	    	log.info("이미 삭제된 댓글 - commentId: {}", commentId);
 	        return;
 	    }
 
@@ -130,7 +175,8 @@ public class CommentService implements ICommentService {
 	        if (n == 0) {
 	            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다");
 	        }
-	        postRepository.decreaseCommentCount(comment.getPostId()); // ★ -1
+	        postRepository.decreaseCommentCount(comment.getPostId()); //  -1
+	        log.info("댓글 삭제 완료  - commentId: {}, postId: {}", commentId, comment.getPostId());
 	        return;
 	    }
 
@@ -142,13 +188,15 @@ public class CommentService implements ICommentService {
 
 	    if (comment.getParentCommentId() == null) {
 	        // 최상위(부모) 댓글 삭제: 줄 하나 사라짐 → -1
-	        postRepository.decreaseCommentCount(comment.getPostId()); // ★ -1
+	        postRepository.decreaseCommentCount(comment.getPostId()); //  -1
+	        log.info("댓글 삭제 완료 (댓글) - commentId: {}, postId: {}", commentId, comment.getPostId());
 	    } else {
 	        // 대댓글 삭제: 줄 하나 사라짐 → -1
 	        // 부모의 자식 수는 별도 유지(선택) → UI/플레이스홀더 로직 등에 사용
 	        commentRepository.decreaseCommentCount(comment.getParentCommentId());
-	        postRepository.decreaseCommentCount(comment.getPostId()); // ★ -1
-
+	        postRepository.decreaseCommentCount(comment.getPostId()); //  -1
+	        log.info("댓글 삭제 완료 (대댓글) - commentId: {}, parentCommentId: {}, postId: {}", 
+	                 commentId, comment.getParentCommentId(), comment.getPostId());
 	        //  "삭제된 부모의 마지막 자식" 삭제 시 추가 -1 하지 않음
 	        //   → 부모는 이미 집계에서 제외 상태이므로 별도 감소 불필요
 	    }

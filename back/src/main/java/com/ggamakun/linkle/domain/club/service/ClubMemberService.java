@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ggamakun.linkle.domain.club.dto.ClubMemberDto;
+import com.ggamakun.linkle.domain.club.entity.Club;
 import com.ggamakun.linkle.domain.club.repository.IClubMemberRepository;
 import com.ggamakun.linkle.domain.club.repository.IClubRepository;
 import com.ggamakun.linkle.domain.notification.dto.CreateNotificationRequestDto;
@@ -71,6 +72,22 @@ public class ClubMemberService implements IClubMemberService {
         if (updated == 0) {
             throw new BadRequestException("회원을 찾을 수 없습니다.");
         }
+        
+        //권한 변경 알림
+        String roleText = "MANAGER".equals(role) ? "운영진": "회원";
+        Club club = clubRepository.findById(clubId);
+        String clubName = (club != null) ? club.getName() : "동호회";
+        
+        notificationService.sendNotification(
+        		CreateNotificationRequestDto.builder()
+        			.receiverId(targetMemberId)
+        			.title("권한이 변경되었습니다.")
+        			.content(clubName + "동호회에서" + roleText + "으로 변경되었습니다.")
+        			.linkUrl("/clubs/" + clubId + "/dashboard")
+        			.createdBy(currentMemberId)
+        			.build()
+        	);
+        
 
         log.info("권한 변경 완료 - clubId: {}, targetMemberId: {}, newRole: {}", clubId, targetMemberId, role);
     }
@@ -107,6 +124,21 @@ public class ClubMemberService implements IClubMemberService {
         if (removed == 0) {
             throw new BadRequestException("회원을 찾을 수 없습니다.");
         }
+        
+        //강제 탈퇴 알림
+        Club club = clubRepository.findById(clubId);
+        String clubName = (club != null) ? club.getName() : "동호회";
+        String rejoinText = allowRejoin ? "재가입이 가능합니다." : "재가입이 제한되었습니다.";
+        
+        notificationService.sendNotification(
+                CreateNotificationRequestDto.builder()
+                    .receiverId(targetMemberId)
+                    .title("동호회에서 탈퇴 처리되었습니다")
+                    .content(clubName + " 동호회에서 탈퇴 처리되었습니다. 사유: " + reason + " " + rejoinText)
+                    .linkUrl("/clubs" + clubId + "/detail")
+                    .createdBy(currentMemberId)
+                    .build()
+            );
 
         log.info("강제 탈퇴 완료 - clubId: {}, targetMemberId: {}, allowRejoin: {}", clubId, targetMemberId, allowRejoin);
     }
@@ -124,6 +156,21 @@ public class ClubMemberService implements IClubMemberService {
         if (approved == 0) {
             throw new BadRequestException("승인 대기 중인 회원을 찾을 수 없습니다.");
         }
+        
+        //가입 승인 알림
+        Club club = clubRepository.findById(clubId);
+        String clubName = (club != null) ? club.getName() : "동호회";
+        
+        notificationService.sendNotification(
+        		CreateNotificationRequestDto.builder()
+        			.receiverId(targetMemberId)
+        			.title("가입이 승인되었습니다.")
+        			.content(clubName + " " + "동호회 가입이 승인되었습니다.")
+        			.linkUrl("/clubs/" + clubId + "/dashboard")
+        			.createdBy(currentMemberId)
+        			.build()
+        			
+        );
 
         log.info("가입 승인 완료 - clubId: {}, targetMemberId: {}", clubId, targetMemberId);
     }
@@ -141,6 +188,20 @@ public class ClubMemberService implements IClubMemberService {
         if (rejected == 0) {
             throw new BadRequestException("승인 대기 중인 회원을 찾을 수 없습니다.");
         }
+        
+        //가입 거절 알림
+        Club club = clubRepository.findById(clubId);
+        String clubName = (club != null) ? club.getName() : "동호회";
+        
+        notificationService.sendNotification(
+        		CreateNotificationRequestDto.builder()
+        			.receiverId(targetMemberId)
+        			.title("가입이 거절되었습니다")
+        			.content(clubName + " 동호회 가입이 거절되었습니다. 사유: " + rejectionReason)
+        			.linkUrl("/clubs/" + clubId + "/detail")
+        			.createdBy(currentMemberId)
+        			.build()
+        		);
 
         log.info("가입 거절 완료 - clubId: {}, targetMemberId: {}", clubId, targetMemberId);
     }
@@ -191,7 +252,7 @@ public class ClubMemberService implements IClubMemberService {
                     .receiverId(receiverId)
                     .title("가입신청이 도착했어요")
                     .content("새로운 회원의 가입신청이 있습니다. 승인/거절을 진행해주세요.")
-                    .linkUrl("/clubs/" + clubId + "/members") // 네 프론트 경로에 맞게
+                    .linkUrl("/clubs/" + clubId + "/members") 
                     .createdBy(memberId)
                     .build()
             );

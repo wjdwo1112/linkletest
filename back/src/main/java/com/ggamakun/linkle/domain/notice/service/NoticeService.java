@@ -9,12 +9,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.ggamakun.linkle.domain.club.dto.ClubMemberDto;
+import com.ggamakun.linkle.domain.club.entity.Club;
+import com.ggamakun.linkle.domain.club.repository.IClubMemberRepository;
 import com.ggamakun.linkle.domain.club.repository.IClubRepository;
 import com.ggamakun.linkle.domain.notice.dto.CreateNoticeRequest;
 import com.ggamakun.linkle.domain.notice.dto.NoticeDetail;
 import com.ggamakun.linkle.domain.notice.dto.NoticeSummary;
 import com.ggamakun.linkle.domain.notice.dto.UpdateNoticeRequest;
 import com.ggamakun.linkle.domain.notice.repository.INoticeRepository;
+import com.ggamakun.linkle.domain.notification.dto.CreateNotificationRequestDto;
+import com.ggamakun.linkle.domain.notification.service.NotificationService;
 import com.ggamakun.linkle.global.security.CustomUserDetails;
 
 import lombok.RequiredArgsConstructor;
@@ -26,6 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 public class NoticeService implements INoticeService {
 	private final INoticeRepository noticeRepository;
 	private final IClubRepository clubRepository;
+	private final IClubMemberRepository clubMemberRepository;
+	private final NotificationService notificationService;
 
 	@Override
 	public List<NoticeSummary> getPinned() {
@@ -84,7 +91,36 @@ public class NoticeService implements INoticeService {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "공지사항은 모임장과 운영진만 등록할 수 있습니다" );
 			
 		}
-		return noticeRepository.insertNotice(request);
+		
+		Integer postId = noticeRepository.insertNotice(request);
+		
+		//동호회 회원에게 알림 
+		List<ClubMemberDto> members = clubMemberRepository.findMembersByClubId(request.getClubId());
+		if(members != null && !members.isEmpty()) {
+			Club club = clubRepository.findById(request.getClubId());
+	        String clubName = (club != null) ? club.getName() : "동호회";
+	        
+	        for(ClubMemberDto member : members) {
+	        	//작성자 본인에게는 알림 발송 안함
+	        	if(member.getMemberId().equals(request.getCreatedBy())) {
+	        		continue;
+	        	}
+	        	notificationService.sendNotification(
+						CreateNotificationRequestDto.builder()
+							.receiverId(member.getMemberId())
+							.title("새 공지사항이 등록되었습니다")
+							.content(clubName + " - " + request.getTitle())
+							.linkUrl("/clubs/" + request.getClubId() + "/notice")
+							.createdBy(request.getCreatedBy())
+							.build()
+					);
+	        }
+	        log.info("공지사항 알림 발송 완료 - postId: {}", postId);
+	        
+		}
+		log.info("공지사항 등록 완료 - postId: {}, clubId: {}", postId, request.getClubId());
+		return postId;
+		
 	}
 
 	@Override
@@ -108,6 +144,9 @@ public class NoticeService implements INoticeService {
 		if(updated == 0) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND,"notice not found");
 		}
+		
+		 log.info("공지사항 수정 완료 - postId: {}, title: {}", postId, request.getTitle());
+		 
 		return noticeRepository.findNoticeDetail(postId);
 		
 		
@@ -138,6 +177,8 @@ public class NoticeService implements INoticeService {
 		if(updated == 0) {
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "고정 상태 변경에 실패했습니다.");
 		}
+		
+		log.info("공지사항 고정 상태 변경 완료 - postId: {}", postId);
 	}
 
 	@Override
@@ -162,7 +203,7 @@ public class NoticeService implements INoticeService {
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"공지사항 삭제에 실패");
 		}
 		
-		
+		log.info("공지사항 삭제 완료 - postId: {}, clubId: {}", postId, notice.getClubId());
 	}
 	
 	// 현재 로그인한 사용자 ID 가져오기

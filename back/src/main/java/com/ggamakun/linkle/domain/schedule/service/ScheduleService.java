@@ -5,6 +5,12 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ggamakun.linkle.domain.club.dto.ClubMemberDto;
+import com.ggamakun.linkle.domain.club.entity.Club;
+import com.ggamakun.linkle.domain.club.repository.IClubMemberRepository;
+import com.ggamakun.linkle.domain.club.repository.IClubRepository;
+import com.ggamakun.linkle.domain.notification.dto.CreateNotificationRequestDto;
+import com.ggamakun.linkle.domain.notification.service.NotificationService;
 import com.ggamakun.linkle.domain.schedule.dto.AttendeeInfo;
 import com.ggamakun.linkle.domain.schedule.dto.CreateScheduleRequest;
 import com.ggamakun.linkle.domain.schedule.dto.ScheduleDetail;
@@ -24,6 +30,9 @@ import lombok.extern.slf4j.Slf4j;
 public class ScheduleService implements IScheduleService {
 	
 	private final IScheduleRepository scheduleRepository;
+	private final IClubRepository clubRepository;
+	private final IClubMemberRepository clubMemberRepository;
+	private final NotificationService notificationService;
 
 	@Override
     @Transactional
@@ -50,6 +59,31 @@ public class ScheduleService implements IScheduleService {
             throw new BadRequestException("일정 생성에 실패했습니다.");
         }
         
+        //동호회 전체 회원에게 알림
+        List<ClubMemberDto> members = clubMemberRepository.findMembersByClubId(request.getClubId());
+        if(members != null && !members.isEmpty()) {
+        	Club club = clubRepository.findById(request.getClubId());
+        	String clubName = (club != null) ? club.getName() : "동호회";
+        	
+        	for(ClubMemberDto member : members) {
+        		//작성자 본인에게는 알림 발송 안함
+        		if(member.getMemberId().equals(request.getCreatedBy())){
+        			continue;
+        		}
+        		
+        		notificationService.sendNotification(
+        				CreateNotificationRequestDto.builder()
+        				.receiverId(member.getMemberId())
+        				.title("새로운 일정이 등록되었습니다.")
+        				.content(clubName + " - " + request.getTitle())
+        				.linkUrl("/clubs/" + request.getClubId() + "/schedule")
+        				.createdBy(request.getCreatedBy())
+        				.build()
+        		);
+        				
+        	}
+        }
+        
         log.info("일정 생성 완료 - Schedule ID: {}", schedule.getScheduleId());
         return schedule.getScheduleId();
     }
@@ -73,6 +107,27 @@ public class ScheduleService implements IScheduleService {
         
         if (result <= 0) {
             throw new BadRequestException("일정 취소에 실패했습니다.");
+        }
+        
+     // 참석 예정자(ATTEND)에게 알림 발송
+        List<AttendeeInfo> attendees = scheduleRepository.findAttendeesByScheduleId(scheduleId);
+        if (attendees != null && !attendees.isEmpty()) {
+        	Club club = clubRepository.findById(existing.getClubId());
+        	String clubName = (club != null) ? club.getName() : "동호회";
+            
+            for (AttendeeInfo attendee : attendees) {
+                if ("ATTEND".equals(attendee.getAttendanceStatus())) {
+                    notificationService.sendNotification(
+                        CreateNotificationRequestDto.builder()
+                            .receiverId(attendee.getMemberId())
+                            .title("일정이 취소되었습니다")
+                            .content(clubName + " - " + existing.getTitle() + " 일정이 취소되었습니다.")
+                            .linkUrl("/clubs/" + existing.getClubId() + "/schedule")
+                            .createdBy(memberId)
+                            .build()
+                    );
+                }
+            }
         }
         
         log.info("일정 취소 완료 - Schedule ID: {}", scheduleId);

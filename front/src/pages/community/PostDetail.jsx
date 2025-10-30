@@ -7,7 +7,7 @@ import {
   UserCircleIcon,
   PencilSquareIcon,
   TrashIcon,
-  EllipsisHorizontalIcon,
+  EllipsisVerticalIcon,
 } from '@heroicons/react/24/outline';
 
 import { postApi } from '../../services/api/postApi';
@@ -46,7 +46,7 @@ function KebabMenu({ onEdit, onDelete }) {
         }}
         className="p-1 hover:bg-gray-100 rounded"
       >
-        <EllipsisHorizontalIcon className="w-5 h-5 text-gray-500" />
+        <EllipsisVerticalIcon className="w-5 h-5 text-gray-500" />
       </button>
 
       {open && (
@@ -183,7 +183,6 @@ export default function PostDetail() {
         console.error('게시글 조회 실패:', err);
 
         if (err.status === 401) {
-          setErrorType('UNAUTHORIZED');
           setAlertModal({
             isOpen: true,
             title: '알림',
@@ -191,16 +190,6 @@ export default function PostDetail() {
             redirectTo: '/community',
           });
         } else if (err.status === 403) {
-          setErrorType('FORBIDDEN');
-          setAlertModal({
-            isOpen: true,
-            title: '알림',
-            message: '동호회 회원만 볼 수 있습니다.',
-            redirectTo: '/community',
-          });
-        } else if (err.status === 500 && err.message.includes('동호회')) {
-          // 🔹 500 에러지만 동호회 권한 관련 에러인 경우
-          setErrorType('FORBIDDEN');
           setAlertModal({
             isOpen: true,
             title: '알림',

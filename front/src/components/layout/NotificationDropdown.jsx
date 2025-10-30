@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { notificationApi } from '../../services/api/notificationApi';
 import { useWebSocket } from '../../hooks/useWebSocket';
+import useUserStore from '../../store/useUserStore';
 
 const NotificationDropdown = ({ memberId }) => {
+  const navigate = useNavigate();
+  const { setCurrentClub } = useUserStore();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const dropdownRef = useRef(null);
@@ -69,12 +73,30 @@ const NotificationDropdown = ({ memberId }) => {
     }
   };
 
-  const handleNotificationClick = (notification) => {
+  const handleNotificationClick = async (notification) => {
     if (notification.isRead === 'N') {
       handleMarkAsRead(notification.notificationId);
     }
+    if (notification.linkUrl && notification.linkUrl.includes('/clubs')) {
+      const clubIdMatch = notification.linkUrl.match(/\clubs\/(\d+)/);
+      if (clubIdMatch) {
+        const clubId = parseInt(clubIdMatch[1]);
+        try {
+          const clubs = await clubApi.getJoinedClubs();
+          const targetClub = clubs.find((c) => c.clubId === clubId);
+
+          if (targetClub) {
+            // zustand 상태 업데이트
+            setCurrentClub(targetClub.clubId, targetClub.role);
+          }
+        } catch (error) {
+          console.error('동호회 정보 조회 실패:', error);
+        }
+      }
+      // window.location.href = notification.linkUrl;
+    }
     if (notification.linkUrl) {
-      window.location.href = notification.linkUrl;
+      navigate(notification.linkUrl);
     }
     setIsOpen(false);
   };
