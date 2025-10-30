@@ -136,7 +136,7 @@ public class ClubMemberService implements IClubMemberService {
                     .receiverId(targetMemberId)
                     .title("동호회에서 탈퇴 처리되었습니다")
                     .content(clubName + " 동호회에서 탈퇴 처리되었습니다. 사유: " + reason + " " + rejoinText)
-                    .linkUrl("/clubs" + clubId + "/detail")
+                    .linkUrl("/clubs/" + clubId + "/detail")
                     .createdBy(currentMemberId)
                     .build()
             );
@@ -231,10 +231,10 @@ public class ClubMemberService implements IClubMemberService {
         int affected = 0;
 
         if (status == null) {
-            // 2-a) 신규 신청
+            //신규 신청
             affected = clubMemberRepository.insertWaitingMember(clubId, memberId);
         } else {
-            // 2-b) 기존 레코드가 REJECTED/EXPELLED 등으로 is_deleted='Y'인 경우 재신청 처리
+            //기존 이력이 있는경우 REJECTED/EXPELLED/WITHDRAWN 등으로 is_deleted='Y'인 경우 재신청 처리
             affected = clubMemberRepository.reactivateToWaiting(clubId, memberId);
         }
 
@@ -322,7 +322,7 @@ public class ClubMemberService implements IClubMemberService {
 	                .receiverId(leaderId)
 	                .title("회원이 탈퇴했습니다")
 	                .content(clubName + " - " + nickname + "님이 동호회를 탈퇴했습니다.")
-	                .linkUrl("/clubs/" + clubId + "/detail")
+	                .linkUrl("/clubs/" + clubId + "/members")
 	                .createdBy(memberId)
 	                .build()
 	        );

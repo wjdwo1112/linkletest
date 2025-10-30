@@ -16,6 +16,7 @@ import defaultProfile from '../../assets/images/default-profile.png';
 import ViewModal from '../../components/common/ViewModal';
 import JoinSuccessModal from '../../components/common/JoinSuccessModal';
 import defaultClubProfile from '../../assets/images/default-club-profile.png';
+
 export default function ClubDetailNew() {
   const { clubId } = useParams();
   const [club, setClub] = useState(null);
@@ -24,7 +25,7 @@ export default function ClubDetailNew() {
   const [memberCount, setMemberCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [joinSubmitting, setJoinSubmitting] = useState(false);
-  const [myStatus, setMyStatus] = useState(null); // null, 'APPROVED', 'WAITING', 'BLOCKED'
+  const [myStatus, setMyStatus] = useState(null); // null, 'APPROVED', 'WAITING', 'BLOCKED', 'REJECTED', 'WITHDRAWN', 'EXPELLED'
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [resultModal, setResultModal] = useState({
     open: false,
@@ -33,7 +34,7 @@ export default function ClubDetailNew() {
   });
 
   const handleRequestJoin = async () => {
-    if (joinSubmitting || myStatus) return;
+    if (joinSubmitting || myStatus === 'APPROVED' || myStatus === 'WAITING') return;
 
     try {
       setJoinSubmitting(true);
@@ -116,7 +117,7 @@ export default function ClubDetailNew() {
     // 회원인 경우 → 버튼 숨김
     if (myStatus === 'APPROVED') return false;
 
-    // 승인 대기중, 차단됨, 미가입 → 버튼 표시
+    // 승인 대기중, 차단됨, 미가입, 거절됨, 탈퇴함 등 → 버튼 표시
     return true;
   };
 
@@ -137,7 +138,7 @@ export default function ClubDetailNew() {
       };
     }
 
-    // 미가입 (myStatus === null)
+    // null(처음), REJECTED(거절), WITHDRAWN(자진탈퇴), EXPELLED(강제탈퇴) → 가입하기 버튼 활성화
     return {
       text: '가입하기',
       disabled: false,

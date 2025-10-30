@@ -142,7 +142,7 @@
   		)
 	</insert>
 
-	<!-- 기존 레코드 재활성화: REJECTED/EXPELLED 등 과거 이력에서 다시 WAITING으로 -->
+	<!-- 기존 이력 재활성화: REJECTED/EXPELLED 등 과거 이력에서 다시 WAITING으로 -->
 	<update id="reactivateToWaiting">
   	UPDATE CLUB_MEMBER
   	SET status = 'WAITING',
@@ -153,12 +153,14 @@
       	updated_at = SYSDATE
   	WHERE club_id = #{clubId}
     	AND member_id = #{memberId}
+    	AND status IN('REJECTED', 'WITHDRAWN', 'EXPELLED')
 	</update>
     
   	<!-- 동호회 탈퇴 (소프트 삭제) -->
 	<update id="withdrawFromClub">
     	UPDATE CLUB_MEMBER
-    	SET is_deleted = 'Y',
+    	SET status = 'WITHDRAWN',
+    		is_deleted = 'Y',
         	updated_by = #{memberId},
         	updated_at = SYSDATE
     	WHERE club_id = #{clubId}
