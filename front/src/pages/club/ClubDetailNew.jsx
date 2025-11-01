@@ -333,7 +333,7 @@ export default function ClubDetailNew() {
           </div>
 
           <div className="bg-white rounded-2xl border border-gray-200 p-5">
-            <div className="font-semibold mb-4">정보 일정</div>
+            <div className="font-semibold mb-4">정모 일정</div>
             {schedules.length === 0 ? (
               <div className="text-sm text-gray-500 py-8 text-center">예정된 일정이 없습니다</div>
             ) : (

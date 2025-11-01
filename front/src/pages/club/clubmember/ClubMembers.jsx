@@ -23,12 +23,7 @@ export default function ClubMembers() {
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
-  const [alertModal, setAlertModal] = useState({
-    isOpen: false,
-    message: '',
-    redirectOnClose: false,
-    nextUrl: null,
-  });
+  const [alertModal, setAlertModal] = useState({ isOpen: false, message: '' });
 
   // 동호회 접근 권한 확인
   useEffect(() => {
@@ -41,21 +36,22 @@ export default function ClubMembers() {
           setAlertModal({
             isOpen: true,
             message: '동호회 회원이 아니거나 접근 권한이 없습니다.',
-            redirectOnClose: true,
-            nextUrl: `/clubs/${clubId}/detail`,
           });
-          return;
+
+          setTimeout(() => {
+            navigate(`/clubs/${clubId}/detail`);
+          }, 2000);
         }
-        // 승인 상태면 접근 허용
-        setHasAccess(true);
-      } catch {
+      } catch (error) {
         setHasAccess(false);
         setAlertModal({
           isOpen: true,
           message: '동호회 접근 권한이 없습니다.',
-          redirectOnClose: true,
-          nextUrl: `/clubs/${clubId}/detail`,
         });
+
+        setTimeout(() => {
+          navigate(`/clubs/${clubId}/detail`);
+        }, 2000);
       }
     };
 
@@ -74,12 +70,13 @@ export default function ClubMembers() {
         setUserRole(currentClub.role);
       }
 
-      const membersData = await clubMemberApi.getClubMembers(clubId);
-      const approvedMembers = membersData.filter((m) => m.status === 'APPROVED');
+      // 승인 멤버: APPROVED 전용 엔드포인트
+      const approvedMembers = await clubMemberApi.getClubMembers(clubId);
       setMembers(approvedMembers);
 
+      // 운영진이라면 대기 멤버 별도 호출
       if (currentClub && (currentClub.role === 'LEADER' || currentClub.role === 'MANAGER')) {
-        const waiting = membersData.filter((m) => m.status === 'WAITING');
+        const waiting = await clubMemberApi.getWaitingMembers(clubId);
         setWaitingMembers(waiting);
       } else {
         setWaitingMembers([]);
@@ -127,14 +124,6 @@ export default function ClubMembers() {
     setSelectedMember(null);
   };
 
-  const handleAlertClose = () => {
-    const { redirectOnClose, nextUrl } = alertModal;
-    setAlertModal({ isOpen: false, message: '', redirectOnClose: false, nextUrl: null });
-    if (redirectOnClose && nextUrl) {
-      navigate(nextUrl);
-    }
-  };
-
   // 접근 권한 없음
   if (!hasAccess) {
     return (
@@ -142,7 +131,7 @@ export default function ClubMembers() {
         <AlertModal
           isOpen={alertModal.isOpen}
           message={alertModal.message}
-          onClose={handleAlertClose}
+          onClose={() => setAlertModal({ isOpen: false, message: '' })}
         />
       </div>
     );
@@ -160,25 +149,7 @@ export default function ClubMembers() {
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">멤버 관리</h1>
 
-      {isManager && waitingMembers.length > 0 && (
-        <div className="mb-8">
-          <h2 className="flex items-center text-lg font-semibold mb-4">
-            <span className="w-2 h-2 rounded-full bg-yellow-500 mr-2"></span>
-            가입 대기 ({waitingMembers.length})
-          </h2>
-          <div className="grid grid-cols-3 gap-4">
-            {waitingMembers.map((member) => (
-              <WaitingMemberCard
-                key={member.memberId}
-                member={member}
-                onApprove={handleApprove}
-                onReject={handleReject}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
+      {/* 모임장 */}
       <div className="mb-8">
         <h2 className="flex items-center text-lg font-semibold mb-4">
           <span className="w-2 h-2 rounded-full bg-amber-500 mr-2"></span>
@@ -199,6 +170,7 @@ export default function ClubMembers() {
         </div>
       </div>
 
+      {/* 운영진 */}
       <div className="mb-8">
         <h2 className="flex items-center text-lg font-semibold mb-4">
           <span className="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
@@ -219,6 +191,7 @@ export default function ClubMembers() {
         </div>
       </div>
 
+      {/* 멤버 */}
       <div className="mb-8">
         <h2 className="flex items-center text-lg font-semibold mb-4">
           <span className="w-2 h-2 rounded-full bg-gray-500 mr-2"></span>
@@ -239,6 +212,27 @@ export default function ClubMembers() {
         </div>
       </div>
 
+      {/* 멤버 바로 아래: 대기자 */}
+      {isManager && waitingMembers.length > 0 && (
+        <div className="mb-8">
+          <h2 className="flex items-center text-lg font-semibold mb-4">
+            <span className="w-2 h-2 rounded-full bg-yellow-500 mr-2"></span>
+            대기자 ({waitingMembers.length})
+          </h2>
+          <div className="grid grid-cols-3 gap-4">
+            {waitingMembers.map((member) => (
+              <WaitingMemberCard
+                key={member.memberId}
+                member={member}
+                onApprove={handleApprove}
+                onReject={handleReject}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 모달들 */}
       {showRoleModal && selectedMember && (
         <RoleModal
           member={selectedMember}
@@ -291,7 +285,7 @@ export default function ClubMembers() {
       <AlertModal
         isOpen={alertModal.isOpen}
         message={alertModal.message}
-        onClose={handleAlertClose}
+        onClose={() => setAlertModal({ isOpen: false, message: '' })}
       />
     </div>
   );

@@ -9,6 +9,9 @@
             file_id as fileId,
             email,
             password,
+            name,
+	        nickname,
+	        is_withdrawn as isWithdrawn,
             provider,
             provider_id as providerId
         FROM Member 

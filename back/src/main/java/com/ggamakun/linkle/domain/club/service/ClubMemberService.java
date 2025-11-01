@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ggamakun.linkle.domain.club.dto.CapacityDto;
 import com.ggamakun.linkle.domain.club.dto.ClubMemberDto;
 import com.ggamakun.linkle.domain.club.entity.Club;
 import com.ggamakun.linkle.domain.club.repository.IClubMemberRepository;
@@ -227,6 +228,18 @@ public class ClubMemberService implements IClubMemberService {
         if ("BLOCKED".equals(status)) {
             throw new ForbiddenException("재가입이 차단된 회원입니다.");
         }
+        
+        Club club = clubRepository.findById(clubId);
+        Integer max = (club != null) ? club.getMaxMembers() : null;
+
+        if (max != null && max > 0) {
+            int approved = clubMemberRepository.countApprovedByClubId(clubId);
+            int waiting  = clubMemberRepository.countWaitingByClubId(clubId);
+            if (approved + waiting >= max) {
+                throw new BadRequestException("정원이 가득 찼습니다. 신청이 불가합니다.");
+            }
+        }
+
 
         int affected = 0;
 
@@ -264,6 +277,8 @@ public class ClubMemberService implements IClubMemberService {
     public String getMemberStatus(Integer clubId, Integer memberId) {
         return clubMemberRepository.checkMemberStatus(clubId, memberId);
     }
+    
+
 
 	@Override
 	@Transactional

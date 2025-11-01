@@ -2,8 +2,7 @@ package com.ggamakun.linkle.domain.club.service;
 
 import java.util.List;
 
-
-
+import com.ggamakun.linkle.domain.club.dto.CapacityDto;
 import com.ggamakun.linkle.domain.club.dto.ClubMemberDto;
 
 public interface IClubMemberService {
@@ -31,6 +30,8 @@ public interface IClubMemberService {
 	String getMemberStatus(Integer clubId, Integer memberId);
     
     void withdrawFromClub(Integer clubId, Integer memberId);
+
+	
 
 	
 }

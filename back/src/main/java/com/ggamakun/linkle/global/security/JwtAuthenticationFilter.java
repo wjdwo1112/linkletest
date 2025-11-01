@@ -30,36 +30,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     // JWT 필터를 적용하지 않을 경로들
     private static final List<String> EXCLUDED_PATHS = Arrays.asList(
-        "/auth/login",
         "/auth/refresh",
-        "/oauth2",
-        "/login/oauth2",
         "/swagger-ui",
         "/v3/api-docs",
-        "/h2-console"      
+        "/h2-console",
+        "/assets",
+        "/css",
+        "/js",
+        "/images",
+        "/favicon.ico"
     );
     
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        String method = request.getMethod();
-        // OAuth2 관련 경로는 JWT 필터를 거치지 않도록 설정
-        if(EXCLUDED_PATHS.stream().anyMatch(path::startsWith)) {
-        	return true;
-        }
-        
-//     // GET 요청은 게시글/댓글 조회만 허용 (JWT 필터 제외)
-//        if ("GET".equals(method)) {
-//            if (path.matches("/posts(/\\d+)?") || 
-//                path.equals("/posts/summary") ||
-//                path.matches("/posts/\\d+/comments") ||
-//                path.matches("/comments/\\d+")) {
-//                return true;
-//            }
-//        }
-        
-        return false;
-        
+        return EXCLUDED_PATHS.stream().anyMatch(path::startsWith);
     }
     
     
@@ -68,13 +53,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response, 
                                     FilterChain filterChain) 
             throws ServletException, IOException {
-        
+    	log.info("[JwtAuthenticationFilter] doFilterInternal called: {}", request.getRequestURI());
+    	log.info("[JWT Filter] 요청 경로: {}", request.getRequestURI());
+    	
         String token = getTokenFromRequest(request);
+        log.info("[JWT Filter] 추출된 토큰: {}", token != null ? "존재함" : "없음");
         
         if (StringUtils.hasText(token) && jwtUtil.validateToken(token)) {
+        	boolean isValid = jwtUtil.validateToken(token);
+            log.info("[JWT Filter] 토큰 유효성: {}", isValid);
             String email = jwtUtil.getEmailFromToken(token);
+            log.info("[JWT Filter] 토큰에서 추출된 이메일: {}", email);
             
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            log.info("[JWT Filter] UserDetails 로드 성공: {}", userDetails != null);
             
             UsernamePasswordAuthenticationToken authentication = 
                 new UsernamePasswordAuthenticationToken(
@@ -85,6 +77,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            log.info("[JWT Filter] 인증 정보 SecurityContext에 저장 완료");
         }
         
         filterChain.doFilter(request, response);
@@ -93,16 +86,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private String getTokenFromRequest(HttpServletRequest request) {
     	// 1. Cookie에서 토큰 추출 시도
         if (request.getCookies() != null) {
+        	log.info("[JWT Filter] 쿠키 개수: {}", request.getCookies().length);
             for (Cookie cookie : request.getCookies()) {
+            	log.info("[JWT Filter] 쿠키 이름: {}, 값: {}", cookie.getName(), cookie.getValue().substring(0, Math.min(20, cookie.getValue().length())) + "...");
                 if ("accessToken".equals(cookie.getName())) {
+                	log.info("[JWT Filter] accessToken 쿠키 발견");
                     return cookie.getValue();
                 }
             }
+        } else {
+            log.warn("[JWT Filter] 쿠키가 없습니다");
         }
         
         // 2. Authorization 헤더에서 토큰 추출 (하위 호환성)
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+        	log.info("[JWT Filter] Authorization 헤더에서 토큰 추출");
             return bearerToken.substring(7);
         }
         

@@ -169,6 +169,14 @@
         	AND is_deleted = 'N'
 	</update>
 
+<select id="countApprovedByClubId" resultType="int">
+  SELECT COUNT(*) FROM CLUB_MEMBER
+  WHERE CLUB_ID = #{clubId} AND STATUS='APPROVED' AND IS_DELETED='N'
+</select>
 
+<select id="countWaitingByClubId" resultType="int">
+  SELECT COUNT(*) FROM CLUB_MEMBER
+  WHERE CLUB_ID = #{clubId} AND STATUS='WAITING' AND IS_DELETED='N'
+</select>
 
 </mapper>

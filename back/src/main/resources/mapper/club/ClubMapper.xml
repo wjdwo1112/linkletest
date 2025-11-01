@@ -317,6 +317,7 @@
 	        AND (
 	            UPPER(c.name) LIKE '%' || UPPER(#{keyword}) || '%'
 	            OR UPPER(m.nickname) LIKE '%' || UPPER(#{keyword}) || '%'
+	            OR UPPER(c.description) LIKE '%' || UPPER(#{keyword}) || '%'
 	        )
 	    GROUP BY 
 	        c.club_id, 
@@ -530,7 +531,15 @@
 	            AND cm.status = 'APPROVED' 
 	            AND cm.is_deleted = 'N'
 	        WHERE c.is_deleted = 'N'
-	            AND c.category_id = #{categoryId}
+	            AND (
+	                c.category_id = #{categoryId}
+	                OR c.category_id IN (
+	                    SELECT category_id 
+	                    FROM CATEGORY 
+	                    WHERE parent_category_id = #{categoryId}
+	                    AND is_deleted = 'N'
+	                )
+	            )
 	        GROUP BY c.club_id, c.name, c.description, f.file_link, cat.name, c.region, c.opened_at
 	        ORDER BY c.opened_at DESC
 	    )
@@ -558,7 +567,15 @@
 	            AND cm.is_deleted = 'N'
 	        <where>
 	            c.is_deleted = 'N'
-	            AND c.category_id = #{categoryId}
+	            AND (
+	                c.category_id = #{categoryId}
+	                OR c.category_id IN (
+	                    SELECT category_id 
+	                    FROM CATEGORY 
+	                    WHERE parent_category_id = #{categoryId}
+	                    AND is_deleted = 'N'
+	                )
+	            )
 	            <if test="cursor != null">
 	                <![CDATA[AND c.club_id < #{cursor}]]>
 	            </if>

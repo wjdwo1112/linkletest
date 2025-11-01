@@ -44,7 +44,7 @@ const Dashboard = () => {
           setAlertModal({
             isOpen: true,
             message: '동호회 회원이 아니거나 접근 권한이 없습니다.',
-            redirectOnclose: true,
+            redirectOnClose: true,
             nextUrl: `/clubs/${clubId}/detail`,
           });
 

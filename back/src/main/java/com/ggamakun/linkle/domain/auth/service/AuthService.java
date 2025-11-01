@@ -78,11 +78,6 @@ public class AuthService {
             throw new BadRequestException("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
         
-        // 소셜 로그인 회원 체크
-        if (member.isSocialUser()) {
-            throw new BadRequestException("소셜 로그인으로 가입된 계정입니다. 소셜 로그인을 이용해주세요.");
-        }
-        
         // 비밀번호 확인
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             throw new BadRequestException("이메일 또는 비밀번호가 올바르지 않습니다.");

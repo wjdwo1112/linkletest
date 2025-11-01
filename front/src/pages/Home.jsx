@@ -8,7 +8,7 @@ const Home = () => {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [categories, setCategories] = useState([]);
   const [recentClubs, setRecentClubs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -40,7 +40,7 @@ const Home = () => {
   };
 
   const handleCategoryClick = (categoryId) => {
-    navigate(`/clubs/category/${categoryId}`);
+    navigate(`/clubs/list?type=category&categoryId=${categoryId}`);
   };
 
   const handleClubClick = (clubId) => {
@@ -48,16 +48,8 @@ const Home = () => {
   };
 
   const handleMoreClick = () => {
-    navigate('/clubs/recent');
+    navigate('/clubs/list?type=recent');
   };
-
-  if (loading) {
-    return (
-      <div className="bg-gray-50 min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">로딩 중...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-white min-h-screen">

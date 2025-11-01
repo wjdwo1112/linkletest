@@ -108,10 +108,6 @@ export default function Login() {
     }
   };
 
-  const handleKakaoLogin = () => {
-    window.location.href = import.meta.env.VITE_OAUTH2_KAKAO_URL;
-  };
-
   return (
     <div className="w-full max-w-6xl grid grid-cols-2 gap-16">
       <div className="flex items-center justify-start">
@@ -200,22 +196,6 @@ export default function Login() {
                 비밀번호 찾기
               </Link>
             </div>
-
-            <div className="flex items-center my-6">
-              <div className="flex-grow border-t border-gray-300" />
-              <span className="px-3 text-sm text-gray-400">간편 로그인</span>
-              <div className="flex-grow border-t border-gray-300" />
-            </div>
-
-            <button
-              type="button"
-              onClick={handleKakaoLogin}
-              className="w-full h-14 bg-yellow-400 text-black rounded-md font-semibold hover:bg-yellow-500 transition-colors flex items-center justify-center"
-              aria-label="카카오 로그인"
-            >
-              <div className="w-4 h-4 bg-gray-400 rounded-full mr-3" aria-hidden="true" />
-              카카오 로그인
-            </button>
           </form>
         </div>
       </div>

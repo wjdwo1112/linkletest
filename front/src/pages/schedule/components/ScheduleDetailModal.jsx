@@ -20,7 +20,7 @@ const ScheduleDetailModal = ({ schedule, onClose, onSuccess }) => {
 
   const fetchDetail = useCallback(async () => {
     try {
-      setLoading(true);
+      //setLoading(true);
       const data = await scheduleApi.getSchedule(schedule.scheduleId);
       setDetailData(data);
     } catch (error) {

@@ -88,10 +88,6 @@ export default function Register() {
     }
   };
 
-  const handleKakaoLogin = () => {
-    window.location.href = 'http://localhost:8080/oauth2/authorization/kakao';
-  };
-
   return (
     <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8">
       <div className="mb-6">
@@ -217,24 +213,6 @@ export default function Register() {
           {isLoading ? '처리 중...' : '다음'}
         </button>
       </form>
-
-      <div className="mt-6">
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">또는</span>
-          </div>
-        </div>
-
-        <button
-          onClick={handleKakaoLogin}
-          className="w-full mt-4 bg-yellow-400 text-gray-900 py-3 rounded-lg font-medium hover:bg-yellow-500 transition-colors"
-        >
-          카카오로 시작하기
-        </button>
-      </div>
     </div>
   );
 }

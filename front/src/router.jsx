@@ -16,7 +16,6 @@ import RegisterComplete from './pages/auth/RegisterComplete';
 import FindId from './pages/auth/FindId';
 import FindPassword from './pages/auth/FindPassword';
 import ResetPassword from './pages/auth/ResetPassword';
-import OAuth2Callback from './pages/auth/OAuth2Callback';
 import VerifyEmail from './pages/auth/VerifyEmail';
 import Community from '@pages/community/Community';
 import CommunityDetail from './pages/community/CommunityDetail';
@@ -39,6 +38,7 @@ import ClubProfile from './pages/club/ClubProfile';
 import MyActivities from './pages/myactivity/MyActivities';
 import ClubDetailNew from './pages/club/ClubDetailNew';
 import ClubSearch from './pages/club/ClubSearch';
+import ClubList from './pages/club/ClubList';
 
 const router = createBrowserRouter([
   {
@@ -106,10 +106,6 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: '/auth/callback',
-    element: <OAuth2Callback />,
-  },
-  {
     path: '/auth/verify-email',
     element: <VerifyEmail />,
   },
@@ -126,6 +122,14 @@ const router = createBrowserRouter([
     element: (
       <MainLayout>
         <ClubSearch />
+      </MainLayout>
+    ),
+  },
+  {
+    path: '/clubs/list',
+    element: (
+      <MainLayout>
+        <ClubList />
       </MainLayout>
     ),
   },

@@ -58,7 +58,9 @@ public interface IClubMemberRepository {
 	//동호회 탈퇴
 	int withdrawFromClub(@Param("clubId") Integer clubId, @Param("memberId") Integer memberId);
     
-    
+	Integer countApprovedByClubId(Integer clubId);
+	Integer countWaitingByClubId(Integer clubId);
+	Integer getMaxMembersByClubId(Integer clubId);
     
     
     
