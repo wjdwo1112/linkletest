@@ -42,13 +42,13 @@ const ClubMembers = ({ clubId }) => {
           전체 보기
         </button>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {members.length === 0 ? (
-          <div className="col-span-2 text-center py-8 text-gray-500">회원이 없습니다</div>
+          <div className="text-center py-8 text-gray-500">회원이 없습니다</div>
         ) : (
           members.map((member) => (
-            <div key={member.memberId} className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0 ml-3">
+            <div key={member.memberId} className="flex items-center gap-3 px-1">
+              <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
                 {member.fileLink ? (
                   <img
                     src={member.fileLink}
@@ -61,7 +61,8 @@ const ClubMembers = ({ clubId }) => {
                   </span>
                 )}
               </div>
-              <p className="text-sm font-medium text-gray-900 ml-5">{member.nickname}</p>
+              {/* 긴 닉네임 가로 유지 + 말줄임 */}
+              <p className="text-sm font-medium text-gray-900 truncate flex-1">{member.nickname}</p>
             </div>
           ))
         )}

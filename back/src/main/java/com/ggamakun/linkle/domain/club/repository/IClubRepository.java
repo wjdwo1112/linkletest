@@ -83,4 +83,15 @@ public interface IClubRepository {
 
 	// 카테고리별 동호회 조회 (더보기용 - 무한 스크롤)
 	List<RecommendClubDto> findClubsByCategoryAll(@Param("categoryId") Integer categoryId, @Param("size") Integer size, @Param("cursor") Integer cursor);
+	
+	
+    //인기 동호회 조회
+    List<RecommendClubDto> findPopularClubs(@Param("size") int size, @Param("cursor") Integer cursor);
+    
+    //급성장 동호회 조회 
+    List<RecommendClubDto> findGrowingClubs(@Param("size") int size, @Param("cursor") Integer cursor);
+    
+    //활발한 동호회 조회
+    List<RecommendClubDto> findActiveClubs(@Param("size") int size, @Param("cursor") Integer cursor);
+	
 }

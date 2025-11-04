@@ -99,22 +99,52 @@ export const clubApi = {
   },
 
   // 동호회 추천 - 카테고리 기반
-  recommendByCategory: async () => {
+  getRecommendByCategory: async () => {
     return await get('/clubs/recommend/category');
   },
 
   // 동호회 추천 - 지역 기반
-  recommendByRegion: async () => {
+  getRecommendByRegion: async () => {
     return await get('/clubs/recommend/region');
   },
 
   // 동호회 추천 - 복합
-  recommendByCombined: async () => {
+  getRecommendByCombined: async () => {
     return await get('/clubs/recommend/combined');
   },
 
   //동호회 탈퇴
   withdrawFromClub: async (clubId) => {
     return await del(`/clubs/${clubId}/members/withdraw`);
+  },
+
+  // 인기 동호회 조회 (통합)
+  getPopularClubs: async (size = 3, cursor = null) => {
+    const params = new URLSearchParams();
+    params.append('size', size);
+    if (cursor) {
+      params.append('cursor', cursor);
+    }
+    return await get(`/clubs/popular?${params.toString()}`);
+  },
+
+  // 급성장 동호회 조회 (통합)
+  getGrowingClubs: async (size = 3, cursor = null) => {
+    const params = new URLSearchParams();
+    params.append('size', size);
+    if (cursor) {
+      params.append('cursor', cursor);
+    }
+    return await get(`/clubs/growing?${params.toString()}`);
+  },
+
+  // 활발한 동호회 조회 (통합)
+  getActiveClubs: async (size = 3, cursor = null) => {
+    const params = new URLSearchParams();
+    params.append('size', size);
+    if (cursor) {
+      params.append('cursor', cursor);
+    }
+    return await get(`/clubs/active?${params.toString()}`);
   },
 };

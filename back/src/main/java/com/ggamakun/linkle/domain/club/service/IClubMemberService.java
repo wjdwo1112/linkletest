@@ -30,8 +30,9 @@ public interface IClubMemberService {
 	String getMemberStatus(Integer clubId, Integer memberId);
     
     void withdrawFromClub(Integer clubId, Integer memberId);
-
-	
+    
+    //동호회 대기자 수 조회
+    int getWaitingCount(Integer clubId);
 
 	
 }

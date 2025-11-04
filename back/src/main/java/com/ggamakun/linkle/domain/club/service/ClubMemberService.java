@@ -278,6 +278,11 @@ public class ClubMemberService implements IClubMemberService {
         return clubMemberRepository.checkMemberStatus(clubId, memberId);
     }
     
+    @Override
+    public int getWaitingCount(Integer clubId) {
+        log.info("동호회 대기자 수 조회 - 동호회 ID: {}", clubId);
+        return clubMemberRepository.countWaitingByClubId(clubId);
+    }
 
 
 	@Override

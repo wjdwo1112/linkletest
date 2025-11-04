@@ -66,4 +66,27 @@ public interface IClubService {
 
 	// 동호회 회원 목록 조회
 	List<ClubMemberDto> getClubMembers(Integer clubId);
+
+	/**
+	 * 인기 동호회 조회 (통합)
+	 * @param size 조회할 개수 (기본값 3)
+	 * @param cursor 페이징 커서
+	 */
+	List<RecommendClubDto> getPopularClubs(int size, Integer cursor);
+
+	/**
+	 * 급성장 동호회 조회 (통합)
+	 * @param size 조회할 개수 (기본값 3)
+	 * @param cursor 페이징 커서
+	 */
+	List<RecommendClubDto> getGrowingClubs(int size, Integer cursor);
+
+	/**
+	 * 활발한 동호회 조회 (통합)
+	 * @param size 조회할 개수 (기본값 3)
+	 * @param cursor 페이징 커서
+	 */
+	List<RecommendClubDto> getActiveClubs(int size, Integer cursor);
+
+	
 }

@@ -140,6 +140,10 @@ public class ClubMemberController {
         return ResponseEntity.ok().build();
     }
     
-   
+    @GetMapping("/clubs/{clubId:\\d+}/members/waiting-count")
+    public ResponseEntity<Integer> getWaitingCount(@PathVariable("clubId") Integer clubId) {
+        int count = clubMemberService.getWaitingCount(clubId);
+        return ResponseEntity.ok(count);
+    }
     
 }

@@ -213,4 +213,26 @@ public class ClubService implements IClubService {
 	public List<ClubMemberDto> getClubMembers(Integer clubId) {
 		return clubRepository.findMembersByClubId(clubId);
 	}
+	
+	
+	
+	//인기 동호회 조회 
+	@Override
+	public List<RecommendClubDto> getPopularClubs(int size, Integer cursor) {
+	    return clubRepository.findPopularClubs(size, cursor);
+	}
+
+	
+	//급성장 동호회 조회
+	@Override
+	public List<RecommendClubDto> getGrowingClubs(int size, Integer cursor) {
+	    return clubRepository.findGrowingClubs(size, cursor);
+	}
+
+	
+	//활발한 동호회 조회
+	@Override
+	public List<RecommendClubDto> getActiveClubs(int size, Integer cursor) {
+	    return clubRepository.findActiveClubs(size, cursor);
+	}
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { clubApi } from '../../services/api/clubApi';
+import { clubMemberApi } from '../../services/api/clubMemberApi';
 import { scheduleApi } from '../../services/api/scheduleApi';
 import {
   LightBulbIcon,
@@ -23,9 +24,10 @@ export default function ClubDetailNew() {
   const [schedules, setSchedules] = useState([]);
   const [members, setMembers] = useState([]);
   const [memberCount, setMemberCount] = useState(0);
+  const [waitingCount, setWaitingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [joinSubmitting, setJoinSubmitting] = useState(false);
-  const [myStatus, setMyStatus] = useState(null); // null, 'APPROVED', 'WAITING', 'BLOCKED', 'REJECTED', 'WITHDRAWN', 'EXPELLED'
+  const [myStatus, setMyStatus] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [resultModal, setResultModal] = useState({
     open: false,
@@ -42,6 +44,9 @@ export default function ClubDetailNew() {
 
       // 성공 시 상태 업데이트
       setMyStatus('WAITING');
+
+      // 대기자 수 증가
+      setWaitingCount((prev) => prev + 1);
 
       setResultModal({
         open: true,
@@ -76,15 +81,17 @@ export default function ClubDetailNew() {
     (async () => {
       try {
         // 기본 데이터 로딩
-        const [clubDetail, count, mems, sch] = await Promise.all([
+        const [clubDetail, count, waitCount, mems, sch] = await Promise.all([
           clubApi.getClubDetail(clubId),
           clubApi.getClubMemberCount(clubId),
+          clubMemberApi.getWaitingCount(clubId),
           clubApi.getClubMembers(clubId),
           scheduleApi.getSchedulesByClubId(clubId),
         ]);
 
         setClub(clubDetail);
         setMemberCount(count);
+        setWaitingCount(waitCount);
         setMembers(mems);
         setSchedules(sch);
 
@@ -108,6 +115,12 @@ export default function ClubDetailNew() {
   const admins = members.filter((m) => m.role === 'LEADER' || m.role === 'MANAGER');
   const visibleAdmins = admins.slice(0, 6);
   const visibleMembers = members.slice(0, 6);
+
+  // 정원 체크 (승인된 회원 + 대기자 >= 정원)
+  const isCapacityFull = () => {
+    if (!club || !club.maxMembers || club.maxMembers <= 0) return false;
+    return memberCount + waitingCount >= club.maxMembers;
+  };
 
   // 버튼 표시 여부 결정
   const shouldShowButton = () => {
@@ -135,6 +148,15 @@ export default function ClubDetailNew() {
         text: '가입불가',
         disabled: true,
         className: 'bg-red-400 cursor-not-allowed',
+      };
+    }
+
+    // 정원 초과 체크
+    if (isCapacityFull()) {
+      return {
+        text: '정원초과',
+        disabled: true,
+        className: 'bg-gray-400 cursor-not-allowed',
       };
     }
 
@@ -315,7 +337,10 @@ export default function ClubDetailNew() {
               )}
               <div className="flex items-center gap-2">
                 <UsersIcon className="w-4 h-4" />
-                <span>멤버 {memberCount}명</span>
+                <span>
+                  멤버 {memberCount}명
+                  {club.maxMembers && club.maxMembers > 0 && ` / ${club.maxMembers}명`}
+                </span>
               </div>
             </div>
 

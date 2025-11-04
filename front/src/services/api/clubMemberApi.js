@@ -30,4 +30,9 @@ export const clubMemberApi = {
   rejectMember: async (clubId, data) => {
     return await post(`/clubs/${clubId}/members/reject`, data);
   },
+
+  // 대기자 수 조회
+  getWaitingCount: async (clubId) => {
+    return await get(`/clubs/${clubId}/members/waiting-count`);
+  },
 };

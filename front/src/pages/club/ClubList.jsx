@@ -41,6 +41,7 @@ const ClubList = () => {
 
   const fetchInitialData = async () => {
     try {
+      // 타이틀 설정
       if (type === 'category' && categoryId) {
         const categories = await categoryApi.getCategoriesHierarchy();
         const category = categories
@@ -50,8 +51,16 @@ const ClubList = () => {
         if (category) {
           setPageTitle(category.name);
         }
-      } else if (type === 'recent') {
-        setPageTitle('최근 생성 동호회');
+      } else {
+        const titles = {
+          recent: '최근 생성된 동호회',
+          growing: '급성장 동호회',
+          popular: '인기 동호회',
+          active: '활발한 동호회',
+          'recommend-category': '취향 저격 동호회',
+          'recommend-region': '동네 픽 추천',
+        };
+        setPageTitle(titles[type] || '동호회 목록');
       }
 
       loadMoreClubs(true);
@@ -67,22 +76,49 @@ const ClubList = () => {
 
     try {
       let response;
+      const size = 12;
+      const currentCursor = isInitial ? null : cursor;
 
-      if (type === 'recent') {
-        response = await clubApi.getRecentClubsAll(12, isInitial ? null : cursor);
-      } else if (type === 'category' && categoryId) {
-        response = await clubApi.getClubsByCategoryAll(
-          parseInt(categoryId),
-          12,
-          isInitial ? null : cursor,
-        );
+      switch (type) {
+        case 'recent':
+          response = await clubApi.getRecentClubsAll(size, currentCursor);
+          break;
+        case 'category':
+          if (categoryId) {
+            response = await clubApi.getClubsByCategoryAll(
+              parseInt(categoryId),
+              size,
+              currentCursor,
+            );
+          }
+          break;
+        case 'growing':
+          response = await clubApi.getGrowingClubs(size, currentCursor);
+          break;
+        case 'popular':
+          response = await clubApi.getPopularClubs(size, currentCursor);
+          break;
+        case 'active':
+          response = await clubApi.getActiveClubs(size, currentCursor);
+          break;
+        case 'recommend-category':
+          response = isInitial ? await clubApi.getRecommendByCategory() : [];
+          setHasMore(false);
+          break;
+        case 'recommend-region':
+          response = isInitial ? await clubApi.getRecommendByRegion() : [];
+          setHasMore(false);
+          break;
+        default:
+          response = [];
+          setHasMore(false);
       }
 
       if (response && response.length > 0) {
         setClubs((prev) => (isInitial ? response : [...prev, ...response]));
         setCursor(response[response.length - 1].clubId);
 
-        if (response.length < 12) {
+        if (response.length < size) {
           setHasMore(false);
         }
       } else {
@@ -127,7 +163,7 @@ const ClubList = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-gray-500">이미지</span>
+                      <div className="w-full h-full bg-gray-300"></div>
                     )}
                   </div>
                   <div className="p-6">
@@ -145,7 +181,11 @@ const ClubList = () => {
             })}
           </div>
 
-          {loading && <div className="text-center py-8 text-gray-500">로딩 중...</div>}
+          {loading && (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          )}
         </>
       )}
     </div>

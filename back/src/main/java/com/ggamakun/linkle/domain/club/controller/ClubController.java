@@ -189,5 +189,45 @@ public class ClubController {
 		List<ClubMemberDto> members = clubService.getClubMembers(clubId);
 		return ResponseEntity.ok(members);
 	}
+	
+	
+	/**
+	 * 인기 동호회 조회 (통합)
+	 * @param size 조회할 개수 (메인: 3, 더보기: 12)
+	 * @param cursor 페이징 커서
+	 */
+	@GetMapping("/clubs/popular")
+	public ResponseEntity<List<RecommendClubDto>> getPopularClubs(
+	        @RequestParam(name = "size", defaultValue = "3") int size,
+	        @RequestParam(name = "cursor", required = false) Integer cursor) {
+	    List<RecommendClubDto> clubs = clubService.getPopularClubs(size, cursor);
+	    return ResponseEntity.ok(clubs);
+	}
+
+	/**
+	 * 급성장 동호회 조회 (통합)
+	 * @param size 조회할 개수 (메인: 3, 더보기: 12)
+	 * @param cursor 페이징 커서
+	 */
+	@GetMapping("/clubs/growing")
+	public ResponseEntity<List<RecommendClubDto>> getGrowingClubs(
+	        @RequestParam(name = "size", defaultValue = "3") int size,
+	        @RequestParam(name = "cursor", required = false) Integer cursor) {
+	    List<RecommendClubDto> clubs = clubService.getGrowingClubs(size, cursor);
+	    return ResponseEntity.ok(clubs);
+	}
+
+	/**
+	 * 활발한 동호회 조회 (통합)
+	 * @param size 조회할 개수 (메인: 3, 더보기: 12)
+	 * @param cursor 페이징 커서
+	 */
+	@GetMapping("/clubs/active")
+	public ResponseEntity<List<RecommendClubDto>> getActiveClubs(
+	        @RequestParam(name = "size", defaultValue = "3") int size,
+	        @RequestParam(name = "cursor", required = false) Integer cursor) {
+	    List<RecommendClubDto> clubs = clubService.getActiveClubs(size, cursor);
+	    return ResponseEntity.ok(clubs);
+	}
 }
 
