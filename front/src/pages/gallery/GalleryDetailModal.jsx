@@ -45,7 +45,6 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
   const fetchLikeStatus = async () => {
     try {
       const response = await galleryApi.getGalleryLikeStatus(gallery.galleryId);
-      console.log('좋아요 상태 응답:', response);
       setIsLiked(response.liked || false);
       if (response.likeCount !== undefined) {
         setLikeCount(response.likeCount);
@@ -55,7 +54,6 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
     }
   };
 
-  // 사용자의 동호회 내 역할 조회
   const fetchUserRole = async () => {
     try {
       const clubs = await clubApi.getJoinedClubs();
@@ -96,7 +94,6 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
     try {
       setLoading(true);
       const response = await galleryApi.toggleGalleryLike(gallery.galleryId);
-      console.log('좋아요 토글 응답:', response);
       setIsLiked(response.liked);
       setLikeCount(response.likeCount);
     } catch (error) {
@@ -135,8 +132,10 @@ export default function GalleryDetailModal({ gallery, onClose, onDelete }) {
     setShowDeleteModal(true);
   };
 
-  // 작성자 본인이거나 운영진/모임장인 경우 삭제 가능
-  const isAuthor = isLoggedIn && user?.memberId === gallery.createdBy;
+  // user.id, user.memberId 모두 체크
+  const currentMemberId = user?.memberId || user?.id;
+  const isAuthor =
+    isLoggedIn && currentMemberId && Number(currentMemberId) === Number(gallery.createdBy);
   const isManager = userRole === 'LEADER' || userRole === 'MANAGER';
   const canDelete = isAuthor || isManager;
 

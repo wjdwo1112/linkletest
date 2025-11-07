@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { clubApi } from '../services/api/clubApi';
 import { categoryApi } from '../services/api/categoryApi';
+import Chatbot from '../components/chatbot/Chatbot';
 import useUserStore from '../store/useUserStore';
 
 const Home = () => {
@@ -30,6 +31,19 @@ const Home = () => {
   }, [isAuthenticated]);
 
   const fetchData = async () => {
+    // try {
+    //   const [categoriesData, recentClubsData] = await Promise.all([
+    //     categoryApi.getCategoriesHierarchy(),
+    //     clubApi.getRecentClubs(),
+    //   ]);
+
+    //   const parentCategories = categoriesData.filter((cat) => !cat.parentCategoryId);
+    //   setCategories(parentCategories);
+    //   setRecentClubs(recentClubsData);
+    // } catch (error) {
+    //   console.error('데이터 로딩 실패:', error);
+    // }
+
     Promise.all([categoryApi.getCategoriesHierarchy(), clubApi.getRecentClubs()]).then(
       ([categoriesData, recentClubsData]) => {
         const parentCategories = categoriesData.filter((cat) => !cat.parentCategoryId);
@@ -230,13 +244,8 @@ const Home = () => {
             )}
           </>
         )}
-
-        <div className="fixed bottom-8 right-8">
-          <button className="w-14 h-14 bg-primary rounded-full shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center text-white text-2xl">
-            💬
-          </button>
-        </div>
       </div>
+      <Chatbot />
     </div>
   );
 };
