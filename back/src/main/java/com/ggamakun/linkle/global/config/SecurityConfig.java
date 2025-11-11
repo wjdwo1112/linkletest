@@ -44,6 +44,7 @@ public class SecurityConfig {
                 .requestMatchers("/", "/index.html", "/css/**", "/images/**", "/js/**", "/assets/**", "/favicon.ico", "/h2-console/**").permitAll()
                 .requestMatchers("/ws/**").permitAll()
                 .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/chatbot/**").permitAll()
                 .requestMatchers("/member/activities/**").authenticated()
                 .requestMatchers("/member/**").permitAll()
                 .requestMatchers("/categories/**").permitAll()

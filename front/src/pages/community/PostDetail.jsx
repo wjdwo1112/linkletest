@@ -215,24 +215,40 @@ export default function PostDetail() {
 
         // ✅ 로그인한 경우 각 댓글의 좋아요 상태 조회
         if (isAuthenticated) {
-          const likeStatusPromises = data.map(async (comment) => {
+          // 모든 댓글(부모 댓글 + 대댓글)의 commentId를 수집
+          const allCommentIds = [];
+
+          data.forEach((comment) => {
+            allCommentIds.push(comment.commentId);
+
+            // 대댓글도 포함
+            if (comment.replies && comment.replies.length > 0) {
+              comment.replies.forEach((reply) => {
+                allCommentIds.push(reply.commentId);
+              });
+            }
+          });
+
+          // 모든 댓글의 좋아요 상태를 조회
+          const likeStatusPromises = allCommentIds.map(async (commentId) => {
             try {
-              const status = await commentApi.getCommentLikeStatus(comment.commentId);
-              return { commentId: comment.commentId, ...status };
+              const status = await commentApi.getCommentLikeStatus(commentId);
+              return { commentId, ...status };
             } catch {
               return {
-                commentId: comment.commentId,
+                commentId,
                 isLiked: false,
-                likeCount: comment.likeCount || 0,
+                likeCount: 0,
               };
             }
           });
 
           const likeStatuses = await Promise.all(likeStatusPromises);
+
           const likeStatusMap = {};
           likeStatuses.forEach((status) => {
             likeStatusMap[status.commentId] = {
-              isLiked: status.Liked,
+              isLiked: status.liked,
               likeCount: status.likeCount,
             };
           });
@@ -363,7 +379,7 @@ export default function PostDetail() {
     }
   };
 
-  const handleCommentSubmit = async () => {
+  const handleCommentSubmit = () => {
     if (!isAuthenticated) {
       setAlertModal({
         isOpen: true,
@@ -382,30 +398,41 @@ export default function PostDetail() {
       return;
     }
 
-    try {
-      await commentApi.createComment(postId, {
-        content: newComment,
-        parentCommentId: null,
-      });
-      setNewComment('');
-      const data = await commentApi.getComments(postId);
-      setComments(data);
-      setAlertModal({
-        isOpen: true,
-        title: '완료',
-        message: '댓글이 등록되었습니다.',
-      });
-    } catch (err) {
-      console.error('댓글 작성 실패:', err);
-      setAlertModal({
-        isOpen: true,
-        title: '오류',
-        message: '댓글 작성에 실패했습니다.',
-      });
-    }
+    // ✅ 확인 모달 먼저 띄우기
+    setConfirmModal({
+      isOpen: true,
+      title: '댓글 등록',
+      message: '댓글을 등록하시겠습니까?',
+      confirmText: '등록',
+      cancelText: '취소',
+      confirmButtonStyle: 'primary',
+      onConfirm: async () => {
+        try {
+          await commentApi.createComment(postId, {
+            content: newComment,
+            parentCommentId: null,
+          });
+          setNewComment('');
+          const data = await commentApi.getComments(postId);
+          setComments(data);
+          setAlertModal({
+            isOpen: true,
+            title: '완료',
+            message: '댓글이 등록되었습니다.',
+          });
+        } catch (err) {
+          console.error('댓글 작성 실패:', err);
+          setAlertModal({
+            isOpen: true,
+            title: '오류',
+            message: '댓글 작성에 실패했습니다.',
+          });
+        }
+      },
+    });
   };
 
-  const handleReplySubmit = async (parentId) => {
+  const handleReplySubmit = (parentId) => {
     if (!isAuthenticated) {
       setAlertModal({
         isOpen: true,
@@ -424,28 +451,39 @@ export default function PostDetail() {
       return;
     }
 
-    try {
-      await commentApi.createComment(postId, {
-        content: replyContent,
-        parentCommentId: parentId,
-      });
-      setReplyContent('');
-      setReplyingTo(null);
-      const data = await commentApi.getComments(postId);
-      setComments(data);
-      setAlertModal({
-        isOpen: true,
-        title: '완료',
-        message: '댓글이 등록되었습니다.',
-      });
-    } catch (err) {
-      console.error('대댓글 작성 실패:', err);
-      setAlertModal({
-        isOpen: true,
-        title: '오류',
-        message: '댓글 작성에 실패했습니다.',
-      });
-    }
+    // ✅ 확인 모달 먼저 띄우기
+    setConfirmModal({
+      isOpen: true,
+      title: '답글 등록',
+      message: '답글을 등록하시겠습니까?',
+      confirmText: '등록',
+      cancelText: '취소',
+      confirmButtonStyle: 'primary',
+      onConfirm: async () => {
+        try {
+          await commentApi.createComment(postId, {
+            content: replyContent,
+            parentCommentId: parentId,
+          });
+          setReplyContent('');
+          setReplyingTo(null);
+          const data = await commentApi.getComments(postId);
+          setComments(data);
+          setAlertModal({
+            isOpen: true,
+            title: '완료',
+            message: '답글이 등록되었습니다.',
+          });
+        } catch (err) {
+          console.error('대댓글 작성 실패:', err);
+          setAlertModal({
+            isOpen: true,
+            title: '오류',
+            message: '답글 작성에 실패했습니다.',
+          });
+        }
+      },
+    });
   };
 
   const startEdit = (comment) => {
@@ -537,19 +575,34 @@ export default function PostDetail() {
 
           // 로그인한 경우 댓글 좋아요 상태도 새로고침
           if (isAuthenticated) {
-            const likeStatusPromises = data.map(async (comment) => {
+            // 모든 댓글(부모 댓글 + 대댓글)의 commentId를 수집
+            const allCommentIds = [];
+
+            data.forEach((comment) => {
+              allCommentIds.push(comment.commentId);
+
+              // 대댓글도 포함
+              if (comment.replies && comment.replies.length > 0) {
+                comment.replies.forEach((reply) => {
+                  allCommentIds.push(reply.commentId);
+                });
+              }
+            });
+
+            const likeStatusPromises = allCommentIds.map(async (commentId) => {
               try {
-                const status = await commentApi.getCommentLikeStatus(comment.commentId);
-                return { commentId: comment.commentId, ...status };
+                const status = await commentApi.getCommentLikeStatus(commentId);
+                return { commentId, ...status };
               } catch {
-                return { commentId: comment.commentId, isLiked: false, likeCount: 0 };
+                return { commentId, isLiked: false, likeCount: 0 };
               }
             });
             const likeStatuses = await Promise.all(likeStatusPromises);
+
             const likeMap = {};
             likeStatuses.forEach((status) => {
               likeMap[status.commentId] = {
-                isLiked: status.isLiked,
+                isLiked: status.liked,
                 likeCount: status.likeCount,
               };
             });

@@ -5,6 +5,7 @@ import useUserStore from '../../store/useUserStore';
 import ProfileImageModal from './ProfileImageModal';
 import AlertModal from '../../components/common/AlertModal';
 import defaultProfile from '../../assets/images/default-profile.png';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
@@ -26,6 +27,12 @@ const ProfileEdit = () => {
     title: '',
     message: '',
     onCloseCallback: null,
+  });
+
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
   });
 
   useEffect(() => {
@@ -112,7 +119,7 @@ const ProfileEdit = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault(); // ← 모달에서 호출 시 e가 없을 수 있음
 
     if (!formData.nickname.trim()) {
       setAlertModal({
@@ -137,7 +144,6 @@ const ProfileEdit = () => {
     try {
       await memberApi.updateProfile(formData);
 
-      // useUserStore 업데이트
       if (user) {
         setUser({
           ...user,
@@ -284,7 +290,14 @@ const ProfileEdit = () => {
             취소
           </button>
           <button
-            type="submit"
+            type="button"
+            onClick={() =>
+              setConfirmModal({
+                isOpen: true,
+                title: '수정 확인',
+                message: '프로필을 수정하시겠습니까?',
+              })
+            }
             className="flex-1 px-6 py-3 bg-[#4CA8FF] text-white rounded-lg hover:bg-[#4CA8FF]/90 transition-colors"
           >
             수정
@@ -305,6 +318,16 @@ const ProfileEdit = () => {
         onClose={closeAlert}
         title={alertModal.title}
         message={alertModal.message}
+      />
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, title: '', message: '' })}
+        onConfirm={() => handleSubmit()} // ✅ 기존 이름 유지해서 호출
+        title={confirmModal.title || '수정 확인'}
+        message={confirmModal.message || '프로필을 수정하시겠습니까?'}
+        confirmText="수정"
+        cancelText="취소"
+        confirmButtonStyle="primary"
       />
     </div>
   );

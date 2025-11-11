@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { categoryApi, fileApi } from '../../services/api';
 import axios from 'axios';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
   const [categories, setCategories] = useState([]);
@@ -24,6 +25,12 @@ const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -38,6 +45,15 @@ const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
     } catch (error) {
       console.error('카테고리 조회 실패:', error);
     }
+  };
+
+  const closeConfirm = () => {
+    setConfirmModal({
+      isOpen: false,
+      title: '',
+      message: '',
+      onConfirm: null,
+    });
   };
 
   const handleImageChange = async (e) => {
@@ -120,36 +136,44 @@ const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!validateForm()) {
       return;
     }
 
-    setIsLoading(true);
+    // ✅ 확인 모달 먼저 띄우기
+    setConfirmModal({
+      isOpen: true,
+      title: '동호회 생성',
+      message: '동호회를 생성하시겠습니까?',
+      onConfirm: async () => {
+        setIsLoading(true);
 
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/clubs`,
-        {
-          ...formData,
-          maxMembers: parseInt(formData.maxMembers),
-          categoryId: parseInt(formData.categoryId),
-        },
-        { withCredentials: true },
-      );
+        try {
+          const response = await axios.post(
+            `${import.meta.env.VITE_API_BASE_URL}/clubs`,
+            {
+              ...formData,
+              maxMembers: parseInt(formData.maxMembers),
+              categoryId: parseInt(formData.categoryId),
+            },
+            { withCredentials: true },
+          );
 
-      onSuccess(response.data);
-      window.dispatchEvent(new CustomEvent('clubUpdated'));
-      handleClose();
-    } catch (error) {
-      console.error('동호회 생성 실패:', error);
-      setErrors((prev) => ({
-        ...prev,
-        submit: error.response?.data?.message || '동호회 생성에 실패했습니다.',
-      }));
-    } finally {
-      setIsLoading(false);
-    }
+          onSuccess(response.data);
+          window.dispatchEvent(new CustomEvent('clubUpdated'));
+          handleClose();
+        } catch (error) {
+          console.error('동호회 생성 실패:', error);
+          setErrors((prev) => ({
+            ...prev,
+            submit: error.response?.data?.message || '동호회 생성에 실패했습니다.',
+          }));
+        } finally {
+          setIsLoading(false);
+        }
+      },
+    });
   };
 
   const handleClose = () => {
@@ -362,6 +386,16 @@ const ClubCreateModal = ({ isOpen, onClose, onSuccess }) => {
           </button>
         </div>
       </div>
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={closeConfirm}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText="생성"
+        cancelText="취소"
+        confirmButtonStyle="primary"
+      />
     </div>
   );
 };

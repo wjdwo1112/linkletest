@@ -124,19 +124,19 @@ const Header = () => {
               <nav className="flex items-center space-x-8">
                 <Link
                   to="/"
-                  className="text-gray-700 hover:text-primary font-medium transition-colors"
+                  className="text-gray-700 text-lg hover:text-primary font-semibold transition-colors"
                 >
                   동호회
                 </Link>
                 <Link
                   to="/community"
-                  className="text-gray-700 hover:text-primary font-medium transition-colors"
+                  className="text-gray-700 text-lg hover:text-primary font-semibold transition-colors"
                 >
                   커뮤니티
                 </Link>
                 <Link
                   to="/gallery"
-                  className="text-gray-700 hover:text-primary font-medium transition-colors"
+                  className="text-gray-700 text-lg hover:text-primary font-semibold transition-colors"
                 >
                   갤러리
                 </Link>
@@ -148,7 +148,7 @@ const Header = () => {
                 <>
                   <button
                     onClick={handleClubCreateClick}
-                    className="text-gray-700 hover:text-primary font-medium transition-colors"
+                    className="text-gray-700 text-lg hover:text-primary font-semibold transition-colors"
                   >
                     동호회+
                   </button>
@@ -194,13 +194,13 @@ const Header = () => {
                 <>
                   <button
                     onClick={handleClubCreateClick}
-                    className="text-gray-700 hover:text-primary font-medium transition-colors"
+                    className="text-gray-700 text-lg hover:text-primary font-semibold transition-colors"
                   >
                     동호회+
                   </button>
                   <Link
                     to="/login"
-                    className="text-gray-700 hover:text-primary font-medium transition-colors"
+                    className="text-gray-700 text-lg hover:text-primary font-semibold transition-colors"
                   >
                     로그인
                   </Link>

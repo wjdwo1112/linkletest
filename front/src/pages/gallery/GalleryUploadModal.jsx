@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { galleryApi } from '../../services/api/galleryApi';
 import { fileApi } from '../../services/api/fileApi';
 import AlertModal from '../../components/common/AlertModal';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, preSelectedClubId }) {
   const [selectedClubId, setSelectedClubId] = useState('');
@@ -17,6 +18,13 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, pr
     onCloseCallback: null,
   });
 
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+  });
+
   const closeAlert = () => {
     const callback = alertModal.onCloseCallback;
     setAlertModal({
@@ -28,6 +36,15 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, pr
     if (callback) {
       callback();
     }
+  };
+
+  const closeConfirm = () => {
+    setConfirmModal({
+      isOpen: false,
+      title: '',
+      message: '',
+      onConfirm: null,
+    });
   };
 
   useEffect(() => {
@@ -67,7 +84,7 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, pr
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!selectedClubId) {
       setAlertModal({
         isOpen: true,
@@ -87,31 +104,39 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, pr
       return;
     }
 
-    try {
-      const galleryData = {
-        clubId: parseInt(selectedClubId),
-        fileId: uploadedFile.fileId,
-        scope: scope,
-      };
+    // ✅ 확인 모달 먼저 띄우기
+    setConfirmModal({
+      isOpen: true,
+      title: '갤러리 등록',
+      message: '사진을 갤러리에 등록하시겠습니까?',
+      onConfirm: async () => {
+        try {
+          const galleryData = {
+            clubId: parseInt(selectedClubId),
+            fileId: uploadedFile.fileId,
+            scope: scope,
+          };
 
-      await galleryApi.createGallery(galleryData);
-      setAlertModal({
-        isOpen: true,
-        title: '완료',
-        message: '갤러리가 등록되었습니다.',
-        onCloseCallback: () => {
-          onSuccess();
-          onClose();
-        },
-      });
-    } catch (error) {
-      console.error('갤러리 등록 실패:', error);
-      setAlertModal({
-        isOpen: true,
-        title: '오류',
-        message: '갤러리 등록에 실패했습니다.',
-      });
-    }
+          await galleryApi.createGallery(galleryData);
+          setAlertModal({
+            isOpen: true,
+            title: '완료',
+            message: '갤러리가 등록되었습니다.',
+            onCloseCallback: () => {
+              onSuccess();
+              onClose();
+            },
+          });
+        } catch (error) {
+          console.error('갤러리 등록 실패:', error);
+          setAlertModal({
+            isOpen: true,
+            title: '오류',
+            message: '갤러리 등록에 실패했습니다.',
+          });
+        }
+      },
+    });
   };
 
   return (
@@ -270,6 +295,16 @@ export default function GalleryUploadModal({ joinedClubs, onClose, onSuccess, pr
         onClose={closeAlert}
         title={alertModal.title}
         message={alertModal.message}
+      />
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={closeConfirm}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText="등록"
+        cancelText="취소"
+        confirmButtonStyle="primary"
       />
     </div>
   );

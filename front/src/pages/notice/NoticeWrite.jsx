@@ -110,7 +110,8 @@ export default function NoticeWrite() {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
+    // 유효성 검사
     if (!title.trim()) {
       setAlertModal({
         isOpen: true,
@@ -127,39 +128,49 @@ export default function NoticeWrite() {
       });
       return;
     }
-    try {
-      // fileId들을 '/'로 구분하여 문자열로 만듦
-      const images = uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.fileId).join('/') : null;
 
-      const noticeData = {
-        clubId: parseInt(clubId),
-        title: title.trim(),
-        content: html,
-        images: images, // "1/2/3" 형태
-        postType: 'N',
-        isPinned: isPinned,
-      };
+    // ✅ 확인 모달 먼저 띄우기
+    setConfirmModal({
+      isOpen: true,
+      title: '공지사항 등록',
+      message: '공지사항을 등록하시겠습니까?',
+      onConfirm: async () => {
+        try {
+          // fileId들을 '/'로 구분하여 문자열로 만듦
+          const images =
+            uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.fileId).join('/') : null;
 
-      console.log('공지사항 등록 요청:', noticeData);
+          const noticeData = {
+            clubId: parseInt(clubId),
+            title: title.trim(),
+            content: html,
+            images: images, // "1/2/3" 형태
+            postType: 'N',
+            isPinned: isPinned,
+          };
 
-      await noticeApi.createNotice(noticeData);
+          console.log('공지사항 등록 요청:', noticeData);
 
-      setAlertModal({
-        isOpen: true,
-        title: '등록 완료',
-        message: '공지사항이 등록되었습니다.',
-        onCloseCallback: () => {
-          navigate(`/clubs/${clubId}/notice`);
-        },
-      });
-    } catch (error) {
-      console.error('공지사항 등록 실패:', error);
-      setAlertModal({
-        isOpen: true,
-        title: '오류',
-        message: '공지사항 등록에 실패했습니다.\n' + (error.message || '다시 시도해주세요.'),
-      });
-    }
+          await noticeApi.createNotice(noticeData);
+
+          setAlertModal({
+            isOpen: true,
+            title: '등록 완료',
+            message: '공지사항이 등록되었습니다.',
+            onCloseCallback: () => {
+              navigate(`/clubs/${clubId}/notice`);
+            },
+          });
+        } catch (error) {
+          console.error('공지사항 등록 실패:', error);
+          setAlertModal({
+            isOpen: true,
+            title: '오류',
+            message: '공지사항 등록에 실패했습니다.\n' + (error.message || '다시 시도해주세요.'),
+          });
+        }
+      },
+    });
   };
 
   const handleCancel = () => {

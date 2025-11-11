@@ -198,7 +198,7 @@ public class ClubController {
 	 */
 	@GetMapping("/clubs/popular")
 	public ResponseEntity<List<RecommendClubDto>> getPopularClubs(
-	        @RequestParam(name = "size", defaultValue = "3") int size,
+	        @RequestParam(name = "size", defaultValue = "4") int size,
 	        @RequestParam(name = "cursor", required = false) Integer cursor) {
 	    List<RecommendClubDto> clubs = clubService.getPopularClubs(size, cursor);
 	    return ResponseEntity.ok(clubs);
@@ -211,7 +211,7 @@ public class ClubController {
 	 */
 	@GetMapping("/clubs/growing")
 	public ResponseEntity<List<RecommendClubDto>> getGrowingClubs(
-	        @RequestParam(name = "size", defaultValue = "3") int size,
+	        @RequestParam(name = "size", defaultValue = "4") int size,
 	        @RequestParam(name = "cursor", required = false) Integer cursor) {
 	    List<RecommendClubDto> clubs = clubService.getGrowingClubs(size, cursor);
 	    return ResponseEntity.ok(clubs);
@@ -224,7 +224,7 @@ public class ClubController {
 	 */
 	@GetMapping("/clubs/active")
 	public ResponseEntity<List<RecommendClubDto>> getActiveClubs(
-	        @RequestParam(name = "size", defaultValue = "3") int size,
+	        @RequestParam(name = "size", defaultValue = "4") int size,
 	        @RequestParam(name = "cursor", required = false) Integer cursor) {
 	    List<RecommendClubDto> clubs = clubService.getActiveClubs(size, cursor);
 	    return ResponseEntity.ok(clubs);

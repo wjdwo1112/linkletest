@@ -199,7 +199,8 @@ export default function PostWrite() {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
+    // 유효성 검사
     if (!title.trim()) {
       setAlertModal({
         isOpen: true,
@@ -225,55 +226,60 @@ export default function PostWrite() {
       return;
     }
 
-    try {
-      const scope = visibility;
+    // ✅ 확인 모달 먼저 띄우기
+    setConfirmModal({
+      isOpen: true,
+      title: isEditMode ? '게시글 수정' : '게시글 등록',
+      message: isEditMode ? '게시글을 수정하시겠습니까?' : '게시글을 등록하시겠습니까?',
+      onConfirm: async () => {
+        try {
+          const scope = visibility;
+          const images =
+            uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.fileId).join('/') : null;
+          const postData = {
+            clubId: parseInt(club),
+            title: title.trim(),
+            content: html,
+            images: images,
+            postType: 'P',
+            scope: scope,
+          };
 
-      // fileId들을 '/'로 구분하여 문자열로 만듦
-      const images = uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.fileId).join('/') : null;
+          console.log(isEditMode ? '게시글 수정 요청:' : '게시글 등록 요청:', postData);
 
-      const postData = {
-        clubId: parseInt(club),
-        title: title.trim(),
-        content: html,
-        images: images, // "1/2/3" 형태
-        postType: 'P',
-        scope: scope,
-      };
-
-      console.log(isEditMode ? '게시글 수정 요청:' : '게시글 등록 요청:', postData);
-
-      if (isEditMode) {
-        // 수정 모드
-        await postApi.updatePost(editPostId, postData);
-        setAlertModal({
-          isOpen: true,
-          title: '수정 완료',
-          message: '게시글이 수정되었습니다.',
-          onCloseCallback: () => {
-            navigate(`/community/posts/${editPostId}`);
-          },
-        });
-      } else {
-        await postApi.createPost(postData);
-        setAlertModal({
-          isOpen: true,
-          title: '등록 완료',
-          message: '게시글이 등록되었습니다.',
-          onCloseCallback: () => {
-            navigate(`/community`);
-          },
-        });
-      }
-    } catch (error) {
-      console.error(isEditMode ? '게시글 수정 실패:' : '게시글 등록 실패:', error);
-      setAlertModal({
-        isOpen: true,
-        title: '오류',
-        message: isEditMode
-          ? '게시글 수정에 실패했습니다.\n' + (error.message || '다시 시도해주세요.')
-          : '게시글 등록에 실패했습니다.\n' + (error.message || '다시 시도해주세요.'),
-      });
-    }
+          if (isEditMode) {
+            await postApi.updatePost(editPostId, postData);
+            setAlertModal({
+              isOpen: true,
+              title: '수정 완료',
+              message: '게시글이 수정되었습니다.',
+              onCloseCallback: () => {
+                navigate(`/community/posts/${editPostId}`);
+              },
+            });
+          } else {
+            await postApi.createPost(postData);
+            setAlertModal({
+              isOpen: true,
+              title: '등록 완료',
+              message: '게시글이 등록되었습니다.',
+              onCloseCallback: () => {
+                navigate(`/community`);
+              },
+            });
+          }
+        } catch (error) {
+          console.error(isEditMode ? '게시글 수정 실패:' : '게시글 등록 실패:', error);
+          setAlertModal({
+            isOpen: true,
+            title: '오류',
+            message: isEditMode
+              ? '게시글 수정에 실패했습니다.\n' + (error.message || '다시 시도해주세요.')
+              : '게시글 등록에 실패했습니다.\n' + (error.message || '다시 시도해주세요.'),
+          });
+        }
+      },
+    });
   };
 
   const handleCancel = () => {

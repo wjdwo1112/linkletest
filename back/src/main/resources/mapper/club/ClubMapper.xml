@@ -477,7 +477,7 @@
 	        GROUP BY c.club_id, c.name, c.description, f.file_link, cat.name, c.region, c.opened_at
 	        ORDER BY c.opened_at DESC
 	    )
-	    WHERE ROWNUM <= 3
+	    WHERE ROWNUM <= 4
 	    ]]>
 	</select>
 	
@@ -543,7 +543,7 @@
 	        GROUP BY c.club_id, c.name, c.description, f.file_link, cat.name, c.region, c.opened_at
 	        ORDER BY c.opened_at DESC
 	    )
-	    WHERE ROWNUM <= 3
+	    WHERE ROWNUM <= 4
 	    ]]>
 	</select>
 	

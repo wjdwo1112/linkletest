@@ -76,6 +76,22 @@ export default function RegisterStep3() {
 
   return (
     <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8 relative">
+      <div className="flex items-center justify-center mb-8">
+        <div className="flex items-center">
+          <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-medium">
+            1
+          </div>
+          <div className="w-12 h-0.5 bg-primary mx-2"></div>
+          <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-medium">
+            2
+          </div>
+          <div className="w-12 h-0.5 bg-primary mx-2"></div>
+          <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-medium">
+            3
+          </div>
+        </div>
+      </div>
+
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">관심사를 선택해 주세요</h1>
 

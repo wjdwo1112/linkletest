@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { clubApi } from '../../services/api/clubApi';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 const ClubSearch = () => {
   const [searchParams] = useSearchParams();
@@ -92,14 +93,7 @@ const ClubSearch = () => {
           <>
             {/* 검색 결과 헤더 */}
             <div className="flex items-center gap-3 mb-8">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
+              <MagnifyingGlassIcon className="w-6 h-6" />
               <h2 className="text-xl font-bold">&quot;{keyword}&quot; 검색 결과</h2>
             </div>
 

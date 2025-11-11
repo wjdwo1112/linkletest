@@ -10,7 +10,7 @@ import com.openai.client.okhttp.OpenAIOkHttpClient;
 @Configuration
 public class OpenAiConfig {
 
-    @Value("${openai.api-key}")
+    @Value("${openai.api.key}")
     private String apiKey;
 
     @Bean

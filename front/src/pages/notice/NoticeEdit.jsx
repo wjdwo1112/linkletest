@@ -154,7 +154,8 @@ export default function NoticeEdit() {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
+    // 유효성 검사
     if (!title.trim()) {
       setAlertModal({
         isOpen: true,
@@ -172,37 +173,46 @@ export default function NoticeEdit() {
       return;
     }
 
-    try {
-      // fileId들을 '/'로 구분하여 문자열로 만듦
-      const images = uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.fileId).join('/') : null;
+    // ✅ 확인 모달 먼저 띄우기
+    setConfirmModal({
+      isOpen: true,
+      title: '공지사항 수정',
+      message: '공지사항을 수정하시겠습니까?',
+      onConfirm: async () => {
+        try {
+          // fileId들을 '/'로 구분하여 문자열로 만듦
+          const images =
+            uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.fileId).join('/') : null;
 
-      const noticeData = {
-        title: title.trim(),
-        content: html,
-        images: images, // "1/2/3" 형태
-        isPinned: isPinned,
-      };
+          const noticeData = {
+            title: title.trim(),
+            content: html,
+            images: images, // "1/2/3" 형태
+            isPinned: isPinned,
+          };
 
-      console.log('공지사항 수정 요청:', noticeData);
+          console.log('공지사항 수정 요청:', noticeData);
 
-      await noticeApi.updateNotice(postId, noticeData);
+          await noticeApi.updateNotice(postId, noticeData);
 
-      setAlertModal({
-        isOpen: true,
-        title: '수정 완료',
-        message: '공지사항이 수정되었습니다.',
-        onCloseCallback: () => {
-          navigate(`/clubs/${clubId}/notice/${postId}`);
-        },
-      });
-    } catch (error) {
-      console.error('공지사항 수정 실패:', error);
-      setAlertModal({
-        isOpen: true,
-        title: '오류',
-        message: error.message || '공지사항 수정에 실패했습니다.\n다시 시도해주세요.',
-      });
-    }
+          setAlertModal({
+            isOpen: true,
+            title: '수정 완료',
+            message: '공지사항이 수정되었습니다.',
+            onCloseCallback: () => {
+              navigate(`/clubs/${clubId}/notice/${postId}`);
+            },
+          });
+        } catch (error) {
+          console.error('공지사항 수정 실패:', error);
+          setAlertModal({
+            isOpen: true,
+            title: '오류',
+            message: error.message || '공지사항 수정에 실패했습니다.\n다시 시도해주세요.',
+          });
+        }
+      },
+    });
   };
 
   const handleCancel = () => {
