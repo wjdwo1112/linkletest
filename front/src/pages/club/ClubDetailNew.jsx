@@ -249,13 +249,10 @@ export default function ClubDetailNew() {
               </button>
             </div>
 
-            <div className="grid grid-cols-6 gap-4">
+            <div className="grid grid-cols-6 gap-x-6 gap-y-6">
               {visibleAdmins.map((m) => (
-                <div
-                  key={m.memberId}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50/60 p-3 flex flex-col items-center shadow-sm"
-                >
-                  <div className="w-14 h-14 rounded-full overflow-hidden">
+                <div key={m.memberId} className="flex flex-col items-center">
+                  <div className="w-12 h-12 rounded-full overflow-hidden">
                     <img
                       src={m.fileLink || defaultProfile}
                       className="w-full h-full object-cover"

@@ -5,7 +5,7 @@ import axios from 'axios';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import AlertModal from '../../components/common/AlertModal';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // 토큰이 유효할 때만 Authorization 전송
 const authHeaders = () => {

@@ -72,8 +72,8 @@ const Home = () => {
     if (isAuthenticated) {
       Promise.all([clubApi.getRecommendByCategory(), clubApi.getRecommendByRegion()])
         .then(([categoryData, regionData]) => {
-          setCategoryRecommendClubs(Array.isArray(categoryData) ? categoryData.slice(0, 3) : []);
-          setRegionRecommendClubs(Array.isArray(regionData) ? regionData.slice(0, 3) : []);
+          setCategoryRecommendClubs(Array.isArray(categoryData) ? categoryData.slice(0, 4) : []);
+          setRegionRecommendClubs(Array.isArray(regionData) ? regionData.slice(0, 4) : []);
         })
         .catch(() => {})
         .finally(() => {

@@ -307,8 +307,9 @@ const Notice = () => {
   );
 
   // 페이지네이션
-  const totalPages = Math.max(1, Math.ceil(notices.length / itemsPerPage));
-  const currentNotices = notices.slice(
+  const allNotices = [...pinnedNotices, ...notices]; // 고정 공지 + 일반 공지 합침
+  const totalPages = Math.max(1, Math.ceil(allNotices.length / itemsPerPage));
+  const currentNotices = allNotices.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   );
@@ -369,14 +370,11 @@ const Notice = () => {
               <div className="px-8 py-12 text-center text-gray-500">로딩 중...</div>
             ) : (
               <>
-                {/* 고정 공지 */}
-                {pinnedNotices.map((notice) => renderNoticeRow(notice, true))}
-
-                {/* 일반 공지 */}
-                {currentNotices.map((notice) => renderNoticeRow(notice, false))}
+                {/* 현재 페이지의 공지 표시 (고정/일반 구분 유지) */}
+                {currentNotices.map((notice) => renderNoticeRow(notice, notice.isPinned === 'Y'))}
 
                 {/* 공지사항 없음 */}
-                {pinnedNotices.length === 0 && notices.length === 0 && (
+                {allNotices.length === 0 && (
                   <div className="px-8 py-12 text-center text-gray-500">
                     등록된 공지사항이 없습니다.
                   </div>
@@ -386,7 +384,7 @@ const Notice = () => {
           </div>
 
           {/* 페이지네이션 */}
-          {!loading && (pinnedNotices.length > 0 || notices.length > 0) && (
+          {!loading && allNotices.length > 0 && (
             <div className="px-8 py-6 flex items-center justify-center border-t border-gray-100">
               <div className="flex items-center gap-2">
                 {/* 이전 페이지 버튼 */}

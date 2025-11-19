@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AlertModal from '../../components/common/AlertModal';
 import { memberApi } from '../../services/api';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 export default function ChangePassword() {
   const navigate = useNavigate();
@@ -12,6 +13,12 @@ export default function ChangePassword() {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+  });
 
   const [alertModal, setAlertModal] = useState({
     isOpen: false,
@@ -76,6 +83,16 @@ export default function ChangePassword() {
       return;
     }
 
+    // ConfirmModal 열기
+    setConfirmModal({
+      isOpen: true,
+      title: '비밀번호 변경',
+      message: '비밀번호를 변경하시겠습니까?',
+    });
+  };
+
+  // 실제 비밀번호 변경 처리 함수 (새로 추가)
+  const handleConfirmChange = async () => {
     setIsLoading(true);
 
     try {
@@ -187,6 +204,16 @@ export default function ChangePassword() {
           </button>
         </div>
       </form>
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={handleConfirmChange}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText="변경"
+        cancelText="취소"
+        confirmButtonStyle="primary"
+      />
       <AlertModal
         isOpen={alertModal.isOpen}
         onClose={closeAlert}
